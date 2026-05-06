@@ -1,7 +1,7 @@
 node_modules/
 .expo/
 .expo-shared/
-CashFlow-Mobile/.gitignore
+CashFlow_Financas/.gitignore
 
 dist/
 build/
