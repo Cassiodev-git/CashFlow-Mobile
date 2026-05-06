@@ -1,0 +1,16 @@
+node_modules/
+.expo/
+.expo-shared/
+CashFlow-Mobile/.gitignore
+
+dist/
+build/
+
+.env
+.env.*
+
+.vscode/
+.idea/
+
+*.log
+*.tsbuildinfo
