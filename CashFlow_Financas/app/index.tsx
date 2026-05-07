@@ -1,6 +1,6 @@
 import { Text } from "react-native";
 export default function ModalScreen() {
   return (
-    <Text>Inicid</Text>
+    <Text>Inicio CashFlow</Text>
   );
 }

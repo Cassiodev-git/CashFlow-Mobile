@@ -1,10 +1,10 @@
 import { Stack } from 'expo-router';
+import { useEffect } from 'react';
+import { initializeDatabase } from '@/db/database';
 
 export default function RootLayout() {
-
-  return (
-    <Stack>
-      <Stack.Screen name='index'/>
-    </Stack>
-  );
+  useEffect(() => {
+    initializeDatabase()
+  })
+  return <Stack/>
 }
