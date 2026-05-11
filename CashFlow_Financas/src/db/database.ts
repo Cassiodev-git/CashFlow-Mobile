@@ -17,4 +17,4 @@ export async function initializeDatabase(){
         console.error("Erro ao inicializar banco:", error)
     }
 }
-export {db}
+
