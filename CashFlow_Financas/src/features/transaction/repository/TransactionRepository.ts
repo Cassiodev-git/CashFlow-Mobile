@@ -28,4 +28,8 @@ export class TransactionRepository {
         const result = await db.delete(transactions).where(eq(transactions.id, id))
         return result
     }
+    async listTransactions(user_id: string){
+        const result = await db.select().from(transactions).where(eq(transactions.user_id, user_id))
+        return result
+    }
 }
