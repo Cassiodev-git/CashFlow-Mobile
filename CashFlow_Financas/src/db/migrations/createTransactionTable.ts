@@ -6,7 +6,7 @@ export default function createTransactionTable(db: SQlite.SQLiteDatabase){
             id TEXT PRIMARY KEY NOT NULL,
             title TEXT NOT NULL,
             description TEXT,
-            imageUrl TEXT NOT NULL,
+            imageUrl TEXT,
             amount REAL NOT NULL DEFAULT 0,
             type TEXT NOT NULL DEFAULT 'income' CHECK (type IN ('income', 'expense')),
             date TEXT,
