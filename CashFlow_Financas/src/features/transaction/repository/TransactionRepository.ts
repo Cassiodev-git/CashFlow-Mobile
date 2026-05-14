@@ -24,6 +24,9 @@ export class TransactionRepository {
 
         return result
     }
+    async listTransactionByCategory(category_id: string){
+        return await db.select().from(transactions).where(eq(transactions.category_id, category_id))
+    }
     async deleteTransaction(id: string){
         const result = await db.delete(transactions).where(eq(transactions.id, id))
         return result

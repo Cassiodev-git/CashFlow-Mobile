@@ -8,6 +8,7 @@ export const createTransactionSchema = z.object({
     type: z.enum(["income", "expense"]).default("income"),
     status: z.enum(["paid","pending","canceled"]).default("canceled").optional(),
     date: z.string().optional(),
+    category_id: z.string().optional(),
 })
 export const updateTransactionSchema = z.object({
     title: z.string().min(3, "Título muito curto").optional(),
@@ -17,6 +18,7 @@ export const updateTransactionSchema = z.object({
     type: z.enum(["income", "expense"]).default("income").optional(),
     status: z.enum(["paid","pending","canceled"]).default("pending").optional(),
     date: z.string().optional(),
+    category_id: z.string().optional(),
 })
 
 export type CreateTransactionDTO = z.infer<typeof createTransactionSchema>

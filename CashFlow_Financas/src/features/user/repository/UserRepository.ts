@@ -4,7 +4,7 @@ import {v4 as uuid} from "uuid"
 import { eq } from "drizzle-orm";
 import type { CreateUserDTO, UpdateUserDTO } from "../validation";
 export class UserRepository {
-    async findFistUser() {
+    async findFirstUser() {
         const result = await db
             .select()
             .from(users)

@@ -22,7 +22,10 @@ export class CategoryRepository {
     }
     async deleteCategory(id: string){
         const result = await db.delete(categories).where(eq(categories.id, id))
-
         return result
     }
+    async listCategory(){
+        return await db.select().from(categories)
+    }
+    
 }

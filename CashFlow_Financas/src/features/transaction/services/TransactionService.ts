@@ -34,4 +34,8 @@ export class TransactionService {
     async listTransaction(user_id: string){
         return await transacRepo.listTransactions(user_id)
     }
+    async listTransactionByCategory(category_id: string){
+        const data = await transacRepo.listTransactionByCategory(category_id)
+        return data
+    }
 }
