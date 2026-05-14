@@ -1,13 +1,11 @@
 import {z} from "zod"
 
 export const createUserSchema = z.object({
-    name: z.string().min(3, "Nome muito curto").optional(),
-    email: z.string().email("Email inválido"),
+    name: z.string().min(3, "Nome muito curto"),
     imageProfile: z.string().optional()
 })
 export const updateUserSchema = z.object({
     name: z.string().min(3, "Nome muito curto").optional(),
-    email: z.string().email("Email inválido").optional(),
     imageProfile: z.string().optional()
 })
 

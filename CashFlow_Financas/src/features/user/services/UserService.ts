@@ -8,7 +8,7 @@ export class UserService {
     async createUser(data: CreateUserDTO){
         const validatedData = createUserSchema.parse(data)
 
-        const existingUser = await userRepo.findFistUser()
+        const existingUser = await userRepo.findFirstUser()
 
         if(existingUser){
             throw new Error("Usuário já existe")
@@ -18,7 +18,7 @@ export class UserService {
     }
     async updateUser(id: string, data: UpdateUserDTO ){
         const validatedData = updateUserSchema.parse(data)
-        const existingUser = await userRepo.findFistUser()
+        const existingUser = await userRepo.findFirstUser()
         
 
         if(!existingUser){

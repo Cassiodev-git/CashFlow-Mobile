@@ -9,7 +9,7 @@ const userRepo = new UserRepository()
 export class CategoryService {
     async createCategory(data: CreateCategoryDTO){
         const validatedData = createCategorySchema.parse(data)
-        const existingUser = await userRepo.findFistUser()
+        const existingUser = await userRepo.findFirstUser()
 
         if(!existingUser){
             throw new Error("Usuário não existe")
@@ -27,4 +27,3 @@ export class CategoryService {
         return await categoryRepo.listCategory()
     }
 }   
-

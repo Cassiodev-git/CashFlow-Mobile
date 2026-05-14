@@ -10,7 +10,7 @@ const userRepo = new UserRepository()
 export class TransactionService {
     async createTransaction(data: CreateTransactionDTO){
         const validatedData = createTransactionSchema.parse(data)
-        const existingUser = await userRepo.findFistUser()
+        const existingUser = await userRepo.findFirstUser()
         if(!existingUser){
             throw new Error("Usuário não existe")
         }
@@ -19,7 +19,7 @@ export class TransactionService {
     }
     async updateTransaction(id: string, data: UpdateTransactionDTO){
         const validatedData = updateTransactionSchema.parse(data)
-        const existingUser = await userRepo.findFistUser()
+        const existingUser = await userRepo.findFirstUser()
 
         if(!existingUser){
             throw new Error("Usuário não existe")
