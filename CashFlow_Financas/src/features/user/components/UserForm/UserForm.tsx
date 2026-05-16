@@ -5,7 +5,7 @@ import { InputText } from "@/components/InputText/InputText";
 import { ButtonForm } from "@/components/ButtonForm/ButtonForm";
 //hook
 import { useState } from "react";
-import { Alert, View, StyleSheet, Text, Pressable, ScrollView } from "react-native";
+import { Alert, View, StyleSheet, Text, Pressable, ScrollView, useWindowDimensions } from "react-native";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 //colors
@@ -20,6 +20,8 @@ type UserFormProps = {
 export function UserForm({initialValues, onSubmit}: UserFormProps){
     const [name, setName] = useState(initialValues?.name ?? "")
     const [imageProfile, setImageProfile] = useState(initialValues?.imageProfile ?? "")
+    const { width, height } = useWindowDimensions()
+    const isLandscape = width > height
 
     function handleSubmit(){
         onSubmit({
@@ -53,42 +55,55 @@ export function UserForm({initialValues, onSubmit}: UserFormProps){
 
     return (
         <ScrollView
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[
+                styles.scrollContent,
+                isLandscape && styles.scrollContentLandscape
+            ]}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
         >
-            <View style={styles.container}>
-                <Image source={logoCashFlow} style={styles.logo} contentFit="contain" />
+            <View style={[styles.container, isLandscape && styles.containerLandscape]}>
+                <View style={[styles.profileArea, isLandscape && styles.profileAreaLandscape]}>
+                    <Image
+                        source={logoCashFlow}
+                        style={[styles.logo, isLandscape && styles.logoLandscape]}
+                        contentFit="contain"
+                    />
 
-                <View style={styles.header}>
-                    <Text style={styles.title}>Cadastre seu perfil</Text>
-                    <Text style={styles.subtitle}>Informe seu nome e escolha uma imagem para o avatar.</Text>
+                    <View style={[styles.header, isLandscape && styles.headerLandscape]}>
+                        <Text style={styles.title}>Cadastre seu perfil</Text>
+                        <Text style={[styles.subtitle, isLandscape && styles.subtitleLandscape]}>
+                            Informe seu nome e escolha uma imagem para o avatar.
+                        </Text>
+                    </View>
+
+                    <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="Adicionar avatar"
+                        onPress={handleSelectImage}
+                        style={[styles.avatarButton, isLandscape && styles.avatarButtonLandscape]}
+                    >
+                        {imageProfile ? (
+                            <Image source={{ uri: imageProfile }} style={styles.avatarImage} contentFit="cover" />
+                        ) : (
+                            <View style={[styles.avatarPlaceholder, isLandscape && styles.avatarPlaceholderLandscape]}>
+                                <Text style={styles.avatarIcon}>+</Text>
+                            </View>
+                        )}
+                    </Pressable>
+                    <Text style={styles.avatarLabel}>Imagem do avatar</Text>
                 </View>
 
-                <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Adicionar avatar"
-                    onPress={handleSelectImage}
-                    style={styles.avatarButton}
-                >
-                    {imageProfile ? (
-                        <Image source={{ uri: imageProfile }} style={styles.avatarImage} contentFit="cover" />
-                    ) : (
-                        <View style={styles.avatarPlaceholder}>
-                            <Text style={styles.avatarIcon}>+</Text>
-                        </View>
-                    )}
-                </Pressable>
-                <Text style={styles.avatarLabel}>Imagem do avatar</Text>
-
-                <InputText
-                    placeholder="Nome"
-                    value={name}
-                    onChangeText={setName}
-                    autoCapitalize="words"
-                    returnKeyType="done"
-                />
-                <ButtonForm label="Salvar" onPress={handleSubmit}/>
+                <View style={[styles.formArea, isLandscape && styles.formAreaLandscape]}>
+                    <InputText
+                        placeholder="Nome"
+                        value={name}
+                        onChangeText={setName}
+                        autoCapitalize="words"
+                        returnKeyType="done"
+                    />
+                    <ButtonForm label="Salvar" onPress={handleSubmit}/>
+                </View>
             </View>
         </ScrollView>
     )
@@ -100,21 +115,56 @@ const styles = StyleSheet.create({
         paddingTop: 40,
         paddingBottom: 160,
     },
+    scrollContentLandscape: {
+        paddingTop: 24,
+        paddingBottom: 80,
+    },
     container: {
         width: "100%",
         alignItems: "center",
         gap: 12,
         paddingHorizontal: 24,
     },
+    containerLandscape: {
+        flexDirection: "row",
+        justifyContent: "center",
+        gap: 32,
+        paddingHorizontal: 32,
+    },
+    profileArea: {
+        width: "100%",
+        alignItems: "center",
+        gap: 12,
+    },
+    profileAreaLandscape: {
+        flex: 1,
+        maxWidth: 320,
+    },
+    formArea: {
+        width: "100%",
+        alignItems: "center",
+        gap: 12,
+    },
+    formAreaLandscape: {
+        flex: 1,
+        maxWidth: 360,
+    },
     logo: {
         width: 150,
         height: 72,
         marginBottom: 4,
     },
+    logoLandscape: {
+        width: 132,
+        height: 56,
+    },
     header: {
         width: "90%",
         gap: 6,
         marginBottom: 8,
+    },
+    headerLandscape: {
+        marginBottom: 0,
     },
     title: {
         color: colors.textPrimary,
@@ -124,12 +174,15 @@ const styles = StyleSheet.create({
     },
     subtitle: {
         color: colors.textSecondary,
-        fontSize: 13,
+        fontSize: 12,
         lineHeight: 18,
     },
+    subtitleLandscape: {
+        textAlign: "center",
+    },
     avatarButton: {
-        width: 112,
-        height: 112,
+        width: 96,
+        height: 96,
         borderRadius: 56,
         borderWidth: 2,
         borderColor: colors.primaryLight,
@@ -137,6 +190,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         overflow: "hidden",
+    },
+    avatarButtonLandscape: {
+        width: 88,
+        height: 88,
+        borderRadius: 44,
     },
     avatarImage: {
         width: "100%",
@@ -149,6 +207,11 @@ const styles = StyleSheet.create({
         backgroundColor: colors.primaryLight,
         alignItems: "center",
         justifyContent: "center",
+    },
+    avatarPlaceholderLandscape: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
     },
     avatarIcon: {
         color: colors.primary,
