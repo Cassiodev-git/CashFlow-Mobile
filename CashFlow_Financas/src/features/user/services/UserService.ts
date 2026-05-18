@@ -5,6 +5,10 @@ import { createUserSchema, updateUserSchema } from "../validation";
 const userRepo = new UserRepository()
 
 export class UserService {
+    async findFirstUser(){
+        return await userRepo.findFirstUser()
+    }
+
     async createUser(data: CreateUserDTO){
         const validatedData = createUserSchema.parse(data)
 

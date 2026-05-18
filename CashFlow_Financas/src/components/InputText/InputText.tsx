@@ -1,19 +1,36 @@
-import { StyleSheet, TextInput, TextInputProps } from "react-native";
+import { StyleSheet, TextInput, TextInputProps, View, Text } from "react-native";
+//cores
 import { colors } from "@/theme";
+//hooks
 
-export function InputText({ style, ...rest }: TextInputProps){
+type InputTextProps = TextInputProps & {
+    error?: string
+}
+
+export function InputText({ style, error, ...rest}: InputTextProps){ 
     return (
-        <TextInput
+        <View style={styles.container}>
+            <TextInput
             placeholderTextColor={colors.placeholder}
-            style={[styles.input, style]}
+            style={[styles.input, style, error && styles.inputError]}
             {...rest}
-        />
+            />
+            {error && (
+                <Text style={styles.erroText} >
+                    {error}
+                </Text>
+            )}
+        </View>
     )
 }
 
 const styles = StyleSheet.create({
-    input: {
+    container: {
         width: "90%",
+        gap: 4,
+    },
+    input: {
+        width: "100%",
         minHeight: 48,
         paddingHorizontal: 14,
         backgroundColor: colors.inputBackground,
@@ -22,5 +39,11 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 8,
         fontSize: 14
+    },
+    inputError: {
+        borderColor: colors.inputBorderError
+    },
+    erroText: {
+        color: colors.danger
     }
 })
