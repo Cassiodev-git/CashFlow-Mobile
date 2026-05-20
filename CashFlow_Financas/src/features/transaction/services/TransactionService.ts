@@ -1,41 +1,221 @@
-import { TransactionRepository } from "../repository/TransactionRepository";
-import { UserRepository } from "@/features/user/repository/UserRepository";
-import type { CreateTransactionDTO, UpdateTransactionDTO } from "../validation";
-import { createTransactionSchema, updateTransactionSchema } from "../validation";
+import { TransactionRepository }
+from "../repository/TransactionRepository";
 
-const transacRepo = new TransactionRepository()
-const userRepo = new UserRepository()
+import { UserRepository }
+from "@/features/user/repository/UserRepository";
 
+const transacRepo =
+    new TransactionRepository();
 
-export class TransactionService {
-    async createTransaction(data: CreateTransactionDTO){
-        const validatedData = createTransactionSchema.parse(data)
-        const existingUser = await userRepo.findFirstUser()
-        if(!existingUser){
-            throw new Error("Usuário não existe")
+const userRepo =
+    new UserRepository();
+
+export type TransactionSummary = {
+
+    income: number;
+
+    expense: number;
+
+    balance: number;
+};
+
+export type MonthlyExpensePercentage = {
+
+    percentage: number;
+
+    status:
+        | "positive"
+        | "negative"
+        | "neutral";
+};
+
+export class TransactionStatsService {
+
+    async getUserSummary(
+        user_id: string
+    ): Promise<TransactionSummary> {
+
+        const existingUser =
+            await userRepo.findFirstUser();
+
+        if (!existingUser) {
+            throw new Error(
+                "Usuário não existe"
+            );
         }
 
-        return await transacRepo.createTransaction(validatedData)
-    }
-    async updateTransaction(id: string, data: UpdateTransactionDTO){
-        const validatedData = updateTransactionSchema.parse(data)
-        const existingUser = await userRepo.findFirstUser()
+        const transactions =
+            await transacRepo
+                .listTransactions(user_id);
 
-        if(!existingUser){
-            throw new Error("Usuário não existe")
+        const income = transactions
+
+            .filter(
+                transaction =>
+                    transaction.type === "income"
+            )
+
+            .reduce((acc, transaction) => {
+
+                return (
+                    acc +
+                    Number(transaction.amount)
+                );
+
+            }, 0);
+
+        const expense = transactions
+
+            .filter(
+                transaction =>
+                    transaction.type === "expense"
+            )
+
+            .reduce((acc, transaction) => {
+
+                return (
+                    acc +
+                    Number(transaction.amount)
+                );
+
+            }, 0);
+
+        const balance =
+            income - expense;
+
+        return {
+            income,
+            expense,
+            balance
+        };
+    }
+
+    async getMonthlyExpensePercentage(
+        user_id: string
+    ): Promise<MonthlyExpensePercentage> {
+
+        const transactions =
+            await transacRepo
+                .listTransactions(user_id);
+
+        const now = new Date();
+
+        const currentMonth =
+            now.getMonth();
+
+        const currentYear =
+            now.getFullYear();
+
+        const lastMonthDate =
+            new Date(
+                currentYear,
+                currentMonth - 1,
+                1
+            );
+
+        const lastMonth =
+            lastMonthDate.getMonth();
+
+        const lastMonthYear =
+            lastMonthDate.getFullYear();
+
+        const currentMonthExpenses =
+            transactions
+
+                .filter(transaction => {
+
+                    if (!transaction.date) {
+                        return false;
+                    }
+
+                    const transactionDate =
+                        new Date(
+                            transaction.date
+                        );
+
+                    return (
+                        transaction.type ===
+                            "expense" &&
+                        transactionDate.getMonth() ===
+                            currentMonth &&
+                        transactionDate.getFullYear() ===
+                            currentYear
+                    );
+                })
+
+                .reduce((acc, transaction) => {
+
+                    return (
+                        acc +
+                        Number(transaction.amount)
+                    );
+
+                }, 0);
+
+        const lastMonthExpenses =
+            transactions
+
+                .filter(transaction => {
+
+                    if (!transaction.date) {
+                        return false;
+                    }
+
+                    const transactionDate =
+                        new Date(
+                            transaction.date
+                        );
+
+                    return (
+                        transaction.type ===
+                            "expense" &&
+                        transactionDate.getMonth() ===
+                            lastMonth &&
+                        transactionDate.getFullYear() ===
+                            lastMonthYear
+                    );
+                })
+
+                .reduce((acc, transaction) => {
+
+                    return (
+                        acc +
+                        Number(transaction.amount)
+                    );
+
+                }, 0);
+
+        if (lastMonthExpenses === 0) {
+
+            return {
+                percentage: 0,
+                status: "neutral"
+            };
         }
 
-        return transacRepo.updateTransaction(id, validatedData)
-    }
-    async deleteTransaction(id: string){
-        const result = await transacRepo.deleteTransaction(id)
-        return result
-    }
-    async listTransaction(user_id: string){
-        return await transacRepo.listTransactions(user_id)
-    }
-    async listTransactionByCategory(category_id: string){
-        const data = await transacRepo.listTransactionByCategory(category_id)
-        return data
+        const percentage =
+
+            (
+                (
+                    currentMonthExpenses -
+                    lastMonthExpenses
+                ) / lastMonthExpenses
+
+            ) * 100;
+
+        return {
+            percentage: Number(
+                percentage.toFixed(1)
+            ),
+
+            status:
+                percentage > 0
+                    ? "negative" as const
+                    : percentage < 0
+                        ? "positive" as const
+                        : "neutral" as const
+        };
     }
 }
+
+export default new TransactionStatsService();

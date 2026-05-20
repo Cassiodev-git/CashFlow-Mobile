@@ -35,4 +35,5 @@ export class TransactionRepository {
         const result = await db.select().from(transactions).where(eq(transactions.user_id, user_id))
         return result
     }
+
 }

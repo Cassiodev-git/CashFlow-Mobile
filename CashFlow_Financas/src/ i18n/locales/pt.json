@@ -46,6 +46,7 @@
     "transactions": {
         "income": "Receita",
         "expense": "Despesa",
+        "thisMonth": "Este mês",
         "addTransaction": "Adicionar transação",
         "editTransaction": "Editar transação",
         "transactionValue": "Valor da transação",
@@ -71,6 +72,10 @@
     "notifications": "Notificações",
     "darkMode": "Modo escuro",
     "lightMode": "Modo claro"
+    },
+    "balance": {
+        "title": "Saldo atual",
+        "comparedToLastMonth": "em relação ao mês passado"
     },
     "auth": {
     "login": "Entrar",

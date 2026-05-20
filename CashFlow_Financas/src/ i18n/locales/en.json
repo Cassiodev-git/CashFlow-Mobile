@@ -47,6 +47,7 @@
     "transactions": {
         "income": "Income",
         "expense": "Expense",
+        "thisMonth": "this month",
         "addTransaction": "Add transaction",
         "editTransaction": "Edit transaction",
         "transactionValue": "Transaction amount",
@@ -75,7 +76,10 @@
         "darkMode": "Dark mode",
         "lightMode": "Light mode"
     },
-
+    "balance": {
+        "title": "Current balance",
+        "comparedToLastMonth": "compared to last month"
+        },
     "auth": {
         "login": "Login",
         "logout": "Logout",
