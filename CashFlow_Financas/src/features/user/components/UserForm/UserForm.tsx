@@ -7,6 +7,8 @@ import { ButtonForm } from "@/components/ButtonForm/ButtonForm";
 
 //hook
 import { useEffect, useState } from "react";
+//Language
+import { useTranslation } from "react-i18next";
 
 import {
     Alert,
@@ -30,12 +32,14 @@ type UserFormProps = {
     initialValues?: Partial<CreateUserDTO>;
     onSubmit: (data: CreateUserDTO) => void;
     error?: string;
+    loading?: boolean
 }
 
 export function UserForm({
     initialValues,
     onSubmit,
-    error
+    error,
+    loading
 }: UserFormProps) {
 
     const [name, setName] = useState(initialValues?.name ?? "");
@@ -49,6 +53,7 @@ export function UserForm({
     const { width, height } = useWindowDimensions();
 
     const isLandscape = width > height;
+    const {t} = useTranslation()
 
     useEffect(() => {
         if (error) {
@@ -67,7 +72,7 @@ export function UserForm({
 
         if (!name.trim()) {
 
-            setLocalError("Nome obrigatório");
+            setLocalError(t("errors.requiredName"));
 
             setTimeout(() => {
                 setLocalError("");
@@ -155,7 +160,7 @@ export function UserForm({
                         ]}
                     >
                         <Text style={styles.title}>
-                            Cadastre seu perfil
+                            {t("user.title")}
                         </Text>
 
                         <Text
@@ -164,7 +169,7 @@ export function UserForm({
                                 isLandscape && styles.subtitleLandscape
                             ]}
                         >
-                            Informe seu nome e escolha uma imagem para o avatar.
+                            {t("user.subtitle")}
                         </Text>
                     </View>
 
@@ -172,6 +177,7 @@ export function UserForm({
                         accessibilityRole="button"
                         accessibilityLabel="Adicionar avatar"
                         onPress={handleSelectImage}
+                        disabled={loading}
                         style={[
                             styles.avatarButton,
                             isLandscape && styles.avatarButtonLandscape
@@ -197,7 +203,7 @@ export function UserForm({
                     </Pressable>
 
                     <Text style={styles.avatarLabel}>
-                        Imagem do avatar
+                        {t("user.avatar")}
                     </Text>
                 </View>
 
@@ -208,7 +214,7 @@ export function UserForm({
                     ]}
                 >
                     <InputText
-                        placeholder="Nome"
+                        placeholder={t("user.namePlaceholder")}
                         value={name}
                         onChangeText={handleChangeName}
                         autoCapitalize="words"
@@ -217,8 +223,9 @@ export function UserForm({
                     />
 
                     <ButtonForm
-                        label="Salvar"
+                        label={loading ? t("user.saveLoading") : t("common.save")}
                         onPress={handleSubmit}
+                        disabled={loading}
                     />
                 </View>
             </View>
@@ -244,6 +251,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         gap: 12,
         paddingHorizontal: 24,
+        
     },
 
     containerLandscape: {

@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { View, StyleSheet } from "react-native";
 
 //components
 import { UserForm } from "@/features/user/components/UserForm/UserForm";
@@ -9,11 +9,11 @@ import { useUser } from "@/features/user/hooks/useUser"
 
 //router
 import { router } from "expo-router";
+import { colors } from "@/theme";
 
 export default function ModalScreen() {
-  const {createUser, error, loading, findFirstUser} = useUser()
+  const {createUser, error, loading} = useUser()
   async function handleSaveUser(data: CreateUserDTO){
-    const useExists = await findFirstUser()
     const user = await createUser(data)
     if(user){
       router.replace("/home")
@@ -22,8 +22,15 @@ export default function ModalScreen() {
 
 
   return (
-    <View >
-      <UserForm onSubmit={handleSaveUser} error={error} />
+    <View style={style.container}>
+      <UserForm onSubmit={handleSaveUser} error={error} loading={loading} />
     </View>
   );
 }
+const style = StyleSheet.create({
+  container: {
+    flex: 1,
+    gap: 16,
+    backgroundColor: colors.background
+  }
+})

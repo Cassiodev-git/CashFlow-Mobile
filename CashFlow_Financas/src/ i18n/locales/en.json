@@ -1,0 +1,94 @@
+{
+    "common": {
+        "save": "Save",
+        "cancel": "Cancel",
+        "edit": "Edit",
+        "delete": "Delete",
+        "confirm": "Confirm",
+        "back": "Back",
+        "continue": "Continue",
+        "loading": "Loading...",
+        "search": "Search",
+        "close": "Close",
+        "yes": "Yes",
+        "no": "No",
+        "done": "Done",
+        "create": "Create",
+        "update": "Update",
+        "remove": "Remove"
+    },
+    "greetings": {
+        "hello": "Hello",
+        "financeSummary": "Here is the summary of your finances"
+    },
+    "errors": {
+        "unexpected": "Unexpected error",
+        "requiredField": "Required field",
+        "requiredName": "Name is required",
+        "invalidEmail": "Invalid email",
+        "minimumCharacters": "Minimum number of characters not reached",
+        "userAlreadyExists": "User already registered",
+        "networkError": "Connection error",
+        "databaseError": "Database error",
+        "permissionDenied": "Permission denied"
+    },
+
+    "user": {
+        "title": "Create your profile",
+        "subtitle": "Enter your name and choose an avatar image.",
+        "namePlaceholder": "Name",
+        "avatar": "Avatar image",
+        "saveLoading": "Saving...",
+        "createSuccess": "User created successfully",
+        "updateSuccess": "User updated successfully",
+        "deleteSuccess": "User successfully deleted"
+    },
+
+    "transactions": {
+        "income": "Income",
+        "expense": "Expense",
+        "addTransaction": "Add transaction",
+        "editTransaction": "Edit transaction",
+        "transactionValue": "Transaction amount",
+        "transactionDescription": "Description",
+        "transactionCategory": "Category",
+        "transactionDate": "Date",
+        "emptyTransactions": "No transactions found"
+    },
+
+    "categories": {
+        "food": "Food",
+        "transport": "Transport",
+        "health": "Health",
+        "education": "Education",
+        "salary": "Salary",
+        "investment": "Investment",
+        "entertainment": "Entertainment"
+    },
+
+    "settings": {
+        "title": "Settings",
+        "theme": "Theme",
+        "language": "Language",
+        "currency": "Currency",
+        "notifications": "Notifications",
+        "darkMode": "Dark mode",
+        "lightMode": "Light mode"
+    },
+
+    "auth": {
+        "login": "Login",
+        "logout": "Logout",
+        "register": "Register",
+        "email": "Email",
+        "password": "Password",
+        "forgotPassword": "Forgot password"
+    },
+
+    "alerts": {
+        "success": "Success",
+        "error": "Error",
+        "warning": "Warning",
+        "confirmDelete": "Do you really want to delete?"
+    }
+}

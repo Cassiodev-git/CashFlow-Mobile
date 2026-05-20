@@ -30,7 +30,7 @@ export const colors = {
     chartPurple: "#8A6FC0",
 
     inputBackground: "#F1F3F6",
-    inputBorder: "#E6E9EF",
+    inputBorder: "#CDD5DF",
     inputBorderFocus: "#289653",
     inputBorderError: "#FF4747",
     placeholder: "#A5ABB6",

@@ -2,11 +2,13 @@ import { UserService } from "@/features/user/services/UserService";
 import { CreateUserDTO, UpdateUserDTO } from "@/features/user/validation";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useCallback } from "react";
+import { useTranslation } from "react-i18next";
 
 const userService = new UserService();
 
 export function useUser() {
     const { loading, error, execute } = useAsyncAction();
+    const {t} = useTranslation()
 
     const findFirstUser = useCallback(function findFirstUser() {
         return execute(
@@ -18,7 +20,7 @@ export function useUser() {
     const createUser = useCallback(function createUser(data: CreateUserDTO) {
         return execute(
             () => userService.createUser(data),
-            {   successMessage: "Usuário criado com sucesso",
+            {   successMessage: t("user.createSuccess"),
                 showAlert: false  
             }
         );
@@ -27,14 +29,14 @@ export function useUser() {
     const updateUser = useCallback(function updateUser(id: string, data: UpdateUserDTO) {
         return execute(
             () => userService.updateUser(id, data),
-            { successMessage: "Usuário atualizado com sucesso" }
+            { successMessage: t("user.updateSuccess") }
         );
     }, [execute]);
 
     const deleteUser = useCallback(function deleteUser(id: string) {
         return execute(
             () => userService.deleteUser(id),
-            { successMessage: "Usuário removido com sucesso" }
+            { successMessage: t("user.deleteSuccess") }
         );
     }, [execute]);
 

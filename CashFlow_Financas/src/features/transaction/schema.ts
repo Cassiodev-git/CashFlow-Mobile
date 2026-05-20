@@ -4,7 +4,6 @@ export const transactions = sqliteTable('transactions', {
     id: text('id').primaryKey(),
     title: text('title').notNull(),
     description: text('description'),
-    imageUrl: text('imageUrl'),
     amount: real('amount').notNull(),
     type: text('type').notNull(),
     status: text('status'),

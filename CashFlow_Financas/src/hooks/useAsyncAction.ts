@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-import { Alert } from "react-native";
 import { ZodError } from "zod";
 
 type AsyncActionOptions = {
@@ -40,10 +39,6 @@ export function useAsyncAction() {
 
                 const result = await action();
 
-                if (options?.successMessage) {
-                    Alert.alert("Sucesso", options.successMessage);
-                }
-
                 return result;
 
             } catch (err) {
@@ -52,9 +47,6 @@ export function useAsyncAction() {
 
                 setError(message);
 
-                if (options?.showAlert) {
-                    Alert.alert("Erro", message);
-                }
 
                 return null;
 

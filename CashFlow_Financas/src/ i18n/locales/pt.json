@@ -1,0 +1,83 @@
+{
+    "common": {
+        "save": "Salvar",
+        "cancel": "Cancelar",
+        "edit": "Editar",
+        "delete": "Excluir",
+        "confirm": "Confirmar",
+        "back": "Voltar",
+        "continue": "Continuar",
+        "loading": "Carregando...",
+        "search": "Pesquisar",
+        "close": "Fechar",
+        "yes": "Sim",
+        "no": "Não",
+        "done": "Concluído",
+        "create": "Criar",
+        "update": "Atualizar",
+        "remove": "Remover"
+    },
+    "greetings": {
+        "hello": "Olá",
+        "financeSummary": "Aqui está o resumo das suas finanças"
+    },
+    
+    "errors": {
+        "unexpected": "Erro inesperado",
+        "requiredField": "Campo obrigatório",
+        "requiredName": "Nome obrigatório",
+        "invalidEmail": "Email inválido",
+        "minimumCharacters": "Quantidade mínima de caracteres não atingida",
+        "userAlreadyExists": "Usuário já cadastrado",
+        "networkError": "Erro de conexão",
+        "databaseError": "Erro no banco de dados",
+        "permissionDenied": "Permissão negada"
+    },
+    "user": {
+        "title": "Cadastre seu perfil",
+        "subtitle": "Informe seu nome e escolha uma imagem para o avatar.",
+        "namePlaceholder": "Nome",
+        "avatar": "Imagem do avatar",
+        "saveLoading": "Salvando...",
+        "createSuccess": "Usuário criado com sucesso",
+        "updateSuccess": "Usuário atualizado com sucesso",
+        "deleteSuccess": "Usuário deletado com sucesso"
+    },
+    "transactions": {
+        "income": "Receita",
+        "expense": "Despesa",
+        "addTransaction": "Adicionar transação",
+        "editTransaction": "Editar transação",
+        "transactionValue": "Valor da transação",
+        "transactionDescription": "Descrição",
+        "transactionCategory": "Categoria",
+        "transactionDate": "Data",
+        "emptyTransactions": "Nenhuma transação encontrada"
+    },
+    "categories": {
+    "food": "Alimentação",
+    "transport": "Transporte",
+    "health": "Saúde",
+    "education": "Educação",
+    "salary": "Salário",
+    "investment": "Investimentos",
+    "entertainment": "Lazer"
+    },
+    "settings": {
+    "title": "Configurações",
+    "theme": "Tema",
+    "language": "Idioma",
+    "currency": "Moeda",
+    "notifications": "Notificações",
+    "darkMode": "Modo escuro",
+    "lightMode": "Modo claro"
+    },
+    "auth": {
+    "login": "Entrar",
+    "logout": "Sair",
+    "register": "Cadastrar",
+    "email": "Email",
+    "password": "Senha",
+    "forgotPassword": "Esqueci minha senha"
+    } 
+}
