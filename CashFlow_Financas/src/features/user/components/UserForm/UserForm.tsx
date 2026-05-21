@@ -95,8 +95,8 @@ export function UserForm({
         if (!permission.granted) {
 
             Alert.alert(
-                "Permissão necessária",
-                "Autorize o acesso à galeria para selecionar uma imagem de avatar."
+                t("alerts.permissionRequiredTitle"),
+                t("alerts.permissionRequiredMessage")
             );
 
             return;
@@ -175,7 +175,7 @@ export function UserForm({
 
                     <Pressable
                         accessibilityRole="button"
-                        accessibilityLabel="Adicionar avatar"
+                        accessibilityLabel={t("user.addAvatarAccessibilityLabel")}
                         onPress={handleSelectImage}
                         disabled={loading}
                         style={[

@@ -7,14 +7,14 @@ import { initializeDatabase } from '@/db/database';
 //Banco de dados
 import "react-native-get-random-values";
 //Linguagem
-import "@/ i18n"; 
+import "@/i18n";
 import { colors } from '@/theme';
 
 export default function RootLayout() {
   const [dbStart, setDbStart] = useState(false);
-  const [user, setUser] = useState(false)
-  const useHook = useUser()
-  const router = useRouter()
+  const [user, setUser] = useState(false);
+  const { findFirstUser } = useUser();
+  const router = useRouter();
 
 
 
@@ -22,8 +22,10 @@ export default function RootLayout() {
     async function setup() {
       try {
         await initializeDatabase();
-        const registeredUser = await useHook.findFirstUser()
-        if(registeredUser) setUser(true)
+        const registeredUser = await findFirstUser();
+        if (registeredUser) {
+          setUser(true);
+        }
       } catch (error) {
         console.error("Erro crítico ao iniciar o banco de dados:", error);
       } finally {
@@ -31,10 +33,14 @@ export default function RootLayout() {
       }
     }
     setup();
-  }, []);
+  }, [findFirstUser]);
+
   useEffect(() => {
-    if(dbStart && user) router.replace("/home")
-  }, [dbStart, user])
+    if (dbStart && user) {
+      router.replace("/home");
+    }
+  }, [dbStart, user, router]);
+
   if (!dbStart) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#121212' }}>

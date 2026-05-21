@@ -67,7 +67,7 @@ export function TopBar({
 
         return () => clearInterval(interval);
 
-    }, [fullText]);
+    }, [fadeAnim, fullText, translateY]);
 
     return (
         <View style={styles.container}>

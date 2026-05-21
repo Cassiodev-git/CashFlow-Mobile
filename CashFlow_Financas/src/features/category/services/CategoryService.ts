@@ -2,6 +2,7 @@ import { UserRepository } from "@/features/user/repository/UserRepository";
 import { CategoryRepository } from "../repository/CategoryRepository";
 import type { CreateCategoryDTO, UpdateCategoryDTO  } from "../validation";
 import { createCategorySchema, updateCategorySchema } from "../validation";
+import i18n from "@/i18n";
 
 const categoryRepo = new CategoryRepository()
 const userRepo = new UserRepository()
@@ -12,7 +13,7 @@ export class CategoryService {
         const existingUser = await userRepo.findFirstUser()
 
         if(!existingUser){
-            throw new Error("Usuário não existe")
+            throw new Error(i18n.t("errors.userNotFound"))
         }
         return await categoryRepo.createCategory(validatedData)
     }

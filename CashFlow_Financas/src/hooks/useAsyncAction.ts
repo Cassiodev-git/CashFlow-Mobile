@@ -47,7 +47,6 @@ export function useAsyncAction() {
 
                 setError(message);
 
-
                 return null;
 
             } finally {

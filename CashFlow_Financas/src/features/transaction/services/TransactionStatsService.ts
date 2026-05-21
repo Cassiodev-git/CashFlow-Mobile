@@ -1,21 +1,37 @@
 import { TransactionRepository } from "../repository/TransactionRepository";
 import { UserRepository } from "@/features/user/repository/UserRepository";
+import i18n from "@/i18n";
 
 const transacRepo = new TransactionRepository();
 const userRepo = new UserRepository();
 
-class TransactionSummaryService {
-    async getUserSummary(user_id: string) {
+export type TransactionSummary = {
+    income: number;
+    expense: number;
+    balance: number;
+};
 
-        const existingUser =
-            await userRepo.findFirstUser();
+export type MonthlyExpensePercentage = {
+    percentage: number;
+    status: "positive" | "negative" | "neutral";
+};
 
-        if (!existingUser) {
-            throw new Error("Usuário não existe");
-        }
+async function getLocalUserId() {
+    const user = await userRepo.findFirstUser();
+
+    if (!user) {
+        throw new Error(i18n.t("errors.userNotFoundForTransactionRead"));
+    }
+
+    return user.id;
+}
+
+class TransactionStatsService {
+    async getSummary(): Promise<TransactionSummary> {
+        const userId = await getLocalUserId();
 
         const transactions =
-            await transacRepo.listTransactions(user_id);
+            await transacRepo.listTransactions(userId);
 
         const income = transactions
             .filter(
@@ -46,17 +62,12 @@ class TransactionSummaryService {
         };
     }
 
-    async getMonthlyExpensePercentage(user_id: string) {
+    async getMonthlyExpensePercentage(): Promise<MonthlyExpensePercentage> {
+        const userId = await getLocalUserId();
 
-        const existingUser =
-            await userRepo.findFirstUser();
-
-        if (!existingUser) {
-            throw new Error("Usuário não existe");
-        }
 
         const transactions =
-            await transacRepo.listTransactions(user_id);
+            await transacRepo.listTransactions(userId);
 
         const now = new Date();
 
@@ -157,4 +168,4 @@ class TransactionSummaryService {
         };
     }
 }
-export default new TransactionSummaryService()
+export default new TransactionStatsService()

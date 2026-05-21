@@ -1,4 +1,4 @@
-import i18n from "i18next";
+import { createInstance } from "i18next";
 
 import { initReactI18next } from "react-i18next";
 
@@ -7,6 +7,8 @@ import * as Localization from "expo-localization";
 import pt from "./locales/pt.json";
 
 import en from "./locales/en.json";
+
+const i18n = createInstance();
 
 const deviceLanguage =
     Localization.getLocales()[0]?.languageCode;

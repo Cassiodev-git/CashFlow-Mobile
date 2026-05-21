@@ -28,9 +28,23 @@
         "invalidEmail": "Invalid email",
         "minimumCharacters": "Minimum number of characters not reached",
         "userAlreadyExists": "User already registered",
+        "userNotFound": "User not found",
+        "userNotFoundForTransactionCreate": "User not found to register the transaction",
+        "userNotFoundForTransactionRead": "User not found to load transactions",
         "networkError": "Connection error",
         "databaseError": "Database error",
         "permissionDenied": "Permission denied"
+    },
+    "validation": {
+        "user": {
+            "nameTooShort": "Name is too short",
+            "nameTooLong": "Name is too long"
+        },
+        "transaction": {
+            "titleTooShort": "Title is too short",
+            "titleTooLong": "Title is too long",
+            "descriptionTooLong": "Description is too long"
+        }
     },
 
     "user": {
@@ -38,6 +52,7 @@
         "subtitle": "Enter your name and choose an avatar image.",
         "namePlaceholder": "Name",
         "avatar": "Avatar image",
+        "addAvatarAccessibilityLabel": "Add avatar",
         "saveLoading": "Saving...",
         "createSuccess": "User created successfully",
         "updateSuccess": "User updated successfully",
@@ -47,6 +62,8 @@
     "transactions": {
         "income": "Income",
         "expense": "Expense",
+        "seeAll": "See all",
+        "seeLess": "See less",
         "thisMonth": "this month",
         "addTransaction": "Add transaction",
         "editTransaction": "Edit transaction",
@@ -54,6 +71,8 @@
         "transactionDescription": "Description",
         "transactionCategory": "Category",
         "transactionDate": "Date",
+        "searchPlaceholder": "Search for transaction...",
+        "recentTitle": "Recent transactions",
         "emptyTransactions": "No transactions found"
     },
 
@@ -93,6 +112,8 @@
         "success": "Success",
         "error": "Error",
         "warning": "Warning",
-        "confirmDelete": "Do you really want to delete?"
+        "confirmDelete": "Do you really want to delete?",
+        "permissionRequiredTitle": "Permission required",
+        "permissionRequiredMessage": "Allow gallery access to select an avatar image."
     }
 }

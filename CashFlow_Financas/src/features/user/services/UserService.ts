@@ -1,6 +1,7 @@
 import { UserRepository } from "../repository/UserRepository";
 import type { CreateUserDTO, UpdateUserDTO} from "../validation";
 import { createUserSchema, updateUserSchema } from "../validation";
+import i18n from "@/i18n";
 
 const userRepo = new UserRepository()
 
@@ -15,7 +16,7 @@ export class UserService {
         const existingUser = await userRepo.findFirstUser()
 
         if(existingUser){
-            throw new Error("Usuário já existe")
+            throw new Error(i18n.t("errors.userAlreadyExists"))
         }
 
         return await userRepo.createUser(validatedData)
@@ -26,7 +27,7 @@ export class UserService {
         
 
         if(!existingUser){
-            throw new Error("Usuário não encontrado")
+            throw new Error(i18n.t("errors.userNotFound"))
         }
 
         return await userRepo.updateUser(id, validatedData)

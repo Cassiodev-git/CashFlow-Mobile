@@ -24,21 +24,21 @@ export function useUser() {
                 showAlert: false  
             }
         );
-    }, [execute]);
+    }, [execute, t]);
 
     const updateUser = useCallback(function updateUser(id: string, data: UpdateUserDTO) {
         return execute(
             () => userService.updateUser(id, data),
             { successMessage: t("user.updateSuccess") }
         );
-    }, [execute]);
+    }, [execute, t]);
 
     const deleteUser = useCallback(function deleteUser(id: string) {
         return execute(
             () => userService.deleteUser(id),
             { successMessage: t("user.deleteSuccess") }
         );
-    }, [execute]);
+    }, [execute, t]);
 
     return {
         findFirstUser,

@@ -29,15 +29,30 @@
         "invalidEmail": "Email inválido",
         "minimumCharacters": "Quantidade mínima de caracteres não atingida",
         "userAlreadyExists": "Usuário já cadastrado",
+        "userNotFound": "Usuário não encontrado",
+        "userNotFoundForTransactionCreate": "Usuário não encontrado para registrar transação",
+        "userNotFoundForTransactionRead": "Usuário não encontrado para consultar transações",
         "networkError": "Erro de conexão",
         "databaseError": "Erro no banco de dados",
         "permissionDenied": "Permissão negada"
+    },
+    "validation": {
+        "user": {
+            "nameTooShort": "Nome muito curto",
+            "nameTooLong": "Nome muito longo"
+        },
+        "transaction": {
+            "titleTooShort": "Título muito curto",
+            "titleTooLong": "Título muito longo",
+            "descriptionTooLong": "Descrição muito longa"
+        }
     },
     "user": {
         "title": "Cadastre seu perfil",
         "subtitle": "Informe seu nome e escolha uma imagem para o avatar.",
         "namePlaceholder": "Nome",
         "avatar": "Imagem do avatar",
+        "addAvatarAccessibilityLabel": "Adicionar avatar",
         "saveLoading": "Salvando...",
         "createSuccess": "Usuário criado com sucesso",
         "updateSuccess": "Usuário atualizado com sucesso",
@@ -47,12 +62,16 @@
         "income": "Receita",
         "expense": "Despesa",
         "thisMonth": "Este mês",
+        "seeAll": "Ver todas",
+        "seeLess": "Ver menos",
         "addTransaction": "Adicionar transação",
         "editTransaction": "Editar transação",
         "transactionValue": "Valor da transação",
         "transactionDescription": "Descrição",
         "transactionCategory": "Categoria",
         "transactionDate": "Data",
+        "searchPlaceholder": "Buscar transação...",
+        "recentTitle": "Transações recentes",
         "emptyTransactions": "Nenhuma transação encontrada"
     },
     "categories": {
@@ -84,5 +103,9 @@
     "email": "Email",
     "password": "Senha",
     "forgotPassword": "Esqueci minha senha"
-    } 
+    },
+    "alerts": {
+        "permissionRequiredTitle": "Permissão necessária",
+        "permissionRequiredMessage": "Autorize o acesso à galeria para selecionar uma imagem de avatar."
+    }
 }
