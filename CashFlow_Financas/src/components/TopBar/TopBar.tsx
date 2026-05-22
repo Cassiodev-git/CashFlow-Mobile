@@ -12,7 +12,7 @@ import { colors } from '@/theme';
 import { useTranslation } from 'react-i18next';
 
 import { User } from "@/features/user/types/User";
-
+import { ScaledSheet } from '@/utils/responsive';
 interface TopBarProps {
     user: User | null;
     onNotificationPress?: () => void;
@@ -94,7 +94,7 @@ export function TopBar({
 
             </View>
 
-            <TouchableOpacity
+            {/*<TouchableOpacity
                 activeOpacity={0.7}
                 onPress={onNotificationPress}
                 style={styles.iconButton}
@@ -108,13 +108,13 @@ export function TopBar({
 
                 <View style={styles.notificationDot} />
 
-            </TouchableOpacity>
+            </TouchableOpacity>*/}
 
         </View>
     );
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
 
     container: {
         flexDirection: 'row',

@@ -20,19 +20,22 @@ import { MotiView, AnimatePresence } from 'moti';
 import { BlurView } from 'expo-blur';
 import { useTranslation } from 'react-i18next';
 
+// 1. Importar o hook de área segura 🌟
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 // Services
 import AppTransactionsService from '@/services/AppTransactionsService';
 import AppCategoryService from '@/services/AppCategoryService';
 
 // Types
 import { Transactions as Transaction } from '../../types/Transactions';
+import { ScaledSheet, verticalScale } from '@/utils/responsive'; 
 
 interface TransactionFormModalProps {
     isOpen: boolean;
     onClose: () => void;
     transaction?: Transaction | null; 
 }
-
 
 const applyDateMask = (value: string, lang: string) => {
     const cleanValue = value.replace(/\D/g, '');
@@ -73,10 +76,11 @@ const formatFromBackendDate = (dateStr: string | null | undefined, lang: string)
     return `${day}/${month}/${year}`;
 };
 
-
 export function TransactionFormModal({ isOpen, onClose, transaction }: TransactionFormModalProps) {
     const { t, i18n } = useTranslation();
     const { height } = useWindowDimensions();
+    // 2. Chamar o hook de safe area 🌟
+    const insets = useSafeAreaInsets();
     
     const isEditMode = !!transaction;
 
@@ -108,7 +112,8 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
                 setTitle('');
                 setDescription('');
                 setAmount('');
-                setDate('');
+                const hoje = new Date();
+                setDate(formatFromBackendDate(hoje.toISOString(), i18n.language));
                 setCategoryId('');
                 setType('expense');
                 setStatus('pending');
@@ -132,11 +137,13 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
         }
         loadCategories();
     }, [isOpen]);
+
     useEffect(() => {
         const showSub = Keyboard.addListener('keyboardDidShow', () => setIsKeyboardVisible(true));
         const hideSub = Keyboard.addListener('keyboardDidHide', () => setIsKeyboardVisible(false));
         return () => { showSub.remove(); hideSub.remove(); };
     }, []);
+
     useEffect(() => {
         if (error) {
             const timer = setTimeout(() => {
@@ -158,6 +165,20 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
             setError(t("transactions.invalidCreateData"));
             return;
         }
+        if (!normalizedDate || normalizedDate.length !== 10) {
+            setError(t("transactions.invalidDate", "Insira uma data válida no formato DD/MM/AAAA."));
+            return;
+        }
+
+        const partesAno = normalizedDate.split('-');
+        const anoDigitado = Number(partesAno[0]);
+        const mesDigitado = Number(partesAno[1]);
+        const diaDigitado = Number(partesAno[2]);
+
+        if (anoDigitado < 2000 || anoDigitado > new Date().getFullYear() + 2 || mesDigitado > 12 || diaDigitado > 31) {
+            setError(t("transactions.dateOutRange", "Por favor, insira uma data válida a partir do ano 2000."));
+            return;
+        }
 
         try {
             setLoading(true);
@@ -174,17 +195,13 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
             };
 
             if (isEditMode && transaction) {
-
                 await AppTransactionsService.updateTransaction(transaction.id, payload);
             } else {
-
                 await AppTransactionsService.createTransaction(payload);
             }
 
             onClose();
-            
             await new Promise(resolve => setTimeout(resolve, 120));
-            
             DeviceEventEmitter.emit("transaction_mutated");
             
         } catch {
@@ -196,29 +213,42 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
 
     const filteredCategories = categories.filter((cat) => cat.type === type);
 
+    const modalMaxHeight = isKeyboardVisible ? height * 0.52 : height * 0.75;
+
+    const dynamicButtonBottom = insets.bottom > 0 ? insets.bottom + 12 : 16;
+
     return (
         <Modal visible={isOpen} transparent animationType="none" statusBarTranslucent onRequestClose={onClose}>
             <BlurView intensity={70} tint="dark" style={styles.fullScreenOverlay}>
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} style={styles.modalCenteredContainer}>
+                    <KeyboardAvoidingView 
+                        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} 
+                        style={[
+                            styles.modalCenteredContainer,
+                            isKeyboardVisible && { justifyContent: 'flex-start', paddingTop: verticalScale(30) }
+                        ]}
+                    >
                         <AnimatePresence>
                             {isOpen && (
                                 <MotiView
                                     from={{ opacity: 0, scale: 0.9, translateY: 30 }}
-                                    animate={{ opacity: 1, scale: isKeyboardVisible ? 0.96 : 1, translateY: 0 }}
+                                    animate={{ opacity: 1, scale: 1, translateY: 0 }}
                                     exit={{ opacity: 0, scale: 0.9, translateY: 30 }}
-                                    transition={{ type: 'timing', duration: 250 }}
-                                    style={[styles.formCard, { maxHeight: isKeyboardVisible ? Math.min(height * 0.55, 420) : Math.min(height * 0.84, 700) }]}
+                                    transition={{ type: 'timing', duration: 220 }}
+                                    style={[styles.formCard, { maxHeight: modalMaxHeight }]}
                                 >
                                     <View style={[styles.header, isKeyboardVisible && styles.headerCompact]}>
                                         <Text style={styles.formTitle}>
-                                            {isEditMode ? t("transactions.editTitle","ola") : t("transactions.newTransaction")}
+                                            {isEditMode ? t("transactions.editTitle", "Editar Transação") : t("transactions.newTransaction")}
                                         </Text>
                                     </View>
 
-                                    <ScrollView style={styles.formContent} contentContainerStyle={[styles.formContentContainer, isKeyboardVisible && styles.formContentContainerCompact]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                                        
-
+                                    <ScrollView 
+                                        style={styles.formContent} 
+                                        contentContainerStyle={[styles.formContentContainer, isKeyboardVisible && styles.formContentContainerCompact]} 
+                                        showsVerticalScrollIndicator={true} 
+                                        keyboardShouldPersistTaps="handled"
+                                    >
                                         <View style={styles.inputGroup}>
                                             <Text style={styles.inputLabel}>{t("transactions.title", "Título")}</Text>
                                             <TextInput style={styles.input} placeholder={t("transactions.titlePlaceholder")} placeholderTextColor={colors.placeholder} value={title} onChangeText={setTitle} maxLength={20} />
@@ -243,7 +273,6 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
 
                                         {!isKeyboardVisible && (
                                             <>
-
                                                 <View style={styles.inputGroup}>
                                                     <Text style={styles.inputLabel}>{t("transactions.typeLabel")}</Text>
                                                     <View style={styles.choiceRow}>
@@ -308,8 +337,12 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
                         </AnimatePresence>
 
                         {!isKeyboardVisible && (
-                            <TouchableOpacity activeOpacity={0.85} onPress={onClose} style={styles.bottomBarCloseButton}>
-                                <MotiView style={[styles.plusButton, styles.closeButton]} from={{ rotate: '0deg' }} animate={{ rotate: '135deg' }} transition={{ type: 'timing', duration: 220 }}>
+                            <TouchableOpacity 
+                                activeOpacity={0.85} 
+                                onPress={onClose} 
+                                style={[styles.bottomBarCloseButton, { bottom: dynamicButtonBottom }]}
+                            >
+                                <MotiView style={styles.plusButtonCircle} from={{ rotate: '0deg' }} animate={{ rotate: '135deg' }} transition={{ type: 'timing', duration: 220 }}>
                                     <Feather name="plus" size={26} color={colors.textInverse} />
                                 </MotiView>
                             </TouchableOpacity>
@@ -321,35 +354,49 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
     );
 }
 
-const styles = StyleSheet.create({
-    fullScreenOverlay: { ...StyleSheet.absoluteFillObject, flex: 1, justifyContent: 'center' },
-    plusButton: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.primaryDark, justifyContent: 'center', alignItems: 'center', marginBottom: 20, shadowColor: colors.primaryDark, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5, elevation: 5, zIndex: 9999 },
-    closeButton: { backgroundColor: colors.danger, shadowColor: colors.danger, marginBottom: 3 },
-    bottomBarCloseButton: { position: 'absolute', bottom: 30, left: 0, right: 0, alignItems: 'center', justifyContent: 'center', zIndex: 30 },
+const styles = ScaledSheet.create({
+    fullScreenOverlay: { flex: 1, justifyContent: 'center' },
     modalCenteredContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16, width: '100%' },
+    
+    plusButtonCircle: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: colors.danger,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: colors.danger,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 5,
+    },
+    
+
+    bottomBarCloseButton: { position: 'absolute', left: 0, right: 0, alignItems: 'center', justifyContent: 'center', zIndex: 30 },
     formCard: { width: '100%', backgroundColor: colors.surface, borderRadius: 24, borderWidth: 1, borderColor: colors.border, shadowColor: colors.textPrimary, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.15, shadowRadius: 14, elevation: 10, overflow: 'hidden' },
     header: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: colors.divider, backgroundColor: colors.surface },
     headerCompact: { paddingTop: 14, paddingBottom: 8 },
     formContent: { width: '100%' },
     formContentContainer: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 24 },
-    formContentContainerCompact: { paddingTop: 8, paddingBottom: 12 },
+    formContentContainerCompact: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 16 },
     formTitle: { fontSize: 20, fontWeight: '700', color: colors.textPrimary, textAlign: 'left' },
     inputGroup: { width: '100%', marginBottom: 16 },
     row: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
     halfInputLeft: { flex: 1 },
     halfInputRight: { flex: 1 },
-    multilineInput: { minHeight: 104, paddingTop: 14, height: 100 },
+    multilineInput: { minHeight: 90, paddingTop: 12, height: 90 },
     multilineInputCompact: { minHeight: 48, height: 48 },
-    errorText: { color: colors.danger, fontSize: 12, marginBottom: 6, textAlign: "center" },
-    inputLabel: { fontSize: 14, fontWeight: '600', color: colors.textPrimary, marginBottom: 4 },
-    input: { width: '100%', height: 48, backgroundColor: colors.inputBackground, borderRadius: 12, paddingHorizontal: 16, borderWidth: 1, borderColor: colors.inputBorder, fontSize: 15, color: colors.textPrimary },
+    errorText: { color: colors.danger, fontSize: 12, marginBottom: 8, marginTop: 4, textAlign: "center" },
+    inputLabel: { fontSize: 14, fontWeight: '600', color: colors.textPrimary, marginBottom: 6 },
+    input: { width: '100%', height: 46, backgroundColor: colors.inputBackground, borderRadius: 12, paddingHorizontal: 16, borderWidth: 1, borderColor: colors.inputBorder, fontSize: 15, color: colors.textPrimary },
     helperText: { color: colors.textSecondary, fontSize: 13, paddingVertical: 2 },
     choiceRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
     choiceButton: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: colors.inputBorder, backgroundColor: colors.surface },
     choiceButtonActive: { backgroundColor: colors.primaryLight, borderColor: colors.primary },
     choiceButtonText: { color: colors.textSecondary, fontSize: 14, fontWeight: '600' },
     choiceButtonTextActive: { color: colors.primaryDark },
-    buttonRow: { width: '100%', marginTop: 8 },
+    buttonRow: { width: '100%', marginTop: 12 },
     saveButton: { width: '100%', height: 48, justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: colors.primaryDark },
     saveButtonText: { fontSize: 15, fontWeight: '600', color: colors.textInverse }
 });

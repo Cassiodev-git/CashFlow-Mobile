@@ -1,9 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '@/theme';
 import { MotiView } from 'moti';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ScaledSheet } from '@/utils/responsive';
 
 import { ButtonBar } from '@/features/transaction/components/ButtonBar/ButtonBar';
 
@@ -17,6 +19,7 @@ interface BottomBarProps {
 
 export function BottomBar({ currentRoute = 'Home', onNavigate, onTransactionCreated }: BottomBarProps) {
     const { t } = useTranslation();
+    const insets = useSafeAreaInsets();
 
     const tabs: { route: TabRoute; icon: keyof typeof Feather.glyphMap; label: string }[] = [
         { route: 'Home', icon: 'home', label: t("bottomBar.home") },
@@ -55,11 +58,19 @@ export function BottomBar({ currentRoute = 'Home', onNavigate, onTransactionCrea
         );
     };
 
+    const dynamicPaddingBottom = insets.bottom > 0 ? insets.bottom : 14;
+
     return (
-        <View style={styles.container}>
+        <View 
+            style={[
+                styles.container, 
+                { paddingBottom: dynamicPaddingBottom }
+            ]}
+        >
             <View style={styles.tabSection}>
                 {tabs.slice(0, 2).map((tab) => renderTab(tab))}
             </View>
+            
             <View style={styles.centerButtonContainer}>
                 <ButtonBar onTransactionCreated={onTransactionCreated} />
             </View>
@@ -71,22 +82,23 @@ export function BottomBar({ currentRoute = 'Home', onNavigate, onTransactionCrea
     );
 }
 
-const styles = StyleSheet.create({
+
+const styles = ScaledSheet.create({
     container: {
         flexDirection: 'row',
         width: '100%',
-        height: 78,
         backgroundColor: colors.surface,
         borderTopWidth: 1,
         borderColor: colors.border,
-        paddingHorizontal: 12,
-        paddingBottom: 14,
+        paddingHorizontal: 14, 
+        paddingTop: 4,        
         alignItems: 'center',
         justifyContent: 'space-between',
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
+        
     },
     tabSection: {
         flexDirection: 'row',
@@ -103,14 +115,14 @@ const styles = StyleSheet.create({
     iconContainer: {
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 4,
+        marginBottom: 4, 
     },
     tabLabel: {
-        fontSize: 11,
+        fontSize: 11, 
         fontWeight: '500',
     },
     centerButtonContainer: {
-        width: 60,
+        width: 60, 
         alignItems: 'center',
         justifyContent: 'center',
         height: '100%',

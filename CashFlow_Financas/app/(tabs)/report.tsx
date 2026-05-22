@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     title: {
-        color: colors.textSecondary,
+        color: "#000000",
         fontSize: 22,
         fontWeight: "700",
     },

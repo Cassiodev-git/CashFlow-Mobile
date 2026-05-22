@@ -15,6 +15,7 @@ import { MotiView, AnimatePresence } from 'moti';
 import { FlashList } from '@shopify/flash-list';
 import { Transactions as Transaction } from '../../types/Transactions';
 import { ConfirmationModal } from '@/components/ConfirmationModal/ConfirmationModal'; 
+import { ScaledSheet } from '@/utils/responsive';
 
 const OtimizedList = FlashList as React.ComponentType<any>;
 
@@ -398,9 +399,9 @@ export function RecentTransactions({
     );
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
     container: { width: '100%', marginTop: 8, backgroundColor: colors.card, padding: 15, borderRadius: 16 },
-    header: { width: '100%', height: 46, justifyContent: 'center', marginBottom: 16 },
+    header: { width: '100%', height: 46, justifyContent: 'center', marginBottom: 8 },
     titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' },
     title: { fontSize: 16, fontWeight: '700', color: colors.textPrimary, letterSpacing: -0.3 },
     viewAllBtn: { fontSize: 14, fontWeight: '600', color: colors.income },
@@ -424,9 +425,9 @@ const styles = StyleSheet.create({
     emptyText: { textAlign: 'center', color: colors.textSecondary, fontSize: 14 }
 });
 
-const modalStyles = StyleSheet.create({
-    backdrop: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.4)', justifyContent: 'flex-end' }, // 👈 Adicionado o fundo preto transparente na abertura dos detalhes
-    sheetContainer: { backgroundColor: colors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 24, paddingBottom: 34, paddingTop: 12, width: '100%', borderWidth: 1, borderColor: colors.inputBorder },
+const modalStyles = ScaledSheet.create({
+    backdrop: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.4)', justifyContent: 'flex-end' }, 
+    sheetContainer: { backgroundColor: colors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 24, paddingBottom: 12, paddingTop: 12, width: '100%', borderWidth: 1, borderColor: colors.inputBorder },
     dragIndicator: { width: 38, height: 5, backgroundColor: colors.inputBorder, borderRadius: 3, alignSelf: 'center', marginBottom: 20 },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
     headerTitle: { fontSize: 15, fontWeight: '600', color: colors.textSecondary },

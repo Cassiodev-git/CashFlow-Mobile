@@ -19,10 +19,13 @@ import { colors } from '@/theme';
 import { MotiView, AnimatePresence } from 'moti';
 import { BlurView } from 'expo-blur';
 import { useTranslation } from 'react-i18next';
+//services
 import AppTransactionsService from '@/services/AppTransactionsService';
 import AppCategoryService from '@/services/AppCategoryService';
+// schemas
 import type { categories } from '@/features/category/schema';
-
+//responsive
+import { ScaledSheet } from '@/utils/responsive';
 interface ButtonBarProps {
     onTransactionCreated?: () => void | Promise<void>;
 }
@@ -58,6 +61,21 @@ const formatToBackendDate = (dateStr: string, lang: string): string => {
     }
 };
 
+const formatFromBackendDate = (dateStr: string | null | undefined, lang: string): string => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '';
+    
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    if (lang.startsWith('en')) {
+        return `${year}-${month}-${day}`;
+    }
+    return `${day}/${month}/${year}`;
+};
+
 export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
     const { t, i18n } = useTranslation();
     const { height } = useWindowDimensions();
@@ -86,7 +104,11 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
         setError('');
     };
 
-    const handleOpen = () => setIsOpen(true);
+    const handleOpen = () => {
+        setIsOpen(true);
+        const hoje = new Date();
+        setDate(formatFromBackendDate(hoje.toISOString(), i18n.language));
+    };
 
     const handleClose = () => {
         resetForm();
@@ -102,6 +124,20 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
 
         if (!normalizedTitle || Number.isNaN(normalizedAmount) || normalizedAmount <= 0) {
             setError(t("transactions.invalidCreateData"));
+            return;
+        }
+        if (!normalizedDate || normalizedDate.length !== 10) {
+            setError(t("transactions.invalidDate", "Insira uma data válida no formato DD/MM/AAAA."));
+            return;
+        }
+
+        const partesAno = normalizedDate.split('-'); // Formato gerado para o backend é YYYY-MM-DD
+        const anoDigitado = Number(partesAno[0]);
+        const mesDigitado = Number(partesAno[1]);
+        const diaDigitado = Number(partesAno[2]);
+
+        if (anoDigitado < 2000 || anoDigitado > new Date().getFullYear() + 2 || mesDigitado > 12 || diaDigitado > 31) {
+            setError(t("transactions.dateOutRange", "Por favor, insira uma data válida a partir do ano 2000."));
             return;
         }
 
@@ -132,8 +168,7 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
 
             await onTransactionCreated?.();
             
-        } catch (err) {
-            console.error("Erro ao criar transação:", err);
+        } catch {
             setError(t("errors.unexpected"));
         } finally {
             setLoading(false);
@@ -175,15 +210,16 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
             hideSubscription.remove();
         };
     }, []);
+
     useEffect(() => {
-            if (error) {
-                const timer = setTimeout(() => {
-                    setError('');
-                }, 6000); 
-    
-                return () => clearTimeout(timer);
-            }
-        }, [error]);
+        if (error) {
+            const timer = setTimeout(() => {
+                setError('');
+            }, 6000); 
+
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
 
     return (
         <View style={styles.anchorContainer}>
@@ -450,7 +486,7 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
     );
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
     fullScreenOverlay: {
         ...StyleSheet.absoluteFillObject,
         flex: 1,
@@ -463,11 +499,10 @@ const styles = StyleSheet.create({
     plusButton: {
         width: 48,
         height: 48,
-        borderRadius: 24,
+        borderRadius: "100%",
         backgroundColor: colors.primaryDark,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 20,
         shadowColor: colors.primaryDark,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
@@ -482,7 +517,7 @@ const styles = StyleSheet.create({
     },
     bottomBarCloseButton: {
         position: 'absolute',
-        bottom: 30,
+        bottom: 12,
         left: 0,
         right: 0,
         alignItems: 'center',
@@ -511,21 +546,21 @@ const styles = StyleSheet.create({
     },
     header: {
         paddingHorizontal: 24,
-        paddingTop: 24,
-        paddingBottom: 16,
+        paddingTop: 12,
+        paddingBottom: 10,
         borderBottomWidth: 1,
         borderBottomColor: colors.divider,
         backgroundColor: colors.surface,
     },
     headerCompact: {
         paddingTop: 14,
-        paddingBottom: 8,
+        paddingBottom: 4,
     },
     formContent: {
         width: '100%',
     },
     formContentContainer: {
-        paddingHorizontal: 24,
+        paddingHorizontal: 28,
         paddingTop: 16,
         paddingBottom: 24,
     },

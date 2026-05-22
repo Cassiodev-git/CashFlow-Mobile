@@ -1,12 +1,14 @@
 import { Stack, useRouter } from 'expo-router';
-//hooks
+// Hooks
 import { useState, useEffect } from 'react';
 import { useUser } from '@/features/user/hooks/useUser';
 import { View, ActivityIndicator } from 'react-native';
 import { initializeDatabase } from '@/db/database';
-//Banco de dados
+//Area segura
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+// Banco de dados
 import "react-native-get-random-values";
-//Linguagem
+// Linguagem
 import "@/i18n";
 import { colors } from '@/theme';
 
@@ -15,8 +17,6 @@ export default function RootLayout() {
   const [user, setUser] = useState(false);
   const { findFirstUser } = useUser();
   const router = useRouter();
-
-
 
   useEffect(() => {
     async function setup() {
@@ -43,17 +43,20 @@ export default function RootLayout() {
 
   if (!dbStart) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#121212' }}>
-        <ActivityIndicator size="large" color={colors.surface} />
-      </View>
+      <SafeAreaProvider>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#121212' }}>
+          <ActivityIndicator size="large" color={colors.surface} />
+        </View>
+      </SafeAreaProvider>
     );
   }
 
-
   return (
-  <Stack screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="index" /> 
-    <Stack.Screen name="(tabs)" /> 
-  </Stack>
-);
+    <SafeAreaProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" /> 
+        <Stack.Screen name="(tabs)" /> 
+      </Stack>
+    </SafeAreaProvider>
+  );
 }

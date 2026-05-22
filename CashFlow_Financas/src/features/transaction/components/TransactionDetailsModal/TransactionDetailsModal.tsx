@@ -6,6 +6,7 @@ import { MotiView, AnimatePresence } from 'moti';
 import { Transactions as Transaction } from '../../types/Transactions';
 import { useTranslation } from 'react-i18next';
 import { ConfirmationModal } from '@/components/ConfirmationModal/ConfirmationModal'; 
+import { ScaledSheet } from '@/utils/responsive';
 
 interface TransactionDetailsModalProps {
     isOpen: boolean;
@@ -157,7 +158,7 @@ export function TransactionDetailsModal({
     );
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
     backdrop: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.4)',

@@ -4,6 +4,7 @@ import { Feather } from '@expo/vector-icons';
 import { colors } from '@/theme';
 import { useTranslation } from 'react-i18next';
 import { MotiView, AnimatePresence } from 'moti';
+import { ScaledSheet } from '@/utils/responsive';
 
 interface FinanceCardProps {
     isIncome: boolean; 
@@ -88,7 +89,7 @@ export function FinanceCard({ isIncome, value, isVisible = true }: FinanceCardPr
     );
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
     cardContainer: {
         backgroundColor: colors.card,
         borderRadius: 16,

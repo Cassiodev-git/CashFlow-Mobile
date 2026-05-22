@@ -9,7 +9,10 @@ import { useUser } from "@/features/user/hooks/useUser"
 
 //router
 import { router } from "expo-router";
+//colors
 import { colors } from "@/theme";
+//reponsive
+import { ScaledSheet } from "@/utils/responsive";
 
 export default function ModalScreen() {
   const {createUser, error, loading} = useUser()
@@ -27,7 +30,7 @@ export default function ModalScreen() {
     </View>
   );
 }
-const style = StyleSheet.create({
+const style = ScaledSheet.create({
   container: {
     flex: 1,
     gap: 16,

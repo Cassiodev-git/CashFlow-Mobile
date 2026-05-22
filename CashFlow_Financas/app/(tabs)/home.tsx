@@ -17,6 +17,8 @@ import { useHomeData } from "@/hooks/useHomeData";
 
 // Types
 import { Transactions } from "@/features/transaction/types/Transactions";
+//responsive
+import { ScaledSheet } from "@/utils/responsive";
 
 export default function HomeScreen() {
     const { t } = useTranslation();
@@ -92,9 +94,9 @@ export default function HomeScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
     container: { flex: 1, width: "100%", backgroundColor: colors.background },
-    scrollContent: { padding: 24, gap: 16, paddingBottom: 85 },
+    scrollContent: { padding: 24, gap: 16, paddingBottom: 75 },
     summaryRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
     feedbackContainer: { alignItems: "center", justifyContent: "center", paddingVertical: 40, gap: 12 },
     feedbackText: { color: colors.textSecondary, fontSize: 14 }

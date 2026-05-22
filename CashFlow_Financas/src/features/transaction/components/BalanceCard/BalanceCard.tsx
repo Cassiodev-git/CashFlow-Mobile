@@ -9,6 +9,7 @@ import { Feather } from '@expo/vector-icons';
 import { colors } from '@/theme';
 import { useTranslation } from 'react-i18next';
 import { MotiView, AnimatePresence } from 'moti';
+import { ScaledSheet } from '@/utils/responsive';
 
 interface BalanceCardProps {
     balance: number;
@@ -181,7 +182,7 @@ export function BalanceCard({
     );
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
     container: {
         backgroundColor: colors.primary,
         borderRadius: 16,
