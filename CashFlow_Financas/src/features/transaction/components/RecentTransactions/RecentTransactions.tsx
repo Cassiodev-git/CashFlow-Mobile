@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { MotiView, AnimatePresence } from 'moti';
 import { FlashList } from '@shopify/flash-list';
 import { Transactions as Transaction } from '../../types/Transactions';
+import { ConfirmationModal } from '@/components/ConfirmationModal/ConfirmationModal'; 
 
 const OtimizedList = FlashList as React.ComponentType<any>;
 
@@ -50,6 +51,7 @@ function TransactionDetailsModal({
     onDelete
 }: TransactionDetailsModalProps) {
     const { t } = useTranslation();
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false); 
 
     if (!transaction) return null;
 
@@ -62,104 +64,120 @@ function TransactionDetailsModal({
         currency: 'BRL',
     });
 
+    const handleConfirmDelete = () => {
+        setIsConfirmOpen(false);
+        onDelete(transaction);
+        onClose();
+    };
+
     return (
-        <Modal
-            visible={isOpen}
-            transparent
-            animationType="none"
-            onRequestClose={onClose}
-        >
-            <TouchableWithoutFeedback onPress={onClose}>
-                <View style={modalStyles.backdrop}>
-                    <AnimatePresence>
-                        {isOpen && (
+        <>
+            <Modal
+                visible={isOpen}
+                transparent
+                animationType="none"
+                onRequestClose={onClose}
+            >
+                <TouchableWithoutFeedback onPress={onClose}>
+                    <View style={modalStyles.backdrop}>
+                        <AnimatePresence>
+                            {isOpen && (
+                                <MotiView
+                                    from={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    style={StyleSheet.absoluteFillObject}
+                                />
+                            )}
+                        </AnimatePresence>
+
+                        <TouchableWithoutFeedback>
                             <MotiView
-                                from={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                style={StyleSheet.absoluteFillObject}
-                            />
-                        )}
-                    </AnimatePresence>
+                                from={{ translateY: 320 }}
+                                animate={{ translateY: 0 }}
+                                exit={{ translateY: 320 }}
+                                transition={{ type: 'timing', duration: 230 }}
+                                style={modalStyles.sheetContainer}
+                            >
+                                <View style={modalStyles.dragIndicator} />
 
-                    <TouchableWithoutFeedback>
-                        <MotiView
-                            from={{ translateY: 320 }}
-                            animate={{ translateY: 0 }}
-                            exit={{ translateY: 320 }}
-                            transition={{ type: 'timing', duration: 230 }}
-                            style={modalStyles.sheetContainer}
-                        >
-                            <View style={modalStyles.dragIndicator} />
-
-                            <View style={modalStyles.header}>
-                                <Text style={modalStyles.headerTitle}>{t('transactions.detailsTitle', 'Detalhes')}</Text>
-                                <TouchableOpacity onPress={onClose} style={modalStyles.closeBtn}>
-                                    <Feather name="x" size={20} color={colors.textSecondary} />
-                                </TouchableOpacity>
-                            </View>
-
-                            <View style={modalStyles.infoBlock}>
-                                <View style={[modalStyles.iconBg, { backgroundColor: `${statusColor}1A` }]}>
-                                    <Feather name={iconName} size={22} color={statusColor} />
+                                <View style={modalStyles.header}>
+                                    <Text style={modalStyles.headerTitle}>{t('transactions.detailsTitle')}</Text>
+                                    <TouchableOpacity onPress={onClose} style={modalStyles.closeBtn}>
+                                        <Feather name="x" size={20} color={colors.textSecondary} />
+                                    </TouchableOpacity>
                                 </View>
-                                <Text style={modalStyles.transactionTitle} numberOfLines={1}>{transaction.title}</Text>
-                                <Text style={[modalStyles.transactionAmount, { color: statusColor }]}>
-                                    {isVisible ? `${isExpense ? '-' : ''}${formattedAmount}` : '••••••'}
-                                </Text>
-                            </View>
 
-                            <View style={modalStyles.detailsList}>
-                                <View style={modalStyles.detailRow}>
-                                    <Text style={modalStyles.detailLabel}>{t('transactions.type', 'Tipo')}</Text>
-                                    <Text style={[modalStyles.detailValue, { color: statusColor, fontWeight: '600' }]}>
-                                        {isExpense ? t('transactions.expense') : t('transactions.income')}
+                                <View style={modalStyles.infoBlock}>
+                                    <View style={[modalStyles.iconBg, { backgroundColor: `${statusColor}1A` }]}>
+                                        <Feather name={iconName} size={22} color={statusColor} />
+                                    </View>
+                                    <Text style={modalStyles.transactionTitle} numberOfLines={1}>{transaction.title}</Text>
+                                    <Text style={[modalStyles.transactionAmount, { color: statusColor }]}>
+                                        {isVisible ? `${isExpense ? '-' : ''}${formattedAmount}` : '••••••'}
                                     </Text>
                                 </View>
-                                {transaction.description && (
+
+                                <View style={modalStyles.detailsList}>
                                     <View style={modalStyles.detailRow}>
-                                        <Text style={modalStyles.detailLabel}>{t('transactions.description', 'Descrição')}</Text>
-                                        <Text
-                                            style={[modalStyles.detailValue, modalStyles.descriptionValue]}
-                                            numberOfLines={1}
-                                            ellipsizeMode="tail"
-                                        >
-                                            {transaction.description}
+                                        <Text style={modalStyles.detailLabel}>{t('transactions.type')}</Text>
+                                        <Text style={[modalStyles.detailValue, { color: statusColor, fontWeight: '600' }]}>
+                                            {isExpense ? t('transactions.expense') : t('transactions.income')}
                                         </Text>
                                     </View>
-                                )}
-                            </View>
+                                    {transaction.description && (
+                                        <View style={modalStyles.detailRow}>
+                                            <Text style={modalStyles.detailLabel}>{t('transactions.description', 'Descrição')}</Text>
+                                            <Text
+                                                style={[modalStyles.detailValue, modalStyles.descriptionValue]}
+                                                numberOfLines={1}
+                                                ellipsizeMode="tail"
+                                            >
+                                                {transaction.description}
+                                            </Text>
+                                        </View>
+                                    )}
+                                </View>
 
-                            <View style={modalStyles.actionRow}>
-                                <TouchableOpacity
-                                    style={[modalStyles.btn, modalStyles.btnDelete]}
-                                    activeOpacity={0.7}
-                                    onPress={() => {
-                                        onDelete(transaction);
-                                        onClose();
-                                    }}
-                                >
-                                    <Feather name="trash-2" size={16} color={colors.expense} />
-                                    <Text style={modalStyles.btnDeleteText}>{t('common.delete', 'Excluir')}</Text>
-                                </TouchableOpacity>
+                                <View style={modalStyles.actionRow}>
+                                    <TouchableOpacity
+                                        style={[modalStyles.btn, modalStyles.btnDelete]}
+                                        activeOpacity={0.7}
+                                        onPress={() => setIsConfirmOpen(true)} 
+                                    >
+                                        <Feather name="trash-2" size={16} color={colors.expense} />
+                                        <Text style={modalStyles.btnDeleteText}>{t('common.delete')}</Text>
+                                    </TouchableOpacity>
 
-                                <TouchableOpacity
-                                    style={[modalStyles.btn, modalStyles.btnEdit]}
-                                    activeOpacity={0.7}
-                                    onPress={() => {
-                                        onEdit(transaction);
-                                        onClose();
-                                    }}
-                                >
-                                    <Feather name="edit-3" size={16} color="#FFF" />
-                                    <Text style={modalStyles.btnEditText}>{t('common.edit', 'Editar')}</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </MotiView>
-                    </TouchableWithoutFeedback>
-                </View>
-            </TouchableWithoutFeedback>
-        </Modal>
+                                    <TouchableOpacity
+                                        style={[modalStyles.btn, modalStyles.btnEdit]}
+                                        activeOpacity={0.7}
+                                        onPress={() => {
+                                            onEdit(transaction);
+                                            onClose();
+                                        }}
+                                    >
+                                        <Feather name="edit-3" size={16} color="#FFF" />
+                                        <Text style={modalStyles.btnEditText}>{t('common.edit')}</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </MotiView>
+                        </TouchableWithoutFeedback>
+                    </View>
+                </TouchableWithoutFeedback>
+            </Modal>
+
+            <ConfirmationModal
+                visible={isConfirmOpen}
+                title={t('common.delete')}
+                description={t('transactions.confirmDelete')}
+                confirmText={t('common.delete')}
+                cancelText={t('common.cancel')}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={handleConfirmDelete}
+                isDestructive={true}
+            />
+        </>
     );
 }
 
@@ -392,7 +410,7 @@ const styles = StyleSheet.create({
     closeSearchBtn: { height: '100%', justifyContent: 'center', paddingHorizontal: 14 },
     seeLessText: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
     listWrapper: { width: '100%' },
-    scrollActive: { height: 260, maxHeight: 260 }, // 👈 🌟 Ajustado para travar o tamanho perfeitamente quando expandido
+    scrollActive: { height: 260, maxHeight: 260 },
     listContent: { paddingBottom: 4 },
     transactionCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', paddingVertical: 7 },
     leftRow: { flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 },
@@ -407,7 +425,7 @@ const styles = StyleSheet.create({
 });
 
 const modalStyles = StyleSheet.create({
-    backdrop: { flex: 1, justifyContent: 'flex-end' },
+    backdrop: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.4)', justifyContent: 'flex-end' }, // 👈 Adicionado o fundo preto transparente na abertura dos detalhes
     sheetContainer: { backgroundColor: colors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 24, paddingBottom: 34, paddingTop: 12, width: '100%', borderWidth: 1, borderColor: colors.inputBorder },
     dragIndicator: { width: 38, height: 5, backgroundColor: colors.inputBorder, borderRadius: 3, alignSelf: 'center', marginBottom: 20 },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },

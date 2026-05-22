@@ -16,7 +16,10 @@
         "create": "Criar",
         "update": "Atualizar",
         "remove": "Remover",
-        "error": "Error"
+        "error": "Error",
+        "errorTitle": "Ops!, Algo deu errado",
+        "errorMessage": "Houve um problema ao carregar as informações. Por favor, tente novamente.",
+        "retry": "Tentar novamente"
     },
     "greetings": {
         "hello": "Olá",
@@ -61,6 +64,7 @@
     },
     "transactions": {
         "income": "Receita",
+        "type": "Tipo",
         "expense": "Despesa",
         "thisMonth": "Este mês",
         "seeAll": "Ver todas",
@@ -69,6 +73,7 @@
         "title": "Título",
         "titlePlaceholder": "Ex: Supermercado",
         "editTitle": "Editar transação",
+        "detailsTitle": "Detalhes da transação",
         "descriptionLabel": "Descrição",
         "descriptionPlaceholder": "Descreva a transação",
         "amountLabel": "Valor (R$)",

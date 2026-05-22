@@ -2,16 +2,20 @@
   "expo": {
     "name": "CashFlow_Financas",
     "slug": "CashFlow_Financas",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "orientation": "portrait",
     "scheme": "cashflowfinancas",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.cashflow.financas"
     },
     "android": {
+      "package": "com.cashflow.financas",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE"
+        "foregroundImage": "./src/assets/Logo_CashFlow.png",
+        "backgroundColor": "#ffffff"
       },
       "predictiveBackGestureEnabled": false
     },
@@ -23,7 +27,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./src/assets/Logo_CashFlow.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
@@ -37,6 +41,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "716280f1-adba-4019-9f53-74d00582a3ea"
+      }
     }
   }
 }

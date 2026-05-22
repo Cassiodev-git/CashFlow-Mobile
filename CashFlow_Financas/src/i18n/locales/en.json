@@ -16,7 +16,10 @@
         "create": "Create",
         "update": "Update",
         "remove": "Remove",
-        "error": "Error"
+        "error": "Error",
+        "errorTitle": "Oops! Something went wrong.",
+        "errorMenssage": "There was a problem loading the information. Please try again.",
+        "retry":"Retry"
     },
     "greetings": {
         "hello": "Hello",
@@ -62,6 +65,7 @@
 
     "transactions": {
         "income": "Income",
+        "type": "Type",
         "expense": "Expense",
         "seeAll": "See all",
         "seeLess": "See less",
@@ -70,6 +74,7 @@
         "title": "Title",
         "titlePlaceholder": "Ex: Grocery",
         "editTitle": "Edit transaction",
+        "detailsTitle": "Transaction details",
         "descriptionLabel": "Description",
         "descriptionPlaceholder": "Describe the transaction",
         "amountLabel": "Amount",

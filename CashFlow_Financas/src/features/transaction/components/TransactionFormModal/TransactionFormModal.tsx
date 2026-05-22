@@ -212,7 +212,7 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
                                 >
                                     <View style={[styles.header, isKeyboardVisible && styles.headerCompact]}>
                                         <Text style={styles.formTitle}>
-                                            {isEditMode ? t("transactions.editTitle") : t("transactions.newTransaction")}
+                                            {isEditMode ? t("transactions.editTitle","ola") : t("transactions.newTransaction")}
                                         </Text>
                                     </View>
 
