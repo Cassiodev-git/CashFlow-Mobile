@@ -137,6 +137,13 @@
         "title": "Current balance",
         "comparedToLastMonth": "compared to last month"
         },
+    "graph": {
+        "cardTitlerRevenue": "Revenue vs Expenses",
+        "title": "Graphics",
+        "titleDescription": "Track your financial progress.",
+        "expense": "Expenses",
+        "revenue": "Revenue"
+    },
     "auth": {
         "login": "Login",
         "logout": "Logout",

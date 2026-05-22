@@ -517,7 +517,7 @@ const styles = ScaledSheet.create({
     },
     bottomBarCloseButton: {
         position: 'absolute',
-        bottom: 12,
+        bottom: 40,
         left: 0,
         right: 0,
         alignItems: 'center',

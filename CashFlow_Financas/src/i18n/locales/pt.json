@@ -134,6 +134,13 @@
         "title": "Saldo atual",
         "comparedToLastMonth": "em relação ao mês passado"
     },
+    "graph": {
+        "cardTitlerRevenue": "Receitas vs Despesas",
+        "expense": "Despesas",
+        "title": "Gráficos",
+        "titleDescription": "Acompanhe sua evolução financeira",
+        "revenue": "Receitas"
+    },
     "auth": {
     "login": "Entrar",
     "logout": "Sair",
