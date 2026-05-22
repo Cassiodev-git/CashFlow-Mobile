@@ -15,7 +15,8 @@
         "done": "Done",
         "create": "Create",
         "update": "Update",
-        "remove": "Remove"
+        "remove": "Remove",
+        "error": "Error"
     },
     "greetings": {
         "hello": "Hello",
@@ -65,15 +66,46 @@
         "seeAll": "See all",
         "seeLess": "See less",
         "thisMonth": "this month",
+        "newTransaction": "New transaction",
+        "title": "Title",
+        "titlePlaceholder": "Ex: Grocery",
+        "editTitle": "Edit transaction",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "Describe the transaction",
+        "amountLabel": "Amount",
+        "amountPlaceholder": "0.00",
+        "typeLabel": "Type",
+        "statusLabel": "Status",
+        "dateLabel": "Date",
+        "datePlaceholder": "YYYY-MM-DD",
+        "categoryIdLabel": "Category ID",
+        "categoryIdPlaceholder": "Optional",
+        "errorDelete": "The transaction could not be deleted.",
+        "errorEdit": "The changes could not be saved.",
+        "add": "Add",
+        "confirmDelete": "Are you sure you want to delete this transaction?",
         "addTransaction": "Add transaction",
         "editTransaction": "Edit transaction",
         "transactionValue": "Transaction amount",
         "transactionDescription": "Description",
         "transactionCategory": "Category",
         "transactionDate": "Date",
+        "categoryLabel": "Category",
         "searchPlaceholder": "Search for transaction...",
         "recentTitle": "Recent transactions",
-        "emptyTransactions": "No transactions found"
+        "emptyTransactions": "No transactions found",
+        "invalidCreateData": "Enter a valid title and amount for the transaction",
+        "status": {
+            "pending": "Pending",
+            "paid": "Paid",
+            "canceled": "Canceled"
+        }
+    },
+    "bottomBar": {
+        "home": "Home",
+        "graph": "Chart",
+        "report": "Report",
+        "profile": "Profile"
     },
 
     "categories": {
@@ -83,7 +115,8 @@
         "education": "Education",
         "salary": "Salary",
         "investment": "Investment",
-        "entertainment": "Entertainment"
+        "entertainment": "Entertainment",
+        "createCategory": "Create your category"
     },
 
     "settings": {

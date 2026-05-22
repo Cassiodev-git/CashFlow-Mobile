@@ -1,8 +1,9 @@
-import { StyleSheet, View, ScrollView, Text, ActivityIndicator } from "react-native";
+import { StyleSheet, View, ScrollView, Text, ActivityIndicator, Alert, DeviceEventEmitter } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Hooks
-import { useState, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react"; 
+import { useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 // Theme
@@ -13,6 +14,7 @@ import { TopBar } from "@/components/TopBar/TopBar";
 import { BalanceCard } from "@/features/transaction/components/BalanceCard/BalanceCard";
 import { FinanceCard } from "@/features/transaction/components/FinanceCard/FinanceCard";
 import { RecentTransactions } from "@/features/transaction/components/RecentTransactions/RecentTransactions";
+import { TransactionFormModal } from "@/features/transaction/components/TransactionFormModal/TransactionFormModal"; 
 
 // Services
 import AppUserService from "@/services/AppUserService";
@@ -29,39 +31,92 @@ import { Transactions } from "@/features/transaction/types/Transactions";
 
 export default function HomeScreen() {
     const { t } = useTranslation();
+    
     const [user, setUser] = useState<User | null>(null);
     const [summary, setSummary] = useState<TransactionSummary | null>(null);
     const [monthlyStats, setMonthlyStats] = useState<MonthlyExpensePercentage | null>(null);
     const [transactions, setTransactions] = useState<Transactions[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [selectedTxToEdit, setSelectedTxToEdit] = useState<Transactions | null>(null);
+
+    async function fetchUpdatedData() {
+        try {
+            const userData = await AppUserService.findFirstUser();
+            if (!userData) return;
+
+            setUser(userData);
+
+            const [transactionsList, summaryData, percentageData] = await Promise.all([
+                AppTransactionsService.listTransactions(),
+                AppTransactionSummaryService.getSummary(),
+                AppTransactionSummaryService.getMonthlyExpensePercentage(),
+            ]);
+
+            setSummary(summaryData);
+            setMonthlyStats(percentageData);
+            setTransactions(transactionsList);
+        } catch (error) {
+            console.error("Erro ao sincronizar dados em background:", error);
+        }
+    }
+
     useEffect(() => {
-        async function loadData() {
-            try {
-                const userData = await AppUserService.findFirstUser();
+        const subscription = DeviceEventEmitter.addListener("transaction_mutated", () => {
+            fetchUpdatedData(); 
+        });
 
-                if (!userData) {
-                    return;
+        return () => {
+            subscription.remove();
+        };
+    }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            async function initHome() {
+                if (transactions.length === 0) {
+                    setLoading(true);
                 }
-
-                setUser(userData);
-
-                const [transactionsList, summaryData, percentageData] = await Promise.all([
-                    AppTransactionsService.listTransactions(),
-                    AppTransactionSummaryService.getSummary(),
-                    AppTransactionSummaryService.getMonthlyExpensePercentage(),
-                ]);
-
-                setSummary(summaryData);
-                setMonthlyStats(percentageData);
-                setTransactions(transactionsList);
-            } finally {
+                
+                await fetchUpdatedData();
                 setLoading(false);
             }
-        }
 
-        loadData();
-    }, []);
+            initHome();
+        }, [transactions.length])
+    );
+
+    const handleDeleteTransaction = async (id: string) => {
+        Alert.alert(
+            t("common.delete"),
+            t("transactions.confirmDelete"),
+            [
+                { text: t("common.cancel"), style: "cancel" },
+                {
+                    text: t("common.delete"),
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await AppTransactionsService.deleteTransaction(id);
+                            
+                            setTransactions(prev => prev.filter(item => item.id !== id));
+
+                            const [summaryData, percentageData] = await Promise.all([
+                                AppTransactionSummaryService.getSummary(),
+                                AppTransactionSummaryService.getMonthlyExpensePercentage(),
+                            ]);
+                            setSummary(summaryData);
+                            setMonthlyStats(percentageData);
+
+                        } catch {
+                            Alert.alert(t("common.error"), t("transactions.errorDelete"));
+                        }
+                    }
+                }
+            ]
+        );
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -94,9 +149,16 @@ export default function HomeScreen() {
                                     value={summary.expense ?? 0}
                                 />
                             </View>
+                            
                             <RecentTransactions 
                                 transactions={transactions} 
                                 isVisible={true} 
+                                onDelete={handleDeleteTransaction}
+                                //Conecta o clique do botão Editar ao formulário unificado
+                                onEdit={(tx: Transactions) => {
+                                    setSelectedTxToEdit(tx);
+                                    setIsEditOpen(true);
+                                }}
                             />
                         </>
                     ) : (
@@ -105,6 +167,14 @@ export default function HomeScreen() {
                     </View>
                 )}
             </ScrollView>
+            <TransactionFormModal 
+                isOpen={isEditOpen}
+                transaction={selectedTxToEdit}
+                onClose={() => {
+                    setIsEditOpen(false);
+                    setSelectedTxToEdit(null);
+                }}
+            />
         </SafeAreaView>
     );
 }
@@ -118,6 +188,7 @@ const styles = StyleSheet.create({
     scrollContent: {
         padding: 24,
         gap: 16,
+        paddingBottom: 85, 
     },
     summaryRow: {
         flexDirection: 'row',

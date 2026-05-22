@@ -15,7 +15,8 @@
         "done": "Concluído",
         "create": "Criar",
         "update": "Atualizar",
-        "remove": "Remover"
+        "remove": "Remover",
+        "error": "Error"
     },
     "greetings": {
         "hello": "Olá",
@@ -64,15 +65,46 @@
         "thisMonth": "Este mês",
         "seeAll": "Ver todas",
         "seeLess": "Ver menos",
+        "newTransaction": "Nova transação",
+        "title": "Título",
+        "titlePlaceholder": "Ex: Supermercado",
+        "editTitle": "Editar transação",
+        "descriptionLabel": "Descrição",
+        "descriptionPlaceholder": "Descreva a transação",
+        "amountLabel": "Valor (R$)",
+        "amountPlaceholder": "0,00",
+        "typeLabel": "Tipo",
+        "statusLabel": "Status",
+        "dateLabel": "Data",
+        "datePlaceholder": "AAAA-MM-DD",
+        "categoryIdLabel": "ID da categoria",
+        "categoryIdPlaceholder": "Opcional",
+        "errorDelete": "Não foi possível excluir a transação.",
+        "errorEdit": "Não foi possível salvar as alterações.",
+        "add": "Adicionar",
+        "confirmDelete": "Tem certeza que deseja deletar essa transação?",
         "addTransaction": "Adicionar transação",
         "editTransaction": "Editar transação",
         "transactionValue": "Valor da transação",
         "transactionDescription": "Descrição",
         "transactionCategory": "Categoria",
         "transactionDate": "Data",
+        "categoryLabel": "Categoria",
         "searchPlaceholder": "Buscar transação...",
         "recentTitle": "Transações recentes",
-        "emptyTransactions": "Nenhuma transação encontrada"
+        "emptyTransactions": "Nenhuma transação encontrada",
+        "invalidCreateData": "Informe um título e um valor válido para a transação",
+        "status": {
+            "pending": "Pendente",
+            "paid": "Pago",
+            "canceled": "Cancelado"
+        }
+    },
+    "bottomBar": {
+        "home": "Home",
+        "graph": "Gráfico",
+        "report": "Relatório",
+        "profile": "Perfil"
     },
     "categories": {
     "food": "Alimentação",
@@ -81,7 +113,8 @@
     "education": "Educação",
     "salary": "Salário",
     "investment": "Investimentos",
-    "entertainment": "Lazer"
+    "entertainment": "Lazer",
+    "createCategory": "Crie sua categoria"
     },
     "settings": {
     "title": "Configurações",

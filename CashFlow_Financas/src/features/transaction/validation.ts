@@ -4,10 +4,10 @@ import i18n from "@/i18n";
 export const createTransactionSchema = z.object({
     title: z.string()
         .min(3, i18n.t("validation.transaction.titleTooShort"))
-        .max(15, i18n.t("validation.transaction.titleTooLong"))
+        .max(20, i18n.t("validation.transaction.titleTooLong"))
         .trim(),
     description: z.string()
-        .max(60, i18n.t("validation.transaction.descriptionTooLong"))
+        .max(120, i18n.t("validation.transaction.descriptionTooLong"))
         .optional(),
     amount: z.number(),
     type: z.enum(["income", "expense"]).default("income"),
@@ -18,11 +18,11 @@ export const createTransactionSchema = z.object({
 export const updateTransactionSchema = z.object({
     title: z.string()
         .min(3, i18n.t("validation.transaction.titleTooShort"))
-        .max(15, i18n.t("validation.transaction.titleTooLong"))
+        .max(20, i18n.t("validation.transaction.titleTooLong"))
         .trim()
         .optional(),
     description: z.string()
-        .max(60, i18n.t("validation.transaction.descriptionTooLong"))
+        .max(120, i18n.t("validation.transaction.descriptionTooLong"))
         .optional(),
     amount: z.number().optional(),
     type: z.enum(["income", "expense"]).default("income").optional(),

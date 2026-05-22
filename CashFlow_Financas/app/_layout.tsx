@@ -37,7 +37,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (dbStart && user) {
-      router.replace("/home");
+      router.replace("/(tabs)/home"); 
     }
   }, [dbStart, user, router]);
 
@@ -51,9 +51,9 @@ export default function RootLayout() {
 
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="home" />
-    </Stack>
-  );
+  <Stack screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="index" /> 
+    <Stack.Screen name="(tabs)" /> 
+  </Stack>
+);
 }

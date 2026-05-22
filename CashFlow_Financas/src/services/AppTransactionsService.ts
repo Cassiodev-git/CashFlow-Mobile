@@ -1,5 +1,5 @@
 import TransactionService from "@/features/transaction/services/TransactionService";
-import { CreateTransactionDTO } from "@/features/transaction/validation";
+import type { CreateTransactionDTO, UpdateTransactionDTO } from "@/features/transaction/validation";
 
 class AppTransactionsService {
     async createTransaction(data: CreateTransactionDTO){
@@ -8,6 +8,14 @@ class AppTransactionsService {
     }
     async listTransactions(){
         const result = await TransactionService.listTransactions()
+        return result
+    }
+    async deleteTransaction(id: string){
+        const result = await TransactionService.deleteTransaction(id)
+        return result
+    }
+    async updateTransaction(id: string, data:UpdateTransactionDTO ){
+        const result = await TransactionService.updateTransaction(id, data)
         return result
     }
 }

@@ -1,5 +1,5 @@
 import { TransactionRepository } from "../repository/TransactionRepository";
-import { CreateTransactionDTO } from "../validation";
+import type { CreateTransactionDTO, UpdateTransactionDTO } from "../validation";
 import { UserRepository } from "@/features/user/repository/UserRepository";
 import i18n from "@/i18n";
 
@@ -27,6 +27,14 @@ class TransactionService {
         const userId = await getLocalUserId();
         const result = await transacRepo.listTransactions(userId);
         return result;
+    }
+    async deleteTransaction(id: string){
+        const result = await transacRepo.deleteTransaction(id)
+        return result
+    }
+    async updateTransaction(id: string, data: UpdateTransactionDTO){
+        const result = await transacRepo.updateTransaction(id, data)
+        return result
     }
 }
 
