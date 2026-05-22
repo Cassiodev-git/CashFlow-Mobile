@@ -17,3 +17,6 @@ build/
 
 .codex/
 .agents/
+
+android/
+ios/
