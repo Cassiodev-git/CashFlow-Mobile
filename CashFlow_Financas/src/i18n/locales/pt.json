@@ -69,8 +69,10 @@
         "thisMonth": "Este mês",
         "seeAll": "Ver todas",
         "seeLess": "Ver menos",
+        "invalidDate": "Insira uma data válida no formato DD/MM/AAAA.",
         "newTransaction": "Nova transação",
         "title": "Título",
+        "dateOutRange": "Por favor, insira uma data válida a partir do ano 2000.",
         "titlePlaceholder": "Ex: Supermercado",
         "editTitle": "Editar transação",
         "detailsTitle": "Detalhes da transação",
@@ -135,11 +137,13 @@
         "comparedToLastMonth": "em relação ao mês passado"
     },
     "graph": {
-        "cardTitlerRevenue": "Receitas vs Despesas",
+        "cardTitleRevenue": "Receitas vs Despesas",
+        "cardTitleExpense": "Distribuição de despesas",
         "expense": "Despesas",
         "title": "Gráficos",
         "titleDescription": "Acompanhe sua evolução financeira",
-        "revenue": "Receitas"
+        "revenue": "Receitas",
+        "empty": "Sem dados registrados"
     },
     "auth": {
     "login": "Entrar",

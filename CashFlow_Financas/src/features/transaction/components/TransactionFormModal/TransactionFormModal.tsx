@@ -20,7 +20,6 @@ import { MotiView, AnimatePresence } from 'moti';
 import { BlurView } from 'expo-blur';
 import { useTranslation } from 'react-i18next';
 
-// 1. Importar o hook de área segura 🌟
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Services
@@ -79,7 +78,6 @@ const formatFromBackendDate = (dateStr: string | null | undefined, lang: string)
 export function TransactionFormModal({ isOpen, onClose, transaction }: TransactionFormModalProps) {
     const { t, i18n } = useTranslation();
     const { height } = useWindowDimensions();
-    // 2. Chamar o hook de safe area 🌟
     const insets = useSafeAreaInsets();
     
     const isEditMode = !!transaction;
@@ -104,7 +102,10 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
                 setTitle(transaction.title);
                 setDescription(transaction.description || '');
                 setAmount(String(transaction.amount).replace('.', ','));
-                setDate(formatFromBackendDate(transaction.date, i18n.language));
+                
+                const fallbackDate = transaction.date || (transaction as any).created_at || (transaction as any).createdAt;
+                setDate(formatFromBackendDate(fallbackDate, i18n.language));
+                
                 setCategoryId(transaction.category_id || '');
                 setType(transaction.type as 'income' | 'expense');
                 setStatus(transaction.status as 'paid' | 'pending' | 'canceled');
@@ -112,8 +113,7 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
                 setTitle('');
                 setDescription('');
                 setAmount('');
-                const hoje = new Date();
-                setDate(formatFromBackendDate(hoje.toISOString(), i18n.language));
+                setDate('');
                 setCategoryId('');
                 setType('expense');
                 setStatus('pending');
@@ -158,26 +158,30 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
         const normalizedTitle = title.trim();
         const normalizedDescription = description.trim();
         const normalizedAmount = Number(amount.replace(',', '.'));
-        const normalizedDate = formatToBackendDate(date.trim(), i18n.language);
+        const trimmedDate = date.trim();
+        const normalizedDate = trimmedDate ? formatToBackendDate(trimmedDate, i18n.language) : undefined;
         const normalizedCategoryId = categoryId.trim();
 
         if (!normalizedTitle || Number.isNaN(normalizedAmount) || normalizedAmount <= 0) {
             setError(t("transactions.invalidCreateData"));
             return;
         }
-        if (!normalizedDate || normalizedDate.length !== 10) {
-            setError(t("transactions.invalidDate", "Insira uma data válida no formato DD/MM/AAAA."));
-            return;
-        }
 
-        const partesAno = normalizedDate.split('-');
-        const anoDigitado = Number(partesAno[0]);
-        const mesDigitado = Number(partesAno[1]);
-        const diaDigitado = Number(partesAno[2]);
+        if (normalizedDate) {
+            if (normalizedDate.length !== 10) {
+                setError(t("transactions.invalidDate"));
+                return;
+            }
 
-        if (anoDigitado < 2000 || anoDigitado > new Date().getFullYear() + 2 || mesDigitado > 12 || diaDigitado > 31) {
-            setError(t("transactions.dateOutRange", "Por favor, insira uma data válida a partir do ano 2000."));
-            return;
+            const partesAno = normalizedDate.split('-');
+            const anoDigitado = Number(partesAno[0]);
+            const mesDigitado = Number(partesAno[1]);
+            const diaDigitado = Number(partesAno[2]);
+
+            if (anoDigitado < 2000 || anoDigitado > new Date().getFullYear() + 2 || mesDigitado > 12 || diaDigitado > 31) {
+                setError(t("transactions.dateOutRange"));
+                return;
+            }
         }
 
         try {
@@ -357,22 +361,7 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
 const styles = ScaledSheet.create({
     fullScreenOverlay: { flex: 1, justifyContent: 'center' },
     modalCenteredContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16, width: '100%' },
-    
-    plusButtonCircle: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: colors.danger,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: colors.danger,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 5,
-        elevation: 5,
-    },
-    
-
+    plusButtonCircle: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.danger, justifyContent: 'center', alignItems: 'center', shadowColor: colors.danger, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5, elevation: 5 },
     bottomBarCloseButton: { position: 'absolute', left: 0, right: 0, alignItems: 'center', justifyContent: 'center', zIndex: 30 },
     formCard: { width: '100%', backgroundColor: colors.surface, borderRadius: 24, borderWidth: 1, borderColor: colors.border, shadowColor: colors.textPrimary, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.15, shadowRadius: 14, elevation: 10, overflow: 'hidden' },
     header: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: colors.divider, backgroundColor: colors.surface },

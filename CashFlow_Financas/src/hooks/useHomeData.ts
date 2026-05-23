@@ -16,6 +16,19 @@ import type {
     TransactionSummary,
 } from "@/features/transaction/services/TransactionStatsService";
 
+function sanitizeTransactionDate(dateStr: string | null | undefined): string {
+    if (!dateStr) return "";
+    
+    if (dateStr.length === 10) {
+        return `${dateStr}T12:00:00.000`;
+    }
+    if (dateStr.includes('T00:00:00')) {
+        return dateStr.replace('T00:00:00', 'T12:00:00');
+    }
+    
+    return dateStr;
+}
+
 export function useHomeData() {
     const { t } = useTranslation();
     
@@ -25,6 +38,7 @@ export function useHomeData() {
     const [transactions, setTransactions] = useState<Transactions[]>([]);
     const [loading, setLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
+
     const fetchUpdatedData = useCallback(async () => {
         try {
             setHasError(false);
@@ -38,11 +52,14 @@ export function useHomeData() {
                 AppTransactionSummaryService.getSummary(),
                 AppTransactionSummaryService.getMonthlyExpensePercentage(),
             ]);
+            const sanitizedTransactions = transactionsList.map(transaction => ({
+                ...transaction,
+                date: sanitizeTransactionDate(transaction.date)
+            }));
 
             setSummary(summaryData);
             setMonthlyStats(percentageData);
-            setTransactions(transactionsList);
-            //throw new Error("Deu merda")
+            setTransactions(sanitizedTransactions);
         } catch (error) {
             console.error("Erro ao sincronizar dados da Home:", error);
             setHasError(true);
@@ -53,7 +70,6 @@ export function useHomeData() {
         try {
             await AppTransactionsService.deleteTransaction(id);
             
-
             setTransactions(prev => prev.filter(item => item.id !== id));
 
             const [summaryData, percentageData] = await Promise.all([

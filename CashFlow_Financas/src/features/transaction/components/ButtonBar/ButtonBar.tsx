@@ -19,13 +19,11 @@ import { colors } from '@/theme';
 import { MotiView, AnimatePresence } from 'moti';
 import { BlurView } from 'expo-blur';
 import { useTranslation } from 'react-i18next';
-//services
 import AppTransactionsService from '@/services/AppTransactionsService';
 import AppCategoryService from '@/services/AppCategoryService';
-// schemas
 import type { categories } from '@/features/category/schema';
-//responsive
 import { ScaledSheet } from '@/utils/responsive';
+
 interface ButtonBarProps {
     onTransactionCreated?: () => void | Promise<void>;
 }
@@ -61,21 +59,6 @@ const formatToBackendDate = (dateStr: string, lang: string): string => {
     }
 };
 
-const formatFromBackendDate = (dateStr: string | null | undefined, lang: string): string => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return '';
-    
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-
-    if (lang.startsWith('en')) {
-        return `${year}-${month}-${day}`;
-    }
-    return `${day}/${month}/${year}`;
-};
-
 export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
     const { t, i18n } = useTranslation();
     const { height } = useWindowDimensions();
@@ -106,8 +89,7 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
 
     const handleOpen = () => {
         setIsOpen(true);
-        const hoje = new Date();
-        setDate(formatFromBackendDate(hoje.toISOString(), i18n.language));
+        setDate('');
     };
 
     const handleClose = () => {
@@ -119,26 +101,30 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
         const normalizedTitle = title.trim();
         const normalizedDescription = description.trim();
         const normalizedAmount = Number(amount.replace(',', '.'));
-        const normalizedDate = formatToBackendDate(date.trim(), i18n.language);
+        const trimmedDate = date.trim();
+        const normalizedDate = trimmedDate ? formatToBackendDate(trimmedDate, i18n.language) : undefined;
         const normalizedCategoryId = categoryId.trim();
 
         if (!normalizedTitle || Number.isNaN(normalizedAmount) || normalizedAmount <= 0) {
             setError(t("transactions.invalidCreateData"));
             return;
         }
-        if (!normalizedDate || normalizedDate.length !== 10) {
-            setError(t("transactions.invalidDate", "Insira uma data válida no formato DD/MM/AAAA."));
-            return;
-        }
 
-        const partesAno = normalizedDate.split('-'); // Formato gerado para o backend é YYYY-MM-DD
-        const anoDigitado = Number(partesAno[0]);
-        const mesDigitado = Number(partesAno[1]);
-        const diaDigitado = Number(partesAno[2]);
+        if (normalizedDate) {
+            if (normalizedDate.length !== 10) {
+                setError(t("transactions.invalidDate", "Insira uma data válida no formato DD/MM/AAAA."));
+                return;
+            }
 
-        if (anoDigitado < 2000 || anoDigitado > new Date().getFullYear() + 2 || mesDigitado > 12 || diaDigitado > 31) {
-            setError(t("transactions.dateOutRange", "Por favor, insira uma data válida a partir do ano 2000."));
-            return;
+            const partesAno = normalizedDate.split('-'); 
+            const anoDigitado = Number(partesAno[0]);
+            const mesDigitado = Number(partesAno[1]);
+            const diaDigitado = Number(partesAno[2]);
+
+            if (anoDigitado < 2000 || anoDigitado > new Date().getFullYear() + 2 || mesDigitado > 12 || diaDigitado > 31) {
+                setError(t("transactions.dateOutRange", "Por favor, insira uma data válida a partir do ano 2000."));
+                return;
+            }
         }
 
         try {
