@@ -2,29 +2,37 @@ import { Stack, useRouter } from 'expo-router';
 // Hooks
 import { useState, useEffect } from 'react';
 import { useUser } from '@/features/user/hooks/useUser';
-import { View, ActivityIndicator } from 'react-native';
 import { initializeDatabase } from '@/db/database';
-//Area segura
+// Area segura
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+// Splash Nativa
+import * as SplashScreen from 'expo-splash-screen';
+// Componente de Loading Customizado
+import { LoadingScreen } from '@/components/LoadingScreen/LoadingScreen';
+
 // Banco de dados
 import "react-native-get-random-values";
 // Linguagem
 import "@/i18n";
-import { colors } from '@/theme';
+
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [dbStart, setDbStart] = useState(false);
-  const [user, setUser] = useState(false);
+  const [hasUser, setHasUser] = useState(false);
   const { findFirstUser } = useUser();
   const router = useRouter();
 
   useEffect(() => {
     async function setup() {
       try {
+        // Inicializa o SQLite
         await initializeDatabase();
+        
+        // Busca se existe usuário cadastrado
         const registeredUser = await findFirstUser();
         if (registeredUser) {
-          setUser(true);
+          setHasUser(true);
         }
       } catch (error) {
         console.error("Erro crítico ao iniciar o banco de dados:", error);
@@ -36,23 +44,24 @@ export default function RootLayout() {
   }, [findFirstUser]);
 
   useEffect(() => {
-    if (dbStart && user) {
-      router.replace("/(tabs)/home"); 
+    if (dbStart) {
+      SplashScreen.hideAsync();
+
+      if (hasUser) {
+        router.replace("/(tabs)/home"); 
+      }
     }
-  }, [dbStart, user, router]);
+  }, [dbStart, hasUser, router]);
+
 
   if (!dbStart) {
-    return (
-      <SafeAreaProvider>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#121212' }}>
-          <ActivityIndicator size="large" color={colors.surface} />
-        </View>
-      </SafeAreaProvider>
-    );
+    return null;
   }
 
   return (
     <SafeAreaProvider>
+      <LoadingScreen />
+
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" /> 
         <Stack.Screen name="(tabs)" /> 
