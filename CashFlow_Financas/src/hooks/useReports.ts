@@ -1,34 +1,63 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import AppTransactionsService from '@/services/AppTransactionsService';
 import { Transactions as Transaction } from "@/features/transaction/types/Transactions";
+import { useTranslation } from 'react-i18next';
 
 export function useReports(selectedTab: string) {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false); 
+    const [error, setError] = useState<boolean>(false);   
     const [lineChartData, setLineChartData] = useState<any[]>([]);
     const [pieChartData, setPieChartData] = useState<any[]>([]);
 
-    useEffect(() => {
-        async function loadChartData() {
-            try {
+    const loadChartData = useCallback(async (isPullToRefresh = false) => {
+        try {
+            if (isPullToRefresh) {
+                setRefreshing(true);
+            } else {
                 setLoading(true);
-                const transactions: Transaction[] = await AppTransactionsService.listTransactions();
-
-                const formattedLineData = filterAndGroupTransactionsByDay(transactions, selectedTab);
-                const formattedPieData = groupTransactionsByCategory(transactions, selectedTab);
-
-                setLineChartData(formattedLineData);
-                setPieChartData(formattedPieData);
-            } catch (error) {
-                console.error("Erro ao carregar os dados dos gráficos:", error);
-            } finally {
-                setLoading(false);
             }
+
+            setError(false); 
+
+            const transactions: Transaction[] = await AppTransactionsService.listTransactions();
+
+            const formattedLineData = filterAndGroupTransactionsByDay(transactions, selectedTab);
+            const formattedPieData = groupTransactionsByCategory(transactions, selectedTab, t);
+
+            setLineChartData(formattedLineData);
+            setPieChartData(formattedPieData);
+        } catch (err) {
+            console.error("Erro ao carregar os dados dos gráficos:", err);
+            setError(true); 
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
         }
+    }, [selectedTab, t]);
 
+    useEffect(() => {
         loadChartData();
-    }, [selectedTab]);
+    }, [loadChartData]);
 
-    return { loading, lineChartData, pieChartData };
+    const refresh = useCallback(() => {
+        loadChartData(false); 
+    }, [loadChartData]);
+
+    const onRefresh = useCallback(() => {
+        loadChartData(true); 
+    }, [loadChartData]);
+
+    return { 
+        loading, 
+        refreshing, 
+        error, 
+        lineChartData, 
+        pieChartData,
+        refresh, 
+        onRefresh 
+    };
 }
 
 function checkPeriodMatch(transactionDate: Date, period: string): boolean {
@@ -99,7 +128,7 @@ function filterAndGroupTransactionsByDay(transactions: Transaction[], period: st
     return Object.values(dailyMap).sort((a, b) => a.sortIndex - b.sortIndex);
 }
 
-function groupTransactionsByCategory(transactions: Transaction[], period: string) {
+function groupTransactionsByCategory(transactions: Transaction[], period: string, t: any) {
     const expenses = transactions
         .map(t => ({ transaction: t, tDate: getSafeDate(t) }))
         .filter(item => item.tDate !== null && item.transaction.type === 'expense' && checkPeriodMatch(item.tDate, period) && item.transaction.status !== 'canceled');
@@ -111,7 +140,7 @@ function groupTransactionsByCategory(transactions: Transaction[], period: string
     const colorPalette = ["#2D6A4F", "#FF9F1C", "#3A86FF", "#FFD60A", "#80ED99", "#E74C3C", "#9B59B6"];
 
     expenses.forEach((item, index) => {
-        const categoryName = item.transaction.category_id || "Outros";
+        const categoryName = item.transaction.category_id || t("graph.others");
 
         if (!categoryMap[categoryName]) {
             categoryMap[categoryName] = {

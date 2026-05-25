@@ -3,6 +3,7 @@ import { View, Text } from 'react-native';
 import { PolarChart, Pie } from "victory-native";
 import { ScaledSheet } from '@/utils/responsive';
 import { colors } from '@/theme';
+import { useTranslation } from 'react-i18next';
 interface CategoryItem {
     label: string;
     value: number;
@@ -15,13 +16,14 @@ interface ExpensesDistributionChartProps {
 }
 
 export function ExpensesDistributionChart({ data }: ExpensesDistributionChartProps) {
+    const {t} = useTranslation()
     const colorKey: "color" = "color";
     const valueKey: "value" = "value";
     const labelKey: "label" = "label";
 
     return (
         <View style={[styles.card, styles.cardMarginBottom]}>
-            <Text style={styles.cardTitle}>Distribuição de despesas</Text>
+            <Text style={styles.cardTitle}>{t("graph.cardTitleExpense")}</Text>
             
             <View style={styles.chartContainer}>
 
@@ -56,7 +58,7 @@ export function ExpensesDistributionChart({ data }: ExpensesDistributionChartPro
 const styles = ScaledSheet.create({
     card: { backgroundColor: colors.card, borderRadius: 24, padding: 20, marginBottom: 20, elevation: 2 },
     cardMarginBottom: { marginBottom: 100 },
-    cardTitle: { fontSize: 16, fontWeight: '700', color: '#1A1A1A' },
+    cardTitle: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
     
     chartContainer: { alignItems: 'center', marginTop: 15 },
     donutContainer: { width: 150, height: 150, marginBottom: 20 },
@@ -71,12 +73,11 @@ const styles = ScaledSheet.create({
     categoryItemRow: { 
         flexDirection: 'row', 
         alignItems: 'center', 
-        backgroundColor: '#F5F6F8', 
         paddingVertical: 6, 
         paddingHorizontal: 10, 
         borderRadius: 20 
     },
     categoryDot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
-    categoryLabel: { fontSize: 12, color: '#444', marginRight: 4 },
-    categoryValue: { fontSize: 12, fontWeight: '700', color: '#1A1A1A' },
+    categoryLabel: { fontSize: 12, color: colors.textSecondary, marginRight: 4 },
+    categoryValue: { fontSize: 12, fontWeight: '700', color: colors.textPrimary },
 });

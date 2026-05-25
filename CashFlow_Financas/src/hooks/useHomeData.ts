@@ -60,6 +60,7 @@ export function useHomeData() {
             setSummary(summaryData);
             setMonthlyStats(percentageData);
             setTransactions(sanitizedTransactions);
+            //throw new Error("Algo deu errado")
         } catch (error) {
             console.error("Erro ao sincronizar dados da Home:", error);
             setHasError(true);
@@ -78,7 +79,6 @@ export function useHomeData() {
             ]);
             setSummary(summaryData);
             setMonthlyStats(percentageData);
-
         } catch (error) {
             console.error("Erro ao deletar transação:", error);
             Alert.alert(t("common.error"), t("transactions.errorDelete"));

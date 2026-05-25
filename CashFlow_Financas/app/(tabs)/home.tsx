@@ -1,8 +1,10 @@
-import { StyleSheet, View, ScrollView, Text, ActivityIndicator } from "react-native";
+import { StyleSheet, View, ScrollView, Text, ActivityIndicator, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useState } from "react"; 
+import { useState, useEffect } from "react"; 
 import { useTranslation } from "react-i18next";
 import { colors } from "@/theme";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Feather } from '@expo/vector-icons';
 
 // Components
 import { TopBar } from "@/components/TopBar/TopBar";
@@ -20,6 +22,8 @@ import { Transactions } from "@/features/transaction/types/Transactions";
 //responsive
 import { ScaledSheet } from "@/utils/responsive";
 
+const VISIBILITY_KEY = "@app_finance_visibility";
+
 export default function HomeScreen() {
     const { t } = useTranslation();
     
@@ -36,6 +40,35 @@ export default function HomeScreen() {
 
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [selectedTxToEdit, setSelectedTxToEdit] = useState<Transactions | null>(null);
+    
+    const [isVisible, setIsVisible] = useState(true);
+    const [isVisibilityLoaded, setIsVisibilityLoaded] = useState(false);
+
+    useEffect(() => {
+        async function loadVisibility() {
+            try {
+                const savedVisibility = await AsyncStorage.getItem(VISIBILITY_KEY);
+                if (savedVisibility !== null) {
+                    setIsVisible(JSON.parse(savedVisibility));
+                }
+            } catch (error) {
+                console.error("Erro ao carregar visibilidade:", error);
+            } finally {
+                setIsVisibilityLoaded(true);
+            }
+        }
+        loadVisibility();
+    }, []);
+
+    const toggleVisibility = async () => {
+        try {
+            const newValue = !isVisible;
+            setIsVisible(newValue);
+            await AsyncStorage.setItem(VISIBILITY_KEY, JSON.stringify(newValue));
+        } catch (error) {
+            console.error("Erro ao salvar visibilidade:", error);
+        }
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -43,9 +76,18 @@ export default function HomeScreen() {
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
-                <TopBar user={user} />
+                <View style={styles.headerRow}>
+                    <TopBar user={user} />
+                    <TouchableOpacity onPress={toggleVisibility} activeOpacity={0.7} style={styles.eyeButton}>
+                        <Feather 
+                            name={isVisible ? "eye" : "eye-off"} 
+                            size={22} 
+                            color={colors.textPrimary} 
+                        />
+                    </TouchableOpacity>
+                </View>
 
-                {loading ? (
+                {(loading || !isVisibilityLoaded) ? (
                     <View style={styles.feedbackContainer}>
                         <ActivityIndicator size="small" color={colors.primary} />
                         <Text style={styles.feedbackText}>{t("common.loading")}</Text>
@@ -61,13 +103,13 @@ export default function HomeScreen() {
                         />
 
                         <View style={styles.summaryRow}>
-                            <FinanceCard isIncome={true} value={summary.income ?? 0} />
-                            <FinanceCard isIncome={false} value={summary.expense ?? 0} />
+                            <FinanceCard isIncome={true} value={summary.income ?? 0} isVisible={isVisible} />
+                            <FinanceCard isIncome={false} value={summary.expense ?? 0} isVisible={isVisible} />
                         </View>
                         
                         <RecentTransactions 
                             transactions={transactions} 
-                            isVisible={true} 
+                            isVisible={isVisible} 
                             onDelete={deleteTransaction}
                             onEdit={(tx: Transactions) => {
                                 setSelectedTxToEdit(tx);
@@ -97,6 +139,8 @@ export default function HomeScreen() {
 const styles = ScaledSheet.create({
     container: { flex: 1, width: "100%", backgroundColor: colors.background },
     scrollContent: { padding: 24, gap: 16, paddingBottom: 75 },
+    headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' },
+    eyeButton: { padding: 8 },
     summaryRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
     feedbackContainer: { alignItems: "center", justifyContent: "center", paddingVertical: 40, gap: 12 },
     feedbackText: { color: colors.textSecondary, fontSize: 14 }

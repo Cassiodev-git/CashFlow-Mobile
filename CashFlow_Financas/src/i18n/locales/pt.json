@@ -10,6 +10,10 @@
         "loading": "Carregando...",
         "search": "Pesquisar",
         "close": "Fechar",
+        "week": "Semana",
+        "month": "Mês",
+        "year": "Ano",
+        
         "yes": "Sim",
         "no": "Não",
         "done": "Concluído",
@@ -141,8 +145,10 @@
         "cardTitleExpense": "Distribuição de despesas",
         "expense": "Despesas",
         "title": "Gráficos",
+        "cardSubtitle": "Pressione e arraste para inspecionar valores",
         "titleDescription": "Acompanhe sua evolução financeira",
         "revenue": "Receitas",
+        "others": "Outros",
         "empty": "Sem dados registrados"
     },
     "auth": {
