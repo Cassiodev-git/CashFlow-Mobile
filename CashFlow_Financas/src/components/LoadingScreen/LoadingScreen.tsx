@@ -3,7 +3,6 @@ import { View, ActivityIndicator, Image } from 'react-native';
 import { MotiView } from 'moti';
 import { ScaledSheet } from '@/utils/responsive';
 import { colors } from '@/theme';
-
 export function LoadingScreen() {
     return (
         <View style={styles.container}>

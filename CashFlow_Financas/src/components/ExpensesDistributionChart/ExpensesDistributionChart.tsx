@@ -4,6 +4,9 @@ import { PolarChart, Pie } from "victory-native";
 import { ScaledSheet } from '@/utils/responsive';
 import { colors } from '@/theme';
 import { useTranslation } from 'react-i18next';
+import { MotiView } from 'moti';
+import { Skeleton } from '../Skeleton/Skeleton';
+
 interface CategoryItem {
     label: string;
     value: number;
@@ -52,6 +55,47 @@ export function ExpensesDistributionChart({ data }: ExpensesDistributionChartPro
 
             </View>
         </View>
+    );
+}
+
+export function ExpensesDistributionChartSkeleton() {
+    return (
+        <MotiView
+            from={{ opacity: 0.6 }}
+            animate={{ opacity: 1 }}
+            transition={{
+                type: 'timing',
+                duration: 600,
+                loop: true,
+                repeatReverse: true,
+            }}
+            style={[styles.card, styles.cardMarginBottom]}
+        >
+            <Text style={styles.cardTitle}>
+                <Skeleton width={180} height={18} borderRadius={4} />
+            </Text>
+            
+            <View style={styles.chartContainer}>
+                <View style={[styles.donutContainer, { justifyContent: 'center', alignItems: 'center' }]}>
+                    <Skeleton width={130} height={130} borderRadius={65} />
+                </View>
+
+                <View style={styles.categoryLegendHorizontal}>
+                    <View style={styles.categoryItemRow}>
+                        <Skeleton width={75} height={14} borderRadius={10} />
+                    </View>
+                    <View style={styles.categoryItemRow}>
+                        <Skeleton width={60} height={14} borderRadius={10} />
+                    </View>
+                    <View style={styles.categoryItemRow}>
+                        <Skeleton width={85} height={14} borderRadius={10} />
+                    </View>
+                    <View style={styles.categoryItemRow}>
+                        <Skeleton width={55} height={14} borderRadius={10} />
+                    </View>
+                </View>
+            </View>
+        </MotiView>
     );
 }
 

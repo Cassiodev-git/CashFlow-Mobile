@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Platform } from 'react-native';
 import { CartesianChart, Line, Area, useChartPressState } from "victory-native";
 import { Circle, useFont } from "@shopify/react-native-skia";
 import { ScaledSheet } from '@/utils/responsive';
 import { colors } from '@/theme';
 import { useTranslation } from 'react-i18next';
+import { MotiView } from 'moti';
+import { Skeleton } from '../Skeleton/Skeleton';
 
 interface ChartItem {
     day: string;
@@ -189,6 +191,50 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
                 ))}
             </View>
         </View>
+    );
+}
+
+export function RevenueExpenseChartSkeleton() {
+    return (
+        <MotiView
+            from={{ opacity: 0.6 }}
+            animate={{ opacity: 1 }}
+            transition={{
+                type: 'timing',
+                duration: 600,
+                loop: true,
+                repeatReverse: true,
+            }}
+            style={styles.card}
+        >
+            <View style={[styles.cardHeader, { marginBottom: 16 }]}>
+                <View style={{ gap: 6 }}>
+                    <Skeleton width={160} height={18} borderRadius={4} />
+                    <Skeleton width={110} height={12} borderRadius={4} />
+                </View>
+            </View>
+
+            <View style={[styles.legendContainer, { marginBottom: 24 }]}>
+                <View style={styles.legendItem}>
+                    <Skeleton width={60} height={14} borderRadius={4} />
+                </View>
+                <View style={styles.legendItem}>
+                    <Skeleton width={60} height={14} borderRadius={4} />
+                </View>
+            </View>
+
+            <View style={[styles.chartWrapper, { justifyContent: 'center', alignItems: 'center' }]}>
+                <Skeleton width="100%" height={210} borderRadius={12} />
+            </View>
+
+            <View style={[styles.xAxisLabelsRow, { paddingLeft: 0, paddingRight: 0, marginTop: 16 }]}>
+                <Skeleton width={24} height={10} borderRadius={2} />
+                <Skeleton width={24} height={10} borderRadius={2} />
+                <Skeleton width={24} height={10} borderRadius={2} />
+                <Skeleton width={24} height={10} borderRadius={2} />
+                <Skeleton width={24} height={10} borderRadius={2} />
+            </View>
+        </MotiView>
     );
 }
 

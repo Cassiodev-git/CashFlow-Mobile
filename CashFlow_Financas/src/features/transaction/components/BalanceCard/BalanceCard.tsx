@@ -9,6 +9,7 @@ import { colors } from '@/theme';
 import { useTranslation } from 'react-i18next';
 import { MotiView, AnimatePresence } from 'moti';
 import { ScaledSheet } from '@/utils/responsive';
+import { Skeleton } from '@/components/Skeleton/Skeleton'; // Certifique-se de ajustar este import para o seu caminho real
 
 interface BalanceCardProps {
     balance: number;
@@ -174,6 +175,28 @@ export function BalanceCard({
     );
 }
 
+export function BalanceCardSkeleton() {
+    return (
+        <View style={styles.container}>
+            <View style={styles.headerRow}>
+                <Skeleton width={100} height={16} borderRadius={4} />
+                <Skeleton width={20} height={20} borderRadius={10} />
+            </View>
+
+            <View style={styles.balanceContainer}>
+                <Skeleton width="65%" height={32} borderRadius={6} />
+            </View>
+
+            <View style={styles.badgeRow}>
+                <View style={styles.skeletonBadge}>
+                    <Skeleton width={38} height={14} borderRadius={4} />
+                </View>
+                <Skeleton width="55%" height={14} borderRadius={4} />
+            </View>
+        </View>
+    );
+}
+
 const styles = ScaledSheet.create({
     container: {
         backgroundColor: colors.primary,
@@ -229,6 +252,17 @@ const styles = ScaledSheet.create({
         minHeight: 24, 
         minWidth: 54,  
         justifyContent: 'center'
+    },
+    skeletonBadge: {
+        backgroundColor: colors.primaryLight,
+        paddingVertical: 4,
+        paddingHorizontal: 8,
+        borderRadius: 8,
+        marginRight: 10,
+        minHeight: 24, 
+        minWidth: 54,  
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     badgeIcon: {
         marginRight: 4,

@@ -62,6 +62,7 @@ export function useHomeData() {
             setMonthlyStats(percentageData);
             setTransactions(sanitizedTransactions);
             //throw new Error("Algo deu errado")
+            //await new Promise(resolve => setTimeout(resolve, 2500))
         } catch (error) {
             logger.error("Error synchronizing Home data:", error);
             setHasError(true);

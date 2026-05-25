@@ -16,6 +16,7 @@ import { FlashList } from '@shopify/flash-list';
 import { Transactions as Transaction } from '../../types/Transactions';
 import { ConfirmationModal } from '@/components/ConfirmationModal/ConfirmationModal'; 
 import { ScaledSheet } from '@/utils/responsive';
+import { Skeleton } from '@/components/Skeleton/Skeleton'; // Certifique-se de ajustar este import para o seu caminho real
 
 const OtimizedList = FlashList as React.ComponentType<any>;
 
@@ -396,6 +397,38 @@ export function RecentTransactions({
                 onEdit={(tx) => onEdit(tx)}
             />
         </MotiView>
+    );
+}
+
+
+export function RecentTransactionsSkeleton() {
+    return (
+        <View style={styles.container}>
+
+            <View style={styles.header}>
+                <View style={styles.titleRow}>
+                    <Skeleton width={140} height={18} borderRadius={4} />
+                    <Skeleton width={60} height={16} borderRadius={4} />
+                </View>
+            </View>
+
+            <View style={styles.listWrapper}>
+                {[1, 2, 3].map((index) => (
+                    <View key={index} style={[styles.transactionCard, { paddingVertical: 9 }]}>
+                        <View style={styles.leftRow}>
+                            <Skeleton width={44} height={44} borderRadius={22} />
+                            <View style={[styles.textContainer, { gap: 6, marginLeft: 14 }]}>
+                                <Skeleton width="70%" height={15} borderRadius={4} />
+                                <Skeleton width="45%" height={12} borderRadius={4} />
+                            </View>
+                        </View>
+                        <View style={styles.valueContainer}>
+                            <Skeleton width={65} height={16} borderRadius={4} />
+                        </View>
+                    </View>
+                ))}
+            </View>
+        </View>
     );
 }
 

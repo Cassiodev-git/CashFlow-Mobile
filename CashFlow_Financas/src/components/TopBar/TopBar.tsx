@@ -13,6 +13,8 @@ import { useTranslation } from 'react-i18next';
 
 import { User } from "@/features/user/types/User";
 import { ScaledSheet } from '@/utils/responsive';
+import { Skeleton } from '../Skeleton/Skeleton';
+
 interface TopBarProps {
     user: User | null;
     onNotificationPress?: () => void;
@@ -110,6 +112,21 @@ export function TopBar({
 
             </TouchableOpacity>*/}
 
+        </View>
+    );
+}
+
+export function TopBarSkeleton() {
+    return (
+        <View style={styles.container}>
+            <View style={styles.textContainer}>
+                <View style={{ height: 26, marginBottom: 4, justifyContent: 'center' }}>
+                    <Skeleton width={180} height={22} borderRadius={4} />
+                </View>
+                <View style={{ height: 18, justifyContent: 'center' }}>
+                    <Skeleton width={120} height={14} borderRadius={4} />
+                </View>
+            </View>
         </View>
     );
 }

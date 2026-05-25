@@ -75,7 +75,7 @@ export default function HomeScreen() {
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
-                {/* 🌟 O cabeçalho voltou a ter apenas o TopBar, sem o botão do olho */}
+
                 <TopBar user={user} />
 
                 {(loading || !isVisibilityLoaded) ? (
@@ -87,7 +87,6 @@ export default function HomeScreen() {
                     <ErrorState onRetry={refetch} />
                 ) : summary && monthlyStats ? (
                     <>
-                        {/* 🌟 Passamos o estado e a função de clique para dentro do BalanceCard */}
                         <BalanceCard
                             balance={summary.balance}
                             percentage={monthlyStats.percentage}

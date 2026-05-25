@@ -5,6 +5,7 @@ import { colors } from '@/theme';
 import { useTranslation } from 'react-i18next';
 import { MotiView, AnimatePresence } from 'moti';
 import { ScaledSheet } from '@/utils/responsive';
+import { Skeleton } from '@/components/Skeleton/Skeleton'; // Certifique-se de ajustar este import para o seu caminho real
 
 interface FinanceCardProps {
     isIncome: boolean; 
@@ -89,6 +90,26 @@ export function FinanceCard({ isIncome, value, isVisible = true }: FinanceCardPr
     );
 }
 
+export function FinanceCardSkeleton() {
+    return (
+        <View style={styles.cardContainer}>
+            <View style={styles.skeletonIconContainer}>
+                <Skeleton width={32} height={32} borderRadius={16} />
+            </View>
+            <View style={styles.textContainer}>
+                <View style={{ marginBottom: 6 }}>
+                    <Skeleton width={60} height={14} borderRadius={4} />
+                </View>
+                <View style={styles.valueContainer}>
+                    <Skeleton width="85%" height={20} borderRadius={4} />
+                </View>
+            </View>
+
+            <Skeleton width={75} height={12} borderRadius={4} />
+        </View>
+    );
+}
+
 const styles = ScaledSheet.create({
     cardContainer: {
         backgroundColor: colors.card,
@@ -109,6 +130,11 @@ const styles = ScaledSheet.create({
         borderRadius: 16,
         justifyContent: 'center',
         alignItems: 'center',
+        marginBottom: 12,
+    },
+    skeletonIconContainer: {
+        width: 32,
+        height: 32,
         marginBottom: 12,
     },
     textContainer: {

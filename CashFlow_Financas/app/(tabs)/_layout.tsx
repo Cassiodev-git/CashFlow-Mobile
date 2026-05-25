@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs, useRouter, useSegments } from 'expo-router';
 import { BottomBar } from '@/components/BottomBar/BottomBar';
-
+import { colors } from '@/theme';
 type TabRoute = 'Home' | 'Graph' | 'Relatório' | 'Perfil';
 
 export default function TabsLayout() {
@@ -50,6 +50,8 @@ export default function TabsLayout() {
         )}
         screenOptions={{
             headerShown: false,
+            animation: 'none', 
+            sceneStyle: { backgroundColor: colors.card } 
         }}
         >
         <Tabs.Screen name="home" />
