@@ -7,14 +7,15 @@ import { initializeDatabase } from '@/db/database';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 // Splash Nativa
 import * as SplashScreen from 'expo-splash-screen';
-// Componente de Loading Customizado
-import { LoadingScreen } from '@/components/LoadingScreen/LoadingScreen';
 
 // Banco de dados
 import "react-native-get-random-values";
 // Linguagem
 import "@/i18n";
+//Utils
+import { logger } from '@/utils/logger';
 
+// Garante que a Splash Screen nativa fique travada no início do APK
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -34,8 +35,9 @@ export default function RootLayout() {
         if (registeredUser) {
           setHasUser(true);
         }
+        //await new Promise(resolve => setTimeout(resolve, 4000));
       } catch (error) {
-        console.error("Erro crítico ao iniciar o banco de dados:", error);
+        logger.error("Critical error starting the database:", error);
       } finally {
         setDbStart(true);
       }
@@ -48,11 +50,11 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
 
       if (hasUser) {
+        // Redireciona para a home
         router.replace("/(tabs)/home"); 
       }
     }
   }, [dbStart, hasUser, router]);
-
 
   if (!dbStart) {
     return null;
@@ -60,8 +62,6 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <LoadingScreen />
-
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" /> 
         <Stack.Screen name="(tabs)" /> 

@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '@/theme';
 import { useTranslation } from 'react-i18next';
@@ -7,43 +7,62 @@ import { MotiView } from 'moti';
 
 interface ErrorStateProps {
     message?: string;
-    onRetry: () => void;
+    onRetry: () => Promise<void> | void; 
 }
 
 export function ErrorState({ message, onRetry }: ErrorStateProps) {
     const { t } = useTranslation();
+    const [isRetrying, setIsRetrying] = useState(false); 
+
+    const handleRetry = async () => {
+        setIsRetrying(true);
+        try {
+            await onRetry(); 
+        } catch (error) {
+            console.error("Erro ao tentar novamente:", error);
+        } finally {
+            setIsRetrying(false); // Desativa se o erro persistir
+        }
+    };
 
     return (
         <View style={styles.outerContainer}>
-        <MotiView
-            from={{ opacity: 0, scale: 0.95, translateY: 10 }}
-            animate={{ opacity: 1, scale: 1, translateY: 0 }}
-            transition={{ type: 'timing', duration: 350 }}
-            style={styles.card}
-        >
-            <View style={styles.iconBg}>
-            <Feather name="alert-circle" size={28} color={colors.expense} />
-            </View>
-            
-            <Text style={styles.title}>
-            {t('common.errorTitle')}
-            </Text>
-            
-            <Text style={styles.message}>
-            {message || t('common.errorMessage')}
-            </Text>
-            
-            <TouchableOpacity 
-            style={styles.button} 
-            onPress={onRetry} 
-            activeOpacity={0.7}
+            <MotiView
+                from={{ opacity: 0, scale: 0.95, translateY: 10 }}
+                animate={{ opacity: 1, scale: 1, translateY: 0 }}
+                transition={{ type: 'timing', duration: 350 }}
+                style={styles.card}
             >
-            <Feather name="refresh-cw" size={15} color={colors.surface} />
-            <Text style={styles.buttonText}>
-                {t('common.retry')}
-            </Text>
-            </TouchableOpacity>
-        </MotiView>
+                <View style={styles.iconBg}>
+                    <Feather name="alert-circle" size={28} color={colors.expense} />
+                </View>
+                
+                <Text style={styles.title}>
+                    {t('common.errorTitle')}
+                </Text>
+                
+                <Text style={styles.message}>
+                    {message || t('common.errorMessage')}
+                </Text>
+                
+                <TouchableOpacity 
+                    style={[styles.button, isRetrying && styles.buttonDisabled]} 
+                    onPress={handleRetry} 
+                    activeOpacity={0.7}
+                    disabled={isRetrying} 
+                >
+                    {isRetrying ? (
+                        <ActivityIndicator size="small" color={colors.surface} />
+                    ) : (
+                        <>
+                            <Feather name="refresh-cw" size={15} color={colors.surface} />
+                            <Text style={styles.buttonText}>
+                                {t('common.retry')}
+                            </Text>
+                        </>
+                    )}
+                </TouchableOpacity>
+            </MotiView>
         </View>
     );
 }
@@ -105,6 +124,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 24,
         borderRadius: 12,
         width: '100%',
+    },
+    buttonDisabled: {
+        opacity: 0.6, 
     },
     buttonText: {
         color: colors.surface,

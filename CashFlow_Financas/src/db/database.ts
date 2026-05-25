@@ -2,6 +2,7 @@ import * as SQLite from "expo-sqlite";
 import createUsersTable from "./migrations/createUserTable"
 import createTransactionTable from "./migrations/createTransactionTable";
 import createCategoriesTable from "./migrations/createCategoriesTable";
+import { logger } from "@/utils/logger";
 const db = SQLite.openDatabaseSync("database.db")
 //Incia o banco de dados 
 export async function initializeDatabase(){
@@ -14,7 +15,7 @@ export async function initializeDatabase(){
         await createCategoriesTable(db)
         console.log("Banco de dados iniciado")
     }catch(error){
-        console.error("Erro ao inicializar banco:", error)
+        logger.error("Error initializing database:", error)
     }
 }
 

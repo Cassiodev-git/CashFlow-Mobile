@@ -1,10 +1,9 @@
-import { StyleSheet, View, ScrollView, Text, ActivityIndicator, TouchableOpacity } from "react-native";
+import { StyleSheet, View, ScrollView, Text, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useEffect } from "react"; 
 import { useTranslation } from "react-i18next";
 import { colors } from "@/theme";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Feather } from '@expo/vector-icons';
 
 // Components
 import { TopBar } from "@/components/TopBar/TopBar";
@@ -76,16 +75,8 @@ export default function HomeScreen() {
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
-                <View style={styles.headerRow}>
-                    <TopBar user={user} />
-                    <TouchableOpacity onPress={toggleVisibility} activeOpacity={0.7} style={styles.eyeButton}>
-                        <Feather 
-                            name={isVisible ? "eye" : "eye-off"} 
-                            size={22} 
-                            color={colors.textPrimary} 
-                        />
-                    </TouchableOpacity>
-                </View>
+                {/* 🌟 O cabeçalho voltou a ter apenas o TopBar, sem o botão do olho */}
+                <TopBar user={user} />
 
                 {(loading || !isVisibilityLoaded) ? (
                     <View style={styles.feedbackContainer}>
@@ -96,10 +87,13 @@ export default function HomeScreen() {
                     <ErrorState onRetry={refetch} />
                 ) : summary && monthlyStats ? (
                     <>
+                        {/* 🌟 Passamos o estado e a função de clique para dentro do BalanceCard */}
                         <BalanceCard
                             balance={summary.balance}
                             percentage={monthlyStats.percentage}
                             status={monthlyStats.status}
+                            isVisible={isVisible}
+                            onToggleVisibility={toggleVisibility}
                         />
 
                         <View style={styles.summaryRow}>
@@ -139,8 +133,6 @@ export default function HomeScreen() {
 const styles = ScaledSheet.create({
     container: { flex: 1, width: "100%", backgroundColor: colors.background },
     scrollContent: { padding: 24, gap: 16, paddingBottom: 75 },
-    headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' },
-    eyeButton: { padding: 8 },
     summaryRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
     feedbackContainer: { alignItems: "center", justifyContent: "center", paddingVertical: 40, gap: 12 },
     feedbackText: { color: colors.textSecondary, fontSize: 14 }

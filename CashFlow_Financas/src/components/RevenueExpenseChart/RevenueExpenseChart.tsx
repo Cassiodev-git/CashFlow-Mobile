@@ -40,7 +40,7 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
         } else if (showTooltip) {
             timer = setTimeout(() => {
                 setShowTooltip(false);
-            }, 500);
+            }, 4000);
         }
         return () => {
             if (timer) clearTimeout(timer);

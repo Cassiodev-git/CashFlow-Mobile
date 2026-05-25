@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
     View,
     Text,
-    StyleSheet,
     TouchableOpacity,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -15,31 +14,24 @@ interface BalanceCardProps {
     balance: number;
     percentage: number;
     status: "positive" | "negative" | "neutral";
-    onToggleVisibility?: (visible: boolean) => void;
+    isVisible: boolean;
+    onToggleVisibility: () => void;
 }
 
 export function BalanceCard({
     balance,
     percentage,
     status,
+    isVisible,
     onToggleVisibility
 }: BalanceCardProps) {
     const { t } = useTranslation();
-    const [isVisible, setIsVisible] = useState(true);
 
     const formatCurrency = (value: number) => {
         return value.toLocaleString('pt-BR', {
             style: 'currency',
             currency: 'BRL',
         });
-    };
-
-    const handleToggleVisibility = () => {
-        const nextState = !isVisible;
-        setIsVisible(nextState);
-        if (onToggleVisibility) {
-            onToggleVisibility(nextState);
-        }
     };
 
     const isPositive = status === "positive";
@@ -82,7 +74,7 @@ export function BalanceCard({
                 </Text>
 
                 <TouchableOpacity
-                    onPress={handleToggleVisibility}
+                    onPress={onToggleVisibility}
                     activeOpacity={0.7}
                 >
                     <Feather

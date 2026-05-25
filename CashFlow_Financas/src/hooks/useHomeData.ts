@@ -15,6 +15,7 @@ import type {
     MonthlyExpensePercentage,
     TransactionSummary,
 } from "@/features/transaction/services/TransactionStatsService";
+import { logger } from "@/utils/logger";
 
 function sanitizeTransactionDate(dateStr: string | null | undefined): string {
     if (!dateStr) return "";
@@ -62,7 +63,7 @@ export function useHomeData() {
             setTransactions(sanitizedTransactions);
             //throw new Error("Algo deu errado")
         } catch (error) {
-            console.error("Erro ao sincronizar dados da Home:", error);
+            logger.error("Error synchronizing Home data:", error);
             setHasError(true);
         }
     }, []);
