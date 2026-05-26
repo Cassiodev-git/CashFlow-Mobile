@@ -9,7 +9,7 @@ import { ExpensesDistributionChart } from '@/components/ExpensesDistributionChar
 import { ErrorState } from '@/components/ErrorState/ErrorState'; 
 import { useReports } from '@/hooks/useReports'; 
 
-export default function ReportsScreen() {
+export default function GraphScreen() {
     const { t } = useTranslation();
     
     const [selectedTab, setSelectedTab] = useState('Mês');
@@ -80,7 +80,7 @@ export default function ReportsScreen() {
 }
 
 const styles = ScaledSheet.create({
-    container: { flex: 1, backgroundColor: colors.card, padding: 22 },
+    container: { flex: 1, backgroundColor: colors.card, padding: 24 },
     loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.card },
     errorCenteredContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background, paddingHorizontal: 22 },
     header: { marginTop: 40, marginBottom: 15 },
