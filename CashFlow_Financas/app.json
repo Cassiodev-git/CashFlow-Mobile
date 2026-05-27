@@ -1,17 +1,26 @@
 {
   "expo": {
-    "name": "CashFlow_Financas",
-    "slug": "CashFlow_Financas",
+    "name": "Finno: Financial Manager",
+    "slug": "finno-app",                  
     "version": "0.0.2",
     "orientation": "portrait",
-    "scheme": "cashflowfinancas",
+    "scheme": "finno",                    
     "userInterfaceStyle": "automatic",
+    
+    "locales": {
+      "en": "./locales/default/InfoPlists.strings",
+      "pt": "./locales/pt/InfoPlists.strings"
+    },
+
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.cashflow.financas"
+      "supportsTablet": false,
+      "bundleIdentifier": "com.finno.app", 
+      "infoPlist": {
+        "CFBundleDevelopmentRegion": "en"
+      }
     },
     "android": {
-      "package": "com.cashflow.financas",
+      "package": "com.finno.app",         
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/Logo_CashFlow.png",
@@ -28,27 +37,16 @@
         "expo-splash-screen",
         {
           "image": "./src/assets/Logo_CashFlow.png",
-          "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
-          "dark": {
-            "image": "./src/assets/Logo_CashFlow.png",
-            "backgroundColor": "#000000"
-          }
+          "backgroundColor": "#ffffff"
         }
       ],
-      "expo-sqlite",
-      "@react-native-community/datetimepicker"
-    ],
-    "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
-    },
-    "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "716280f1-adba-4019-9f53-74d00582a3ea"
-      }
-    }
+      [
+        "expo-localization",
+        {
+          "supportedLocales": ["en", "pt"]
+        }
+      ]
+    ]
   }
 }
