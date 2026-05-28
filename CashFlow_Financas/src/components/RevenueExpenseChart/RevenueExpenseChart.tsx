@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import React, { useEffect, useState } from 'react';
+=======
+import React, { useEffect, useRef, useState } from 'react';
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
 import { View, Text, Platform } from 'react-native';
 import { CartesianChart, Line, Area, useChartPressState } from "victory-native";
 import { Circle, useFont } from "@shopify/react-native-skia";
@@ -195,6 +199,7 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 }
 
 export function RevenueExpenseChartSkeleton() {
+<<<<<<< HEAD
     const transition = React.useMemo(() => ({
         type: 'timing' as const,
         duration: 1000,
@@ -207,6 +212,18 @@ export function RevenueExpenseChartSkeleton() {
             from={{ opacity: 0.4 }}
             animate={{ opacity: 0.8 }}
             transition={transition}
+=======
+    return (
+        <MotiView
+            from={{ opacity: 0.6 }}
+            animate={{ opacity: 1 }}
+            transition={{
+                type: 'timing',
+                duration: 600,
+                loop: true,
+                repeatReverse: true,
+            }}
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
             style={styles.card}
         >
             <View style={[styles.cardHeader, { marginBottom: 16 }]}>
@@ -259,4 +276,8 @@ const styles = ScaledSheet.create({
     axisLabelText: { fontSize: 10, color: colors.textSecondary, fontWeight: '600' },
     emptyContainer: { height: 200, justifyContent: 'center', alignItems: 'center' },
     emptyText: { fontSize: 13, color: colors.textSecondary, textAlign: 'center', marginTop: 15, paddingHorizontal: 20 },
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707

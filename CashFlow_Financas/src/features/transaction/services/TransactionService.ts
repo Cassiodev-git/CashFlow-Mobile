@@ -23,9 +23,15 @@ class TransactionService {
         return result;
     }
 
+<<<<<<< HEAD
     async listTransactions(options?: { limit?: number; offset?: number }){
         const userId = await getLocalUserId();
         const result = await transacRepo.listTransactions(userId, options);
+=======
+    async listTransactions(){
+        const userId = await getLocalUserId();
+        const result = await transacRepo.listTransactions(userId);
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
         return result;
     }
     async deleteTransaction(id: string){

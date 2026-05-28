@@ -4,7 +4,10 @@ import { Feather } from '@expo/vector-icons';
 import { colors } from '@/theme';
 import { useTranslation } from 'react-i18next';
 import { MotiView } from 'moti';
+<<<<<<< HEAD
 import { logger } from '@/utils/logger';
+=======
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
 
 interface ErrorStateProps {
     message?: string;
@@ -20,7 +23,11 @@ export function ErrorState({ message, onRetry }: ErrorStateProps) {
         try {
             await onRetry(); 
         } catch (error) {
+<<<<<<< HEAD
             logger.error("Erro ao tentar novamente:", error);
+=======
+            console.error("Erro ao tentar novamente:", error);
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
         } finally {
             setIsRetrying(false); // Desativa se o erro persistir
         }
@@ -135,4 +142,8 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         letterSpacing: -0.1,
     },
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707

@@ -17,8 +17,11 @@ import type {
 } from "@/features/transaction/services/TransactionStatsService";
 import { logger } from "@/utils/logger";
 
+<<<<<<< HEAD
 const TRANSACTIONS_PAGE_SIZE = 10;
 
+=======
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
 function sanitizeTransactionDate(dateStr: string | null | undefined): string {
     if (!dateStr) return "";
     
@@ -39,6 +42,7 @@ export function useHomeData() {
     const [summary, setSummary] = useState<TransactionSummary | null>(null);
     const [monthlyStats, setMonthlyStats] = useState<MonthlyExpensePercentage | null>(null);
     const [transactions, setTransactions] = useState<Transactions[]>([]);
+<<<<<<< HEAD
     const [loadingUser, setLoadingUser] = useState(true);
     const [loadingSummary, setLoadingSummary] = useState(true);
     const [loadingTransactions, setLoadingTransactions] = useState(true);
@@ -157,6 +161,39 @@ export function useHomeData() {
         loadingTransactions,
         transactions.length,
     ]);
+=======
+    const [loading, setLoading] = useState(true);
+    const [hasError, setHasError] = useState(false);
+
+    const fetchUpdatedData = useCallback(async () => {
+        try {
+            setHasError(false);
+            const userData = await AppUserService.findFirstUser();
+            if (!userData) return;
+
+            setUser(userData);
+
+            const [transactionsList, summaryData, percentageData] = await Promise.all([
+                AppTransactionsService.listTransactions(),
+                AppTransactionSummaryService.getSummary(),
+                AppTransactionSummaryService.getMonthlyExpensePercentage(),
+            ]);
+            const sanitizedTransactions = transactionsList.map(transaction => ({
+                ...transaction,
+                date: sanitizeTransactionDate(transaction.date)
+            }));
+
+            setSummary(summaryData);
+            setMonthlyStats(percentageData);
+            setTransactions(sanitizedTransactions);
+            //throw new Error("Algo deu errado")
+            //await new Promise(resolve => setTimeout(resolve, 2500))
+        } catch (error) {
+            logger.error("Error synchronizing Home data:", error);
+            setHasError(true);
+        }
+    }, []);
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
 
     const handleDeleteTransaction = useCallback(async (id: string) => {
         try {
@@ -171,7 +208,11 @@ export function useHomeData() {
             setSummary(summaryData);
             setMonthlyStats(percentageData);
         } catch (error) {
+<<<<<<< HEAD
             logger.error("Erro ao deletar transação:", error);
+=======
+            console.error("Erro ao deletar transação:", error);
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
             Alert.alert(t("common.error"), t("transactions.errorDelete"));
         }
     }, [t]);
@@ -189,11 +230,23 @@ export function useHomeData() {
     useFocusEffect(
         useCallback(() => {
             async function initHome() {
+<<<<<<< HEAD
                 await fetchUpdatedData();
             }
 
             initHome();
         }, [fetchUpdatedData])
+=======
+                if (transactions.length === 0) {
+                    setLoading(true);
+                }
+                await fetchUpdatedData();
+                setLoading(false);
+            }
+
+            initHome();
+        }, [transactions.length, fetchUpdatedData])
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
     );
 
     return {
@@ -201,6 +254,7 @@ export function useHomeData() {
         summary,
         monthlyStats,
         transactions,
+<<<<<<< HEAD
         loadingUser,
         loadingSummary,
         loadingTransactions,
@@ -213,3 +267,11 @@ export function useHomeData() {
         deleteTransaction: handleDeleteTransaction
     };
 }
+=======
+        loading,
+        hasError,
+        refetch: fetchUpdatedData,
+        deleteTransaction: handleDeleteTransaction
+    };
+}
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707

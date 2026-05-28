@@ -25,9 +25,12 @@ interface RecentTransactionsProps {
     isVisible?: boolean;
     onEdit: (transaction: Transaction) => void;
     onDelete: (id: string) => void;
+<<<<<<< HEAD
     onLoadMore?: () => void;
     hasMore?: boolean;
     isLoadingMore?: boolean;
+=======
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
     onTransactionCreated?: () => void;
 }
 
@@ -191,9 +194,12 @@ export function RecentTransactions({
     isVisible = true,
     onEdit,
     onDelete,
+<<<<<<< HEAD
     onLoadMore,
     hasMore = false,
     isLoadingMore = false,
+=======
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
     onTransactionCreated
 }: RecentTransactionsProps) {
     const { t } = useTranslation();
@@ -237,10 +243,20 @@ export function RecentTransactions({
             );
         }
 
+<<<<<<< HEAD
         return result;
     }, [transactions, searchQuery]);
 
     const renderItem = useCallback(({ item }: { item: Transaction; index: number }) => {
+=======
+        if (!showAll) {
+            return result.slice(0, 5);
+        }
+        return result.slice(0, 50);
+    }, [transactions, showAll, searchQuery]);
+
+    const renderItem = useCallback(({ item, index }: { item: Transaction; index: number }) => {
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
         const isExpense = String(item.type).toLowerCase() === 'expense';
         const iconName = categoryIcons[item.title] || (isExpense ? 'arrow-down-left' : 'arrow-up-right');
 
@@ -254,12 +270,22 @@ export function RecentTransactions({
             >
                 <MotiView
                     key={item.id}
+<<<<<<< HEAD
                     from={{ opacity: 0, translateY: 4 }}
                     animate={{ opacity: 1, translateY: 0 }}
                     exit={{ opacity: 0 }}
                     transition={{
                         type: 'timing',
                         duration: 120,
+=======
+                    from={{ opacity: 0, translateY: 15 }}
+                    animate={{ opacity: 1, translateY: 0 }}
+                    exit={{ opacity: 0, translateY: -10 }}
+                    transition={{
+                        type: 'timing',
+                        duration: 220,
+                        delay: showAll ? 0 : Math.min(index * 30, 120)
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
                     }}
                     style={styles.transactionCard}
                 >
@@ -281,10 +307,17 @@ export function RecentTransactions({
                             {isVisible ? (
                                 <MotiView
                                     key="visible-amount"
+<<<<<<< HEAD
                                     from={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
                                     transition={{ type: 'timing', duration: 90 }}
+=======
+                                    from={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                    transition={{ type: 'timing', duration: 150 }}
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
                                 >
                                     <Text style={[styles.amountText, { color: statusColor }]}>
                                         {formatCurrency(item.amount, isExpense)}
@@ -296,7 +329,11 @@ export function RecentTransactions({
                                     from={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
+<<<<<<< HEAD
                                     transition={{ type: 'timing', duration: 90 }}
+=======
+                                    transition={{ type: 'timing', duration: 120 }}
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
                                 >
                                     <Text style={styles.hiddenText}>••••••</Text>
                                 </MotiView>
@@ -306,6 +343,7 @@ export function RecentTransactions({
                 </MotiView>
             </TouchableOpacity>
         );
+<<<<<<< HEAD
     }, [isVisible, t, formatDate, formatCurrency]);
 
     return (
@@ -313,6 +351,15 @@ export function RecentTransactions({
             from={{ opacity: 0, translateY: 6 }}
             animate={{ opacity: 1, translateY: 0 }}
             transition={{ type: 'timing', duration: 220 }}
+=======
+    }, [isVisible, t, formatDate, formatCurrency, showAll]);
+
+    return (
+        <MotiView
+            from={{ opacity: 0, translateY: 20 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: 'timing', duration: 450 }}
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
             style={styles.container}
         >
             <View style={styles.header}>
@@ -320,6 +367,7 @@ export function RecentTransactions({
                     {!showAll ? (
                         <MotiView
                             key="title-section"
+<<<<<<< HEAD
                             from={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
@@ -328,6 +376,16 @@ export function RecentTransactions({
                         >
                             <Text style={styles.title}>{t('transactions.recentTitle')}</Text>
                             {(transactions.length > 0 || hasMore) && ( 
+=======
+                            from={{ opacity: 0, translateX: -10 }}
+                            animate={{ opacity: 1, translateX: 0 }}
+                            exit={{ opacity: 0, translateX: -10 }}
+                            transition={{ type: 'timing', duration: 180 }}
+                            style={styles.titleRow}
+                        >
+                            <Text style={styles.title}>{t('transactions.recentTitle')}</Text>
+                            {transactions.length > 5 && ( 
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
                                 <TouchableOpacity
                                     activeOpacity={0.6}
                                     onPress={() => {
@@ -342,10 +400,17 @@ export function RecentTransactions({
                     ) : (
                         <MotiView
                             key="search-section"
+<<<<<<< HEAD
                             from={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ type: 'timing', duration: 100 }}
+=======
+                            from={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.98 }}
+                            transition={{ type: 'timing', duration: 180 }}
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
                             style={styles.searchContainer}
                         >
                             <Feather name="search" size={18} color={colors.textSecondary} style={styles.searchIcon} />
@@ -382,6 +447,7 @@ export function RecentTransactions({
                     scrollEnabled={showAll}
                     nestedScrollEnabled={true} 
                     contentContainerStyle={styles.listContent}
+<<<<<<< HEAD
                     onEndReached={showAll && hasMore && !isLoadingMore ? onLoadMore : undefined}
                     onEndReachedThreshold={0.4}
                     ListFooterComponent={
@@ -391,6 +457,8 @@ export function RecentTransactions({
                             </View>
                         ) : null
                     }
+=======
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
                     ListEmptyComponent={
                         <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ paddingVertical: 24 }}>
                             <Text style={styles.emptyText}>{t("transactions.emptyTransactions")}</Text>
@@ -457,7 +525,10 @@ const styles = ScaledSheet.create({
     listWrapper: { width: '100%' },
     scrollActive: { height: 260, maxHeight: 260 },
     listContent: { paddingBottom: 4 },
+<<<<<<< HEAD
     loadingMore: { paddingVertical: 8 },
+=======
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
     transactionCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', paddingVertical: 7 },
     leftRow: { flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 },
     iconBg: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginRight: 14 },
@@ -492,4 +563,8 @@ const modalStyles = ScaledSheet.create({
     btnEditText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
     btnDelete: { backgroundColor: `${colors.expense}12`, borderWidth: 1, borderColor: `${colors.expense}26` },
     btnDeleteText: { color: colors.expense, fontSize: 15, fontWeight: '600' }
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707

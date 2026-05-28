@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import React, { useMemo } from 'react';
+=======
+import React from 'react';
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
 import { View, Text } from 'react-native';
 import { PolarChart, Pie } from "victory-native";
 import { ScaledSheet } from '@/utils/responsive';
@@ -59,6 +63,7 @@ export function ExpensesDistributionChart({ data }: ExpensesDistributionChartPro
 }
 
 export function ExpensesDistributionChartSkeleton() {
+<<<<<<< HEAD
     const transition = useMemo(() => ({
         type: 'timing' as const,
         duration: 1000,
@@ -71,6 +76,18 @@ export function ExpensesDistributionChartSkeleton() {
             from={{ opacity: 0.4 }}
             animate={{ opacity: 0.8 }}
             transition={transition}
+=======
+    return (
+        <MotiView
+            from={{ opacity: 0.6 }}
+            animate={{ opacity: 1 }}
+            transition={{
+                type: 'timing',
+                duration: 600,
+                loop: true,
+                repeatReverse: true,
+            }}
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
             style={[styles.card, styles.cardMarginBottom]}
         >
             <Text style={styles.cardTitle}>
@@ -126,4 +143,8 @@ const styles = ScaledSheet.create({
     categoryDot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
     categoryLabel: { fontSize: 12, color: colors.textSecondary, marginRight: 4 },
     categoryValue: { fontSize: 12, fontWeight: '700', color: colors.textPrimary },
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707

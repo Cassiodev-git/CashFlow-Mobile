@@ -64,9 +64,15 @@ export function BalanceCard({
 
     return (
         <MotiView 
+<<<<<<< HEAD
             from={{ opacity: 0, translateY: 6 }}
             animate={{ opacity: 1, translateY: 0 }}
             transition={{ type: 'timing', duration: 220 }}
+=======
+            from={{ opacity: 0, translateY: 15 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: 'timing', duration: 400 }}
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
             style={styles.container}
         >
             <View style={styles.headerRow}>
@@ -95,7 +101,11 @@ export function BalanceCard({
                             from={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
+<<<<<<< HEAD
                             transition={{ type: 'timing', duration: 90 }}
+=======
+                            transition={{ type: 'timing', duration: 150 }}
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
                         >
                             <Text style={styles.balanceValue}>
                                 {formatCurrency(balance)}
@@ -107,7 +117,11 @@ export function BalanceCard({
                             from={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
+<<<<<<< HEAD
                             transition={{ type: 'timing', duration: 90 }}
+=======
+                            transition={{ type: 'timing', duration: 150 }}
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
                         >
                             <Text style={styles.balanceValue}>
                                 ••••••
@@ -126,7 +140,11 @@ export function BalanceCard({
                                 from={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
+<<<<<<< HEAD
                                 transition={{ type: 'timing', duration: 90 }}
+=======
+                                transition={{ type: 'timing', duration: 150 }}
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
                                 style={{ flexDirection: 'row', alignItems: 'center' }}
                             >
                                 {badgeIcon && (
@@ -152,7 +170,11 @@ export function BalanceCard({
                                 from={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
+<<<<<<< HEAD
                                 transition={{ type: 'timing', duration: 90 }}
+=======
+                                transition={{ type: 'timing', duration: 150 }}
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
                             >
                                 <Text
                                     style={[
@@ -175,7 +197,11 @@ export function BalanceCard({
     );
 }
 
+<<<<<<< HEAD
 export function BalanceCardSkeleton(_props: Partial<BalanceCardProps>) {
+=======
+export function BalanceCardSkeleton() {
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
     return (
         <View style={styles.container}>
             <View style={styles.headerRow}>
@@ -276,4 +302,8 @@ const styles = ScaledSheet.create({
         fontSize: 12,
         fontWeight: '400'
     },
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
