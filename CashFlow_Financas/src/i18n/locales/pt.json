@@ -1,0 +1,166 @@
+{
+    "common": {
+        "save": "Salvar",
+        "cancel": "Cancelar",
+        "edit": "Editar",
+        "delete": "Excluir",
+        "confirm": "Confirmar",
+        "back": "Voltar",
+        "continue": "Continuar",
+        "loading": "Carregando...",
+        "search": "Pesquisar",
+        "close": "Fechar",
+        "week": "Semana",
+        "month": "Mês",
+        "year": "Ano",
+        
+        "yes": "Sim",
+        "no": "Não",
+        "done": "Concluído",
+        "create": "Criar",
+        "update": "Atualizar",
+        "remove": "Remover",
+        "error": "Error",
+        "errorTitle": "Ops!, Algo deu errado",
+        "errorMessage": "Houve um problema ao carregar as informações. Por favor, tente novamente.",
+        "retry": "Tentar novamente"
+    },
+    "greetings": {
+        "hello": "Olá",
+        "financeSummary": "Aqui está o resumo das suas finanças"
+    },
+    
+    "errors": {
+        "unexpected": "Erro inesperado",
+        "requiredField": "Campo obrigatório",
+        "requiredName": "Nome obrigatório",
+        "invalidEmail": "Email inválido",
+        "minimumCharacters": "Quantidade mínima de caracteres não atingida",
+        "userAlreadyExists": "Usuário já cadastrado",
+        "userNotFound": "Usuário não encontrado",
+        "userNotFoundForTransactionCreate": "Usuário não encontrado para registrar transação",
+        "userNotFoundForTransactionRead": "Usuário não encontrado para consultar transações",
+        "networkError": "Erro de conexão",
+        "databaseError": "Erro no banco de dados",
+        "permissionDenied": "Permissão negada"
+    },
+    "validation": {
+        "user": {
+            "nameTooShort": "Nome muito curto",
+            "nameTooLong": "Nome muito longo"
+        },
+        "transaction": {
+            "titleTooShort": "Título muito curto",
+            "titleTooLong": "Título muito longo",
+            "descriptionTooLong": "Descrição muito longa"
+        }
+    },
+    "user": {
+        "title": "Cadastre seu perfil",
+        "subtitle": "Informe seu nome e escolha uma imagem para o avatar.",
+        "namePlaceholder": "Nome",
+        "avatar": "Imagem do avatar",
+        "addAvatarAccessibilityLabel": "Adicionar avatar",
+        "saveLoading": "Salvando...",
+        "createSuccess": "Usuário criado com sucesso",
+        "updateSuccess": "Usuário atualizado com sucesso",
+        "deleteSuccess": "Usuário deletado com sucesso"
+    },
+    "transactions": {
+        "income": "Receita",
+        "type": "Tipo",
+        "expense": "Despesa",
+        "thisMonth": "Este mês",
+        "seeAll": "Ver todas",
+        "seeLess": "Ver menos",
+        "invalidDate": "Insira uma data válida no formato DD/MM/AAAA.",
+        "newTransaction": "Nova transação",
+        "title": "Título",
+        "dateOutRange": "Por favor, insira uma data válida a partir do ano 2000.",
+        "titlePlaceholder": "Ex: Supermercado",
+        "editTitle": "Editar transação",
+        "detailsTitle": "Detalhes da transação",
+        "descriptionLabel": "Descrição",
+        "descriptionPlaceholder": "Descreva a transação",
+        "amountLabel": "Valor (R$)",
+        "amountPlaceholder": "0,00",
+        "typeLabel": "Tipo",
+        "statusLabel": "Status",
+        "dateLabel": "Data",
+        "datePlaceholder": "AAAA-MM-DD",
+        "categoryIdLabel": "ID da categoria",
+        "categoryIdPlaceholder": "Opcional",
+        "errorDelete": "Não foi possível excluir a transação.",
+        "errorEdit": "Não foi possível salvar as alterações.",
+        "add": "Adicionar",
+        "confirmDelete": "Tem certeza que deseja deletar essa transação?",
+        "addTransaction": "Adicionar transação",
+        "editTransaction": "Editar transação",
+        "transactionValue": "Valor da transação",
+        "transactionDescription": "Descrição",
+        "transactionCategory": "Categoria",
+        "transactionDate": "Data",
+        "categoryLabel": "Categoria",
+        "searchPlaceholder": "Buscar transação...",
+        "recentTitle": "Transações recentes",
+        "emptyTransactions": "Nenhuma transação encontrada",
+        "invalidCreateData": "Informe um título e um valor válido para a transação",
+        "status": {
+            "pending": "Pendente",
+            "paid": "Pago",
+            "canceled": "Cancelado"
+        }
+    },
+    "bottomBar": {
+        "home": "Home",
+        "graph": "Gráfico",
+        "report": "Relatório",
+        "profile": "Perfil"
+    },
+    "categories": {
+    "food": "Alimentação",
+    "transport": "Transporte",
+    "health": "Saúde",
+    "education": "Educação",
+    "salary": "Salário",
+    "investment": "Investimentos",
+    "entertainment": "Lazer",
+    "createCategory": "Crie sua categoria"
+    },
+    "settings": {
+    "title": "Configurações",
+    "theme": "Tema",
+    "language": "Idioma",
+    "currency": "Moeda",
+    "notifications": "Notificações",
+    "darkMode": "Modo escuro",
+    "lightMode": "Modo claro"
+    },
+    "balance": {
+        "title": "Saldo atual",
+        "comparedToLastMonth": "em relação ao mês passado"
+    },
+    "graph": {
+        "cardTitleRevenue": "Receitas vs Despesas",
+        "cardTitleExpense": "Distribuição de despesas",
+        "expense": "Despesas",
+        "title": "Gráficos",
+        "cardSubtitle": "Pressione e arraste para inspecionar valores",
+        "titleDescription": "Acompanhe sua evolução financeira",
+        "revenue": "Receitas",
+        "others": "Outros",
+        "empty": "Sem dados registrados"
+    },
+    "auth": {
+    "login": "Entrar",
+    "logout": "Sair",
+    "register": "Cadastrar",
+    "email": "Email",
+    "password": "Senha",
+    "forgotPassword": "Esqueci minha senha"
+    },
+    "alerts": {
+        "permissionRequiredTitle": "Permissão necessária",
+        "permissionRequiredMessage": "Autorize o acesso à galeria para selecionar uma imagem de avatar."
+    }
+}
