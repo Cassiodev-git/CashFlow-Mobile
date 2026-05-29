@@ -2,10 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
-<<<<<<< HEAD
-=======
-    StyleSheet,
->>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
     TouchableOpacity,
     Modal,
     TextInput,
@@ -32,10 +28,7 @@ import AppCategoryService from '@/services/AppCategoryService';
 // Types
 import { Transactions as Transaction } from '../../types/Transactions';
 import { ScaledSheet, verticalScale } from '@/utils/responsive'; 
-<<<<<<< HEAD
 import { logger } from '@/utils/logger';
-=======
->>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
 
 interface TransactionFormModalProps {
     isOpen: boolean;
@@ -137,11 +130,7 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
                 const result = await AppCategoryService.listCategories();
                 setCategories(result);
             } catch (err) {
-<<<<<<< HEAD
                 logger.error("Erro ao listar categorias:", err);
-=======
-                console.error("Erro ao listar categorias:", err);
->>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
             } finally {
                 setLoadingCategories(false);
             }
@@ -399,8 +388,4 @@ const styles = ScaledSheet.create({
     buttonRow: { width: '100%', marginTop: 12 },
     saveButton: { width: '100%', height: 48, justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: colors.primaryDark },
     saveButtonText: { fontSize: 15, fontWeight: '600', color: colors.textInverse }
-<<<<<<< HEAD
 });
-=======
-});
->>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707

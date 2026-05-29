@@ -2,10 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import AppTransactionsService from '@/services/AppTransactionsService';
 import { Transactions as Transaction } from "@/features/transaction/types/Transactions";
 import { useTranslation } from 'react-i18next';
-<<<<<<< HEAD
 import { logger } from '@/utils/logger';
-=======
->>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
 
 export function useReports(selectedTab: string) {
     const { t } = useTranslation();
@@ -33,11 +30,7 @@ export function useReports(selectedTab: string) {
             setLineChartData(formattedLineData);
             setPieChartData(formattedPieData);
         } catch (err) {
-<<<<<<< HEAD
             logger.error("Erro ao carregar os dados dos gráficos:", err);
-=======
-            console.error("Erro ao carregar os dados dos gráficos:", err);
->>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
             setError(true); 
         } finally {
             setLoading(false);
@@ -165,8 +158,4 @@ function groupTransactionsByCategory(transactions: Transaction[], period: string
         ...item,
         value: Math.round((item.value / totalExpense) * 100)
     }));
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707

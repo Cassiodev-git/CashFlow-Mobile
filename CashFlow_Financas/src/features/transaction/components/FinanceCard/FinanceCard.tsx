@@ -1,9 +1,5 @@
 import React from 'react';
-<<<<<<< HEAD
 import { View, Text } from 'react-native';
-=======
-import { View, Text, StyleSheet } from 'react-native';
->>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
 import { Feather } from '@expo/vector-icons';
 import { colors } from '@/theme';
 import { useTranslation } from 'react-i18next';
@@ -45,15 +41,9 @@ export function FinanceCard({ isIncome, value, isVisible = true }: FinanceCardPr
 
     return (
         <MotiView
-<<<<<<< HEAD
             from={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ type: 'timing', duration: 220 }}
-=======
-            from={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: 'timing', duration: 450, delay: 100 }}
->>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
             style={styles.cardContainer}
         >
 
@@ -72,11 +62,7 @@ export function FinanceCard({ isIncome, value, isVisible = true }: FinanceCardPr
                                 from={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-<<<<<<< HEAD
                                 transition={{ type: 'timing', duration: 90 }}
-=======
-                                transition={{ type: 'timing', duration: 150 }}
->>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
                             >
                                 <Text style={[styles.value, { color: cardConfig.valueColor }]}>
                                     {formatCurrency(value)}
@@ -88,11 +74,7 @@ export function FinanceCard({ isIncome, value, isVisible = true }: FinanceCardPr
                                 from={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-<<<<<<< HEAD
                                 transition={{ type: 'timing', duration: 90 }}
-=======
-                                transition={{ type: 'timing', duration: 150 }}
->>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
                             >
                                 <Text style={[styles.value, { color: colors.textSecondary }]}>
                                     ••••••
@@ -108,11 +90,7 @@ export function FinanceCard({ isIncome, value, isVisible = true }: FinanceCardPr
     );
 }
 
-<<<<<<< HEAD
 export function FinanceCardSkeleton(_props: Partial<Pick<FinanceCardProps, "isIncome">>) {
-=======
-export function FinanceCardSkeleton() {
->>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
     return (
         <View style={styles.cardContainer}>
             <View style={styles.skeletonIconContainer}>
@@ -183,8 +161,4 @@ const styles = ScaledSheet.create({
         fontWeight: '400',
         marginTop: 'auto',
     },
-<<<<<<< HEAD
 });
-=======
-});
->>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707

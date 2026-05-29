@@ -1,4 +1,4 @@
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
 
 //components
 import { UserForm } from "@/features/user/components/UserForm/UserForm";

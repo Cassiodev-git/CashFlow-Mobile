@@ -2,18 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
     View,
     Text,
-<<<<<<< HEAD
     Animated,
 } from 'react-native';
 
-=======
-    StyleSheet,
-    TouchableOpacity,
-    Animated,
-} from 'react-native';
-
-import { Feather } from '@expo/vector-icons';
->>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
 import { colors } from '@/theme';
 import { useTranslation } from 'react-i18next';
 
@@ -39,60 +30,25 @@ export function TopBar({
 
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
-<<<<<<< HEAD
     const translateY = useRef(new Animated.Value(4)).current;
 
     useEffect(() => {
         setDisplayedText(fullText);
-=======
-    const translateY = useRef(new Animated.Value(8)).current;
-
-    useEffect(() => {
->>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
 
         Animated.parallel([
             Animated.timing(fadeAnim, {
                 toValue: 1,
-<<<<<<< HEAD
                 duration: 220,
-=======
-                duration: 400,
->>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
                 useNativeDriver: true,
             }),
 
             Animated.timing(translateY, {
                 toValue: 0,
-<<<<<<< HEAD
                 duration: 220,
-=======
-                duration: 400,
->>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
                 useNativeDriver: true,
             })
         ]).start();
 
-<<<<<<< HEAD
-=======
-        let index = 0;
-
-        const interval = setInterval(() => {
-
-            setDisplayedText(
-                fullText.slice(0, index + 1)
-            );
-
-            index++;
-
-            if (index >= fullText.length) {
-                clearInterval(interval);
-            }
-
-        }, 35);
-
-        return () => clearInterval(interval);
-
->>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
     }, [fadeAnim, fullText, translateY]);
 
     return (

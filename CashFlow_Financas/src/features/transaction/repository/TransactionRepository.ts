@@ -1,10 +1,6 @@
 import { db } from "@/db";
 import { v4 as uuid } from "uuid";
-<<<<<<< HEAD
 import { desc, eq } from "drizzle-orm";
-=======
-import { eq } from "drizzle-orm";
->>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
 import { transactions } from "../schema";
 import type { CreateTransactionDTO, UpdateTransactionDTO } from "../validation";
 
@@ -37,7 +33,6 @@ export class TransactionRepository {
         return result;
     }
 
-<<<<<<< HEAD
     async listTransactions(userId: string, options?: { limit?: number; offset?: number }) {
         const query = db
             .select()
@@ -50,10 +45,6 @@ export class TransactionRepository {
         }
 
         const result = await query;
-=======
-    async listTransactions(userId: string) {
-        const result = await db.select().from(transactions).where(eq(transactions.user_id, userId));
->>>>>>> 945b444312f7b6a94805c28de1fcfae68c399707
         return result;
     }
 }
