@@ -2,7 +2,7 @@ import { ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useEffect } from "react"; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+//compoenets
 import { TopBar, TopBarSkeleton } from "@/components/TopBar/TopBar";
 import { BalanceCard, BalanceCardSkeleton } from "@/features/transaction/components/BalanceCard/BalanceCard";
 import { FinanceCard, FinanceCardSkeleton } from "@/features/transaction/components/FinanceCard/FinanceCard";
@@ -77,7 +77,7 @@ export default function HomeScreen() {
                     contentContainerStyle={{
                         padding: scale(24),
                         gap: scale(16),
-                        paddingBottom: scale(40)
+                        paddingBottom: scale(10)
                     }}
                     showsVerticalScrollIndicator={false}
                 >

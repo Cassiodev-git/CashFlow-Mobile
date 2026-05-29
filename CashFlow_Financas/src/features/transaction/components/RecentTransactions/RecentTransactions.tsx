@@ -1,7 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
-    View,
-    Text,
     StyleSheet,
     TouchableOpacity,
     TextInput,
@@ -9,14 +7,13 @@ import {
     TouchableWithoutFeedback,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { colors } from '@/theme';
 import { useTranslation } from 'react-i18next';
 import { MotiView, AnimatePresence } from 'moti';
 import { FlashList } from '@shopify/flash-list';
 import { Transactions as Transaction } from '../../types/Transactions';
 import { ConfirmationModal } from '@/components/ConfirmationModal/ConfirmationModal'; 
-import { ScaledSheet } from '@/utils/responsive';
-import { Skeleton } from '@/components/Skeleton/Skeleton'; // Certifique-se de ajustar este import para o seu caminho real
+import { Skeleton } from '@/components/Skeleton/Skeleton'; 
+import { Box, Text, scale, verticalScale, moderateScale} from '@/theme/unistyles';
 
 const OtimizedList = FlashList as React.ComponentType<any>;
 
@@ -61,7 +58,7 @@ function TransactionDetailsModal({
     if (!transaction) return null;
 
     const isExpense = String(transaction.type).toLowerCase() === 'expense';
-    const statusColor = isExpense ? colors.expense : colors.income;
+    const statusColor = isExpense ? "#FF4747" : "#289653";
     const iconName = categoryIcons[transaction.title] || (isExpense ? 'arrow-down-left' : 'arrow-up-right');
 
     const formattedAmount = transaction.amount.toLocaleString('pt-BR', {
@@ -84,7 +81,7 @@ function TransactionDetailsModal({
                 onRequestClose={onClose}
             >
                 <TouchableWithoutFeedback onPress={onClose}>
-                    <View style={modalStyles.backdrop}>
+                    <Box flex={1} style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }} justifyContent="flex-end">
                         <AnimatePresence>
                             {isOpen && (
                                 <MotiView
@@ -102,73 +99,137 @@ function TransactionDetailsModal({
                                 animate={{ translateY: 0 }}
                                 exit={{ translateY: 320 }}
                                 transition={{ type: 'timing', duration: 230 }}
-                                style={modalStyles.sheetContainer}
                             >
-                                <View style={modalStyles.dragIndicator} />
+                                <Box
+                                    backgroundColor="card"
+                                    borderTopLeftRadius="xl"
+                                    borderTopRightRadius="xl"
+                                    paddingHorizontal="m"
+                                    paddingBottom="s"
+                                    paddingTop="s"
+                                    width="100%"
+                                    borderWidth={scale(1)}
+                                    borderColor="inputBorder"
+                                >
+                                    <Box
+                                        width={38}
+                                        height={5}
+                                        backgroundColor="inputBorder"
+                                        borderRadius="xs"
+                                        alignSelf="center"
+                                        marginBottom="m"
+                                    />
 
-                                <View style={modalStyles.header}>
-                                    <Text style={modalStyles.headerTitle}>{t('transactions.detailsTitle')}</Text>
-                                    <TouchableOpacity onPress={onClose} style={modalStyles.closeBtn}>
-                                        <Feather name="x" size={20} color={colors.textSecondary} />
-                                    </TouchableOpacity>
-                                </View>
-
-                                <View style={modalStyles.infoBlock}>
-                                    <View style={[modalStyles.iconBg, { backgroundColor: `${statusColor}1A` }]}>
-                                        <Feather name={iconName} size={22} color={statusColor} />
-                                    </View>
-                                    <Text style={modalStyles.transactionTitle} numberOfLines={1}>{transaction.title}</Text>
-                                    <Text style={[modalStyles.transactionAmount, { color: statusColor }]}>
-                                        {isVisible ? `${isExpense ? '-' : ''}${formattedAmount}` : '••••••'}
-                                    </Text>
-                                </View>
-
-                                <View style={modalStyles.detailsList}>
-                                    <View style={modalStyles.detailRow}>
-                                        <Text style={modalStyles.detailLabel}>{t('transactions.type')}</Text>
-                                        <Text style={[modalStyles.detailValue, { color: statusColor, fontWeight: '600' }]}>
-                                            {isExpense ? t('transactions.expense') : t('transactions.income')}
+                                    <Box flexDirection="row" justifyContent="space-between" alignItems="center" marginBottom="m">
+                                        <Text variant="body" fontWeight="600" color="textSecondary">
+                                            {t('transactions.detailsTitle')}
                                         </Text>
-                                    </View>
-                                    {transaction.description && (
-                                        <View style={modalStyles.detailRow}>
-                                            <Text style={modalStyles.detailLabel}>{t('transactions.description', 'Descrição')}</Text>
-                                            <Text
-                                                style={[modalStyles.detailValue, modalStyles.descriptionValue]}
-                                                numberOfLines={1}
-                                                ellipsizeMode="tail"
-                                            >
-                                                {transaction.description}
+                                        <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
+                                            <Feather name="x" size={20} color="#6F7583" />
+                                        </TouchableOpacity>
+                                    </Box>
+
+                                    <Box alignItems="center" marginBottom="l">
+                                        <Box
+                                            width={56}
+                                            height={56}
+                                            borderRadius="xl"
+                                            justifyContent="center"
+                                            alignItems="center"
+                                            marginBottom="s"
+                                            style={{ backgroundColor: `${statusColor}1A` }}
+                                        >
+                                            <Feather name={iconName} size={22} color={statusColor} />
+                                        </Box>
+                                        <Text variant="titleMedium" color="textPrimary" marginBottom="none" style={{ marginBottom: 6 }} numberOfLines={1}>
+                                            {transaction.title}
+                                        </Text>
+                                        <Text variant="titleLarge" style={{ color: statusColor, fontSize: moderateScale(26), fontWeight: '800', letterSpacing: -0.5 }}>
+                                            {isVisible ? `${isExpense ? '-' : ''}${formattedAmount}` : '••••••'}
+                                        </Text>
+                                    </Box>
+
+                                    <Box
+                                        borderTopWidth={scale(1)}
+                                        borderBottomWidth={scale(1)}
+                                        borderColor="inputBorder"
+                                        paddingVertical="m"
+                                        marginBottom="l"
+                                        gap="s"
+                                    >
+                                        <Box flexDirection="row" justifyContent="space-between" alignItems="center">
+                                            <Text variant="body" color="textSecondary">{t('transactions.type')}</Text>
+                                            <Text variant="body" style={{ color: statusColor, fontWeight: '600' }}>
+                                                {isExpense ? t('transactions.expense') : t('transactions.income')}
                                             </Text>
-                                        </View>
-                                    )}
-                                </View>
+                                        </Box>
+                                        {transaction.description && (
+                                            <Box flexDirection="row" justifyContent="space-between" alignItems="center">
+                                                <Text variant="body" color="textSecondary">{t('transactions.description', 'Descrição')}</Text>
+                                                <Text
+                                                    variant="body"
+                                                    color="textPrimary"
+                                                    fontWeight="500"
+                                                    style={{ flex: 1, textAlign: 'right', marginLeft: scale(24) }}
+                                                    numberOfLines={1}
+                                                    ellipsizeMode="tail"
+                                                >
+                                                    {transaction.description}
+                                                </Text>
+                                            </Box>
+                                        )}
+                                    </Box>
 
-                                <View style={modalStyles.actionRow}>
-                                    <TouchableOpacity
-                                        style={[modalStyles.btn, modalStyles.btnDelete]}
-                                        activeOpacity={0.7}
-                                        onPress={() => setIsConfirmOpen(true)} 
-                                    >
-                                        <Feather name="trash-2" size={16} color={colors.expense} />
-                                        <Text style={modalStyles.btnDeleteText}>{t('common.delete')}</Text>
-                                    </TouchableOpacity>
+                                    <Box flexDirection="row" gap="s">
+                                        <TouchableOpacity
+                                            style={{
+                                                flex: 1,
+                                                height: verticalScale(48),
+                                                borderRadius: scale(14),
+                                                flexDirection: 'row',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                gap: scale(8),
+                                                backgroundColor: '#FF474712',
+                                                borderWidth: scale(1),
+                                                borderColor: '#FF474726'
+                                            }}
+                                            activeOpacity={0.7}
+                                            onPress={() => setIsConfirmOpen(true)} 
+                                        >
+                                            <Feather name="trash-2" size={16} color="#FF4747" />
+                                            <Text variant="body" fontWeight="600" style={{ color: '#FF4747', fontSize: moderateScale(15) }}>
+                                                {t('common.delete')}
+                                            </Text>
+                                        </TouchableOpacity>
 
-                                    <TouchableOpacity
-                                        style={[modalStyles.btn, modalStyles.btnEdit]}
-                                        activeOpacity={0.7}
-                                        onPress={() => {
-                                            onEdit(transaction);
-                                            onClose();
-                                        }}
-                                    >
-                                        <Feather name="edit-3" size={16} color="#FFF" />
-                                        <Text style={modalStyles.btnEditText}>{t('common.edit')}</Text>
-                                    </TouchableOpacity>
-                                </View>
+                                        <TouchableOpacity
+                                            style={{
+                                                flex: 1,
+                                                height: verticalScale(48),
+                                                borderRadius: scale(14),
+                                                flexDirection: 'row',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                gap: scale(8),
+                                                backgroundColor: '#289653'
+                                            }}
+                                            activeOpacity={0.7}
+                                            onPress={() => {
+                                                onEdit(transaction);
+                                                onClose();
+                                            }}
+                                        >
+                                            <Feather name="edit-3" size={16} color="#FFF" />
+                                            <Text variant="body" fontWeight="600" style={{ color: '#FFF', fontSize: moderateScale(15) }}>
+                                                {t('common.edit')}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </Box>
+                                </Box>
                             </MotiView>
                         </TouchableWithoutFeedback>
-                    </View>
+                    </Box>
                 </TouchableWithoutFeedback>
             </Modal>
 
@@ -244,8 +305,8 @@ export function RecentTransactions({
         const isExpense = String(item.type).toLowerCase() === 'expense';
         const iconName = categoryIcons[item.title] || (isExpense ? 'arrow-down-left' : 'arrow-up-right');
 
-        const statusColor = isExpense ? colors.expense : colors.income;
-        const iconBgColor = isExpense ? `${colors.expense}1A` : `${colors.income}1A`;
+        const statusColor = isExpense ? "#FF4747" : "#289653";
+        const iconBgColor = isExpense ? "#FF47471A" : "#2896531A";
 
         return (
             <TouchableOpacity
@@ -261,48 +322,51 @@ export function RecentTransactions({
                         type: 'timing',
                         duration: 120,
                     }}
-                    style={styles.transactionCard}
                 >
-                    <View style={styles.leftRow}>
-                        <View style={[styles.iconBg, { backgroundColor: iconBgColor }]}>
-                            <Feather name={iconName} size={18} color={statusColor} />
-                        </View>
+                    <Box flexDirection="row" justifyContent="space-between" alignItems="center" width="100%" paddingVertical="xs">
+                        <Box flexDirection="row" alignItems="center" flex={1} marginRight="s">
+                            <Box width={44} height={44} borderRadius="xl" justifyContent="center" alignItems="center" marginRight="m" style={{ backgroundColor: iconBgColor }}>
+                                <Feather name={iconName} size={18} color={statusColor} />
+                            </Box>
 
-                        <View style={styles.textContainer}>
-                            <Text style={styles.transactionTitle} numberOfLines={1}>{item.title}</Text>
-                            <Text style={styles.transactionSub}>
-                                {formatDate(item.date, item.created_at)} • {isExpense ? t('transactions.expense') : t('transactions.income')}
-                            </Text>
-                        </View>
-                    </View>
+                            <Box flex={1}>
+                                <Text variant="body" fontWeight="600" color="textPrimary" style={{ letterSpacing: -0.1 }} numberOfLines={1}>
+                                    {item.title}
+                                </Text>
+                                <Text variant="caption" color="textSecondary" style={{ marginTop: 3 }}>
+                                    {formatDate(item.date, item.created_at)} • {isExpense ? t('transactions.expense') : t('transactions.income')}
+                                </Text>
+                            </Box>
+                        </Box>
 
-                    <View style={styles.valueContainer}>
-                        <AnimatePresence exitBeforeEnter>
-                            {isVisible ? (
-                                <MotiView
-                                    key="visible-amount"
-                                    from={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ type: 'timing', duration: 90 }}
-                                >
-                                    <Text style={[styles.amountText, { color: statusColor }]}>
-                                        {formatCurrency(item.amount, isExpense)}
-                                    </Text>
-                                </MotiView>
-                            ) : (
-                                <MotiView
-                                    key="hidden-amount"
-                                    from={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ type: 'timing', duration: 90 }}
-                                >
-                                    <Text style={styles.hiddenText}>••••••</Text>
-                                </MotiView>
-                            )}
-                        </AnimatePresence>
-                    </View>
+                        <Box justifyContent="center" alignItems="flex-end">
+                            <AnimatePresence exitBeforeEnter>
+                                {isVisible ? (
+                                    <MotiView
+                                        key="visible-amount"
+                                        from={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ type: 'timing', duration: 90 }}
+                                    >
+                                        <Text variant="body" fontWeight="600" style={{ color: statusColor, letterSpacing: -0.2 }}>
+                                            {formatCurrency(item.amount, isExpense)}
+                                        </Text>
+                                    </MotiView>
+                                ) : (
+                                    <MotiView
+                                        key="hidden-amount"
+                                        from={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ type: 'timing', duration: 90 }}
+                                    >
+                                        <Text variant="body" color="textSecondary" fontWeight="bold" style={{ letterSpacing: 1 }}>••••••</Text>
+                                    </MotiView>
+                                )}
+                            </AnimatePresence>
+                        </Box>
+                    </Box>
                 </MotiView>
             </TouchableOpacity>
         );
@@ -313,183 +377,150 @@ export function RecentTransactions({
             from={{ opacity: 0, translateY: 6 }}
             animate={{ opacity: 1, translateY: 0 }}
             transition={{ type: 'timing', duration: 220 }}
-            style={styles.container}
         >
-            <View style={styles.header}>
-                <AnimatePresence exitBeforeEnter>
-                    {!showAll ? (
-                        <MotiView
-                            key="title-section"
-                            from={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ type: 'timing', duration: 100 }}
-                            style={styles.titleRow}
-                        >
-                            <Text style={styles.title}>{t('transactions.recentTitle')}</Text>
-                            {(transactions.length > 0 || hasMore) && ( 
-                                <TouchableOpacity
-                                    activeOpacity={0.6}
-                                    onPress={() => {
-                                        setShowAll(true);
-                                        setInputQuery('');
-                                    }}
-                                >
-                                    <Text style={styles.viewAllBtn}>{t('transactions.seeAll')}</Text>
-                                </TouchableOpacity>
-                            )}
-                        </MotiView>
-                    ) : (
-                        <MotiView
-                            key="search-section"
-                            from={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ type: 'timing', duration: 100 }}
-                            style={styles.searchContainer}
-                        >
-                            <Feather name="search" size={18} color={colors.textSecondary} style={styles.searchIcon} />
-                            <TextInput
-                                style={styles.searchInput}
-                                placeholder={t('transactions.searchPlaceholder')}
-                                placeholderTextColor={colors.placeholder}
-                                value={inputQuery}
-                                onChangeText={setInputQuery}
-                                autoFocus={true}
-                            />
-
-                            <TouchableOpacity
-                                style={styles.closeSearchBtn}
-                                onPress={() => {
-                                    setShowAll(false);
-                                    setInputQuery('');
-                                }}
+            <Box width="100%" backgroundColor="card" padding="m" borderRadius="m" style={{ marginTop: scale(8) }}>
+                <Box width="100%" height={46} justifyContent="center" marginBottom="xs">
+                    <AnimatePresence exitBeforeEnter>
+                        {!showAll ? (
+                            <MotiView
+                                key="title-section"
+                                from={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ type: 'timing', duration: 100 }}
+                                style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}
                             >
-                                <Text style={styles.seeLessText}>{t('transactions.seeLess')}</Text>
-                            </TouchableOpacity>
-                        </MotiView>
-                    )}
-                </AnimatePresence>
-            </View>
+                                <Text variant="body" fontWeight="700" color="textPrimary" style={{ fontSize: moderateScale(16), letterSpacing: -0.3 }}>
+                                    {t('transactions.recentTitle')}
+                                </Text>
+                                {(transactions.length > 0 || hasMore) && ( 
+                                    <TouchableOpacity
+                                        activeOpacity={0.6}
+                                        onPress={() => {
+                                            setShowAll(true);
+                                            setInputQuery('');
+                                        }}
+                                    >
+                                        <Text variant="body" fontWeight="600" color="income">
+                                            {t('transactions.seeAll')}
+                                        </Text>
+                                    </TouchableOpacity>
+                                )}
+                            </MotiView>
+                        ) : (
+                            <MotiView
+                                key="search-section"
+                                from={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ type: 'timing', duration: 100 }}
+                            >
+                                <Box
+                                    flexDirection="row"
+                                    alignItems="center"
+                                    backgroundColor="inputBackground"
+                                    borderRadius="m"
+                                    paddingLeft="m"
+                                    borderWidth={scale(1)}
+                                    borderColor="inputBorder"
+                                    width="100%"
+                                    height="100%"
+                                >
+                                    <Feather name="search" size={18} color="#6F7583" style={{ marginRight: scale(8) }} />
+                                    <TextInput
+                                        style={{ flex: 1, height: '100%', fontSize: moderateScale(14), color: '#191D29' }}
+                                        placeholder={t('transactions.searchPlaceholder')}
+                                        placeholderTextColor="#A5ABB6"
+                                        value={inputQuery}
+                                        onChangeText={setInputQuery}
+                                        autoFocus={true}
+                                    />
 
-            <View style={[styles.listWrapper, showAll && styles.scrollActive]}>
-                <OtimizedList
-                    data={processedTransactions}
-                    renderItem={renderItem}
-                    estimatedItemSize={58}
-                    keyExtractor={(item: any) => item.id.toString()}
-                    showsVerticalScrollIndicator={showAll}
-                    scrollEnabled={showAll}
-                    nestedScrollEnabled={true} 
-                    contentContainerStyle={styles.listContent}
-                    onEndReached={showAll && hasMore && !isLoadingMore ? onLoadMore : undefined}
-                    onEndReachedThreshold={0.4}
-                    ListFooterComponent={
-                        isLoadingMore ? (
-                            <View style={styles.loadingMore}>
-                                <Skeleton width="100%" height={44} borderRadius={12} />
-                            </View>
-                        ) : null
-                    }
-                    ListEmptyComponent={
-                        <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ paddingVertical: 24 }}>
-                            <Text style={styles.emptyText}>{t("transactions.emptyTransactions")}</Text>
-                        </MotiView>
-                    }
+                                    <TouchableOpacity
+                                        style={{ height: '100%', justifyContent: 'center', paddingHorizontal: scale(14) }}
+                                        onPress={() => {
+                                            setShowAll(false);
+                                            setInputQuery('');
+                                        }}
+                                    >
+                                        <Text variant="body" fontWeight="600" color="textSecondary" style={{ fontSize: moderateScale(13) }}>
+                                            {t('transactions.seeLess')}
+                                        </Text>
+                                    </TouchableOpacity>
+                                </Box>
+                            </MotiView>
+                        )}
+                    </AnimatePresence>
+                </Box>
+
+                <Box width="100%" style={showAll ? { height: verticalScale(260), maxHeight: verticalScale(260) } : {}}>
+                    <OtimizedList
+                        data={processedTransactions}
+                        renderItem={renderItem}
+                        estimatedItemSize={58}
+                        keyExtractor={(item: any) => item.id.toString()}
+                        showsVerticalScrollIndicator={showAll}
+                        scrollEnabled={showAll}
+                        nestedScrollEnabled={true} 
+                        contentContainerStyle={{ paddingBottom: scale(4) }}
+                        onEndReached={showAll && hasMore && !isLoadingMore ? onLoadMore : undefined}
+                        onEndReachedThreshold={0.4}
+                        ListFooterComponent={
+                            isLoadingMore ? (
+                                <Box paddingVertical="s">
+                                    <Skeleton width="100%" height={44} borderRadius={12} />
+                                </Box>
+                            ) : null
+                        }
+                        ListEmptyComponent={
+                            <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ paddingVertical: 24 }}>
+                                <Text variant="body" color="textSecondary" style={{ textAlign: 'center' }}>
+                                    {t("transactions.emptyTransactions")}
+                                </Text>
+                            </MotiView>
+                        }
+                    />
+                </Box>
+
+                <TransactionDetailsModal
+                    isOpen={selectedTransaction !== null}
+                    transaction={selectedTransaction}
+                    isVisible={isVisible}
+                    onClose={() => setSelectedTransaction(null)}
+                    onDelete={(tx) => onDelete(tx.id)}
+                    onEdit={(tx) => onEdit(tx)}
                 />
-            </View>
-
-            <TransactionDetailsModal
-                isOpen={selectedTransaction !== null}
-                transaction={selectedTransaction}
-                isVisible={isVisible}
-                onClose={() => setSelectedTransaction(null)}
-                onDelete={(tx) => onDelete(tx.id)}
-                onEdit={(tx) => onEdit(tx)}
-            />
+            </Box>
         </MotiView>
     );
 }
 
-
 export function RecentTransactionsSkeleton() {
     return (
-        <View style={styles.container}>
-
-            <View style={styles.header}>
-                <View style={styles.titleRow}>
+        <Box width="100%" backgroundColor="card" padding="m" borderRadius="m" style={{ marginTop: scale(8) }}>
+            <Box width="100%" height={46} justifyContent="center" marginBottom="xs">
+                <Box flexDirection="row" justifyContent="space-between" alignItems="center" width="100%">
                     <Skeleton width={140} height={18} borderRadius={4} />
                     <Skeleton width={60} height={16} borderRadius={4} />
-                </View>
-            </View>
+                </Box>
+            </Box>
 
-            <View style={styles.listWrapper}>
+            <Box width="100%">
                 {[1, 2, 3].map((index) => (
-                    <View key={index} style={[styles.transactionCard, { paddingVertical: 9 }]}>
-                        <View style={styles.leftRow}>
+                    <Box key={index} flexDirection="row" justifyContent="space-between" alignItems="center" width="100%" paddingVertical="xs" style={{ paddingVertical: verticalScale(9) }}>
+                        <Box flexDirection="row" alignItems="center" flex={1} marginRight="s">
                             <Skeleton width={44} height={44} borderRadius={22} />
-                            <View style={[styles.textContainer, { gap: 6, marginLeft: 14 }]}>
+                            <Box flex={1} style={{ gap: scale(6), marginLeft: scale(14) }}>
                                 <Skeleton width="70%" height={15} borderRadius={4} />
                                 <Skeleton width="45%" height={12} borderRadius={4} />
-                            </View>
-                        </View>
-                        <View style={styles.valueContainer}>
+                            </Box>
+                        </Box>
+                        <Box justifyContent="center" alignItems="flex-end">
                             <Skeleton width={65} height={16} borderRadius={4} />
-                        </View>
-                    </View>
+                        </Box>
+                    </Box>
                 ))}
-            </View>
-        </View>
+            </Box>
+        </Box>
     );
 }
-
-const styles = ScaledSheet.create({
-    container: { width: '100%', marginTop: 8, backgroundColor: colors.card, padding: 15, borderRadius: 16 },
-    header: { width: '100%', height: 46, justifyContent: 'center', marginBottom: 8 },
-    titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' },
-    title: { fontSize: 16, fontWeight: '700', color: colors.textPrimary, letterSpacing: -0.3 },
-    viewAllBtn: { fontSize: 14, fontWeight: '600', color: colors.income },
-    searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.inputBackground, borderRadius: 14, paddingLeft: 14, borderWidth: 1, borderColor: colors.inputBorder, width: '100%', height: '100%' },
-    searchIcon: { marginRight: 8 },
-    searchInput: { flex: 1, height: '100%', fontSize: 14, color: colors.textPrimary },
-    closeSearchBtn: { height: '100%', justifyContent: 'center', paddingHorizontal: 14 },
-    seeLessText: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
-    listWrapper: { width: '100%' },
-    scrollActive: { height: 260, maxHeight: 260 },
-    listContent: { paddingBottom: 4 },
-    loadingMore: { paddingVertical: 8 },
-    transactionCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', paddingVertical: 7 },
-    leftRow: { flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 },
-    iconBg: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginRight: 14 },
-    textContainer: {  flex: 1 },
-    transactionTitle: { fontSize: 15, fontWeight: '600', color: colors.textPrimary, letterSpacing: -0.1 },
-    transactionSub: { fontSize: 12, color: colors.textSecondary, marginTop: 3 },
-    valueContainer: { justifyContent: 'center', alignItems: 'flex-end' },
-    amountText: { fontSize: 15, fontWeight: '600', letterSpacing: -0.2 },
-    hiddenText: { fontSize: 14, color: colors.textSecondary, fontWeight: 'bold', letterSpacing: 1 },
-    emptyText: { textAlign: 'center', color: colors.textSecondary, fontSize: 14 }
-});
-
-const modalStyles = ScaledSheet.create({
-    backdrop: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.4)', justifyContent: 'flex-end' }, 
-    sheetContainer: { backgroundColor: colors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 24, paddingBottom: 12, paddingTop: 12, width: '100%', borderWidth: 1, borderColor: colors.inputBorder },
-    dragIndicator: { width: 38, height: 5, backgroundColor: colors.inputBorder, borderRadius: 3, alignSelf: 'center', marginBottom: 20 },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-    headerTitle: { fontSize: 15, fontWeight: '600', color: colors.textSecondary },
-    closeBtn: { padding: 4 },
-    infoBlock: { alignItems: 'center', marginBottom: 24 },
-    iconBg: { width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
-    transactionTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 6 },
-    transactionAmount: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
-    detailsList: { borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.inputBorder, paddingVertical: 16, marginBottom: 24, gap: 12 },
-    detailRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    detailLabel: { fontSize: 14, color: colors.textSecondary },
-    detailValue: { fontSize: 14, color: colors.textPrimary, fontWeight: '500' },
-    descriptionValue: { flex: 1, textAlign: 'right', marginLeft: 24 },
-    actionRow: { flexDirection: 'row', gap: 12 },
-    btn: { flex: 1, height: 48, borderRadius: 14, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 },
-    btnEdit: { backgroundColor: colors.income },
-    btnEditText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
-    btnDelete: { backgroundColor: `${colors.expense}12`, borderWidth: 1, borderColor: `${colors.expense}26` },
-    btnDeleteText: { color: colors.expense, fontSize: 15, fontWeight: '600' }
-});

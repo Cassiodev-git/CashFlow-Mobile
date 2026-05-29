@@ -1,16 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    View,
-    Text,
     Animated,
 } from 'react-native';
 
-import { colors } from '@/theme';
 import { useTranslation } from 'react-i18next';
 
 import { User } from "@/features/user/types/User";
-import { ScaledSheet } from '@/utils/responsive';
 import { Skeleton } from '../Skeleton/Skeleton';
+import { Box, Text } from '@/theme/unistyles';
 
 interface TopBarProps {
     user: User | null;
@@ -52,14 +49,21 @@ export function TopBar({
     }, [fadeAnim, fullText, translateY]);
 
     return (
-        <View style={styles.container}>
-
-            <View style={styles.textContainer}>
-
+        <Box
+            flexDirection="row"
+            justifyContent="space-between"
+            alignItems="center"
+            paddingTop="xs"
+            paddingBottom="m"
+        >
+            <Box flex={1}>
                 <Animated.Text
                     style={[
-                        styles.greetingText,
                         {
+                            fontSize: 22,
+                            fontWeight: '700',
+                            color: '#191D29',
+                            marginBottom: 4,
                             opacity: fadeAnim,
                             transform: [
                                 { translateY }
@@ -70,90 +74,31 @@ export function TopBar({
                     {displayedText}
                 </Animated.Text>
 
-                <Text style={styles.subtitleText}>
+                <Text variant="body" color="textSecondary">
                     {t("greetings.financeSummary")}
                 </Text>
-
-            </View>
-
-            {/*<TouchableOpacity
-                activeOpacity={0.7}
-                onPress={onNotificationPress}
-                style={styles.iconButton}
-            >
-
-                <Feather
-                    name="bell"
-                    size={24}
-                    color={colors.icon}
-                />
-
-                <View style={styles.notificationDot} />
-
-            </TouchableOpacity>*/}
-
-        </View>
+            </Box>
+        </Box>
     );
 }
 
 export function TopBarSkeleton() {
     return (
-        <View style={styles.container}>
-            <View style={styles.textContainer}>
-                <View style={{ height: 26, marginBottom: 4, justifyContent: 'center' }}>
+        <Box
+            flexDirection="row"
+            justifyContent="space-between"
+            alignItems="center"
+            paddingTop="xs"
+            paddingBottom="m"
+        >
+            <Box flex={1}>
+                <Box height={26} marginBottom="xs" justifyContent="center">
                     <Skeleton width={180} height={22} borderRadius={4} />
-                </View>
-                <View style={{ height: 18, justifyContent: 'center' }}>
+                </Box>
+                <Box height={18} justifyContent="center">
                     <Skeleton width={120} height={14} borderRadius={4} />
-                </View>
-            </View>
-        </View>
+                </Box>
+            </Box>
+        </Box>
     );
 }
-
-const styles = ScaledSheet.create({
-
-    container: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingTop: 10,
-        paddingBottom: 16,
-    },
-
-    textContainer: {
-        flex: 1,
-    },
-
-    greetingText: {
-        fontSize: 22,
-        fontWeight: '700',
-        color: colors.textPrimary,
-        marginBottom: 4,
-    },
-
-    subtitleText: {
-        fontSize: 14,
-        color: colors.textSecondary,
-        fontWeight: '400',
-    },
-
-    iconButton: {
-        position: 'relative',
-        padding: 8,
-        borderRadius: 50,
-    },
-
-    notificationDot: {
-        position: 'absolute',
-        top: 8,
-        right: 8,
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: colors.primary,
-        borderWidth: 1.5,
-        borderColor: colors.border,
-    },
-
-});

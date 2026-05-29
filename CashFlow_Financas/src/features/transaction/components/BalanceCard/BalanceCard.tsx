@@ -1,15 +1,12 @@
 import React from 'react';
 import {
-    View,
-    Text,
     TouchableOpacity,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { colors } from '@/theme';
 import { useTranslation } from 'react-i18next';
 import { MotiView, AnimatePresence } from 'moti';
-import { ScaledSheet } from '@/utils/responsive';
-import { Skeleton } from '@/components/Skeleton/Skeleton'; // Certifique-se de ajustar este import para o seu caminho real
+import { Skeleton } from '@/components/Skeleton/Skeleton';
+import { Box, Text, scale, verticalScale } from '@/theme/unistyles';
 
 interface BalanceCardProps {
     balance: number;
@@ -37,7 +34,6 @@ export function BalanceCard({
 
     const isPositive = status === "positive";
     const isNegative = status === "negative";
-    const isNeutral = status === "neutral";
 
     const badgeIcon = isPositive
         ? "arrow-up"
@@ -46,19 +42,19 @@ export function BalanceCard({
             : null; 
 
     const badgeColor = isPositive
-        ? colors.income
+        ? "#289653"
         : isNegative
-            ? colors.expense
-            : colors.textSecondary;
+            ? "#FF4747"
+            : "#6F7583";
 
     const percentageTextColor = isPositive
-        ? colors.income
+        ? "#289653"
         : isNegative
-            ? colors.expense
-            : colors.textSecondary;
+            ? "#FF4747"
+            : "#6F7583";
 
     let displayPercentage = percentage.toFixed(1);
-    if (isNeutral || displayPercentage === "-0.0" || parseFloat(displayPercentage) === 0) {
+    if (status === "neutral" || displayPercentage === "-0.0" || parseFloat(displayPercentage) === 0) {
         displayPercentage = "0.0";
     }
 
@@ -67,213 +63,195 @@ export function BalanceCard({
             from={{ opacity: 0, translateY: 6 }}
             animate={{ opacity: 1, translateY: 0 }}
             transition={{ type: 'timing', duration: 220 }}
-            style={styles.container}
         >
-            <View style={styles.headerRow}>
-                <Text style={styles.title}>
-                    {t("balance.title")}
-                </Text>
-
-                <TouchableOpacity
-                    onPress={onToggleVisibility}
-                    activeOpacity={0.7}
+            <Box
+                backgroundColor="primary"
+                borderRadius="m"
+                padding="m"
+                width="100%"
+                style={{
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 6,
+                    elevation: 3,
+                }}
+            >
+                <Box
+                    flexDirection="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    marginBottom="s"
                 >
-                    <Feather
-                        name={isVisible ? "eye" : "eye-off"}
-                        size={20}
-                        color={colors.textInverse}
-                        style={styles.eyeIcon}
-                    />
-                </TouchableOpacity>
-            </View>
+                    <Text variant="body" fontWeight="500" color="textPrimary">
+                        {t("balance.title")}
+                    </Text>
 
-            <View style={styles.balanceContainer}>
-                <AnimatePresence exitBeforeEnter>
-                    {isVisible ? (
-                        <MotiView
-                            key="visible-balance"
-                            from={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ type: 'timing', duration: 90 }}
-                        >
-                            <Text style={styles.balanceValue}>
-                                {formatCurrency(balance)}
-                            </Text>
-                        </MotiView>
-                    ) : (
-                        <MotiView
-                            key="hidden-balance"
-                            from={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ type: 'timing', duration: 90 }}
-                        >
-                            <Text style={styles.balanceValue}>
-                                ••••••
-                            </Text>
-                        </MotiView>
-                    )}
-                </AnimatePresence>
-            </View>
+                    <TouchableOpacity
+                        onPress={onToggleVisibility}
+                        activeOpacity={0.7}
+                    >
+                        <Feather
+                            name={isVisible ? "eye" : "eye-off"}
+                            size={20}
+                            color="#FFFFFF"
+                            style={{ opacity: 0.9 }}
+                        />
+                    </TouchableOpacity>
+                </Box>
 
-            <View style={styles.badgeRow}>
-                <View style={styles.badge}>
+                <Box
+                    height={verticalScale(40)}
+                    justifyContent="center"
+                    marginBottom="m"
+                >
                     <AnimatePresence exitBeforeEnter>
                         {isVisible ? (
                             <MotiView
-                                key="visible-percentage"
+                                key="visible-balance"
                                 from={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 transition={{ type: 'timing', duration: 90 }}
-                                style={{ flexDirection: 'row', alignItems: 'center' }}
                             >
-                                {badgeIcon && (
-                                    <Feather
-                                        name={badgeIcon}
-                                        size={12}
-                                        color={badgeColor}
-                                        style={styles.badgeIcon}
-                                    />
-                                )}
                                 <Text
-                                    style={[
-                                        styles.badgeText,
-                                        { color: percentageTextColor }
-                                    ]}
+                                    color="primaryLight"
+                                    fontWeight="700"
+                                    style={{ fontSize: 30, letterSpacing: -0.5 }}
                                 >
-                                    {displayPercentage}%
+                                    {formatCurrency(balance)}
                                 </Text>
                             </MotiView>
                         ) : (
                             <MotiView
-                                key="hidden-percentage"
+                                key="hidden-balance"
                                 from={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 transition={{ type: 'timing', duration: 90 }}
                             >
                                 <Text
-                                    style={[
-                                        styles.badgeText,
-                                        { color: colors.textSecondary }
-                                    ]}
+                                    color="primaryLight"
+                                    fontWeight="700"
+                                    style={{ fontSize: 30, letterSpacing: -0.5 }}
                                 >
-                                    ••••
+                                    ••••••
                                 </Text>
                             </MotiView>
                         )}
                     </AnimatePresence>
-                </View>
+                </Box>
 
-                <Text style={styles.comparisonText}>
-                    {t("balance.comparedToLastMonth")}
-                </Text>
-            </View>
+                <Box flexDirection="row" alignItems="center">
+                    <Box
+                        backgroundColor="primaryLight"
+                        flexDirection="row"
+                        alignItems="center"
+                        paddingVertical="xs"
+                        paddingHorizontal="s"
+                        borderRadius="s"
+                        marginRight="s"
+                        minHeight={24}
+                        minWidth={54}
+                        justifyContent="center"
+                    >
+                        <AnimatePresence exitBeforeEnter>
+                            {isVisible ? (
+                                <MotiView
+                                    key="visible-percentage"
+                                    from={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ type: 'timing', duration: 90 }}
+                                    style={{ flexDirection: 'row', alignItems: 'center' }}
+                                >
+                                    {badgeIcon && (
+                                        <Feather
+                                            name={badgeIcon}
+                                            size={12}
+                                            color={badgeColor}
+                                            style={{ marginRight: 4 }}
+                                        />
+                                    )}
+                                    <Text
+                                        variant="caption"
+                                        fontWeight="700"
+                                        style={{ color: percentageTextColor }}
+                                    >
+                                        {displayPercentage}%
+                                    </Text>
+                                </MotiView>
+                            ) : (
+                                <MotiView
+                                    key="hidden-percentage"
+                                    from={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ type: 'timing', duration: 90 }}
+                                >
+                                    <Text
+                                        variant="caption"
+                                        fontWeight="700"
+                                        color="textSecondary"
+                                    >
+                                        ••••
+                                    </Text>
+                                </MotiView>
+                            )}
+                        </AnimatePresence>
+                    </Box>
+
+                    <Text variant="caption" fontWeight="400" color="textInverse">
+                        {t("balance.comparedToLastMonth")}
+                    </Text>
+                </Box>
+            </Box>
         </MotiView>
     );
 }
 
 export function BalanceCardSkeleton(_props: Partial<BalanceCardProps>) {
     return (
-        <View style={styles.container}>
-            <View style={styles.headerRow}>
+        <Box
+            backgroundColor="primary"
+            borderRadius="m"
+            padding="m"
+            width="100%"
+        >
+            <Box
+                flexDirection="row"
+                justifyContent="space-between"
+                alignItems="center"
+                marginBottom="s"
+            >
                 <Skeleton width={100} height={16} borderRadius={4} />
                 <Skeleton width={20} height={20} borderRadius={10} />
-            </View>
+            </Box>
 
-            <View style={styles.balanceContainer}>
+            <Box
+                height={verticalScale(40)}
+                justifyContent="center"
+                marginBottom="m"
+            >
                 <Skeleton width="65%" height={32} borderRadius={6} />
-            </View>
+            </Box>
 
-            <View style={styles.badgeRow}>
-                <View style={styles.skeletonBadge}>
+            <Box flexDirection="row" alignItems="center">
+                <Box
+                    backgroundColor="primaryLight"
+                    paddingVertical="xs"
+                    paddingHorizontal="s"
+                    borderRadius="s"
+                    marginRight="s"
+                    minHeight={24}
+                    minWidth={54}
+                    justifyContent="center"
+                    alignItems="center"
+                >
                     <Skeleton width={38} height={14} borderRadius={4} />
-                </View>
+                </Box>
                 <Skeleton width="55%" height={14} borderRadius={4} />
-            </View>
-        </View>
+            </Box>
+        </Box>
     );
 }
-
-const styles = ScaledSheet.create({
-    container: {
-        backgroundColor: colors.primary,
-        borderRadius: 16,
-        padding: 20,
-        width: "100%",
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 4
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-        elevation: 3,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    title: {
-        color: colors.textPrimary,
-        fontSize: 14,
-        fontWeight: '500',
-    },
-    eyeIcon: {
-        opacity: 0.9,
-    },
-    balanceContainer: {
-        height: 40,
-        justifyContent: 'center',
-        marginBottom: 16,
-    },
-    balanceValue: {
-        color: colors.primaryLight,
-        fontSize: 30,
-        fontWeight: '700',
-        letterSpacing: -0.5,
-    },
-    badgeRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    badge: {
-        backgroundColor: colors.primaryLight,
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 4,
-        paddingHorizontal: 8,
-        borderRadius: 8,
-        marginRight: 10,
-        minHeight: 24, 
-        minWidth: 54,  
-        justifyContent: 'center'
-    },
-    skeletonBadge: {
-        backgroundColor: colors.primaryLight,
-        paddingVertical: 4,
-        paddingHorizontal: 8,
-        borderRadius: 8,
-        marginRight: 10,
-        minHeight: 24, 
-        minWidth: 54,  
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    badgeIcon: {
-        marginRight: 4,
-    },
-    badgeText: {
-        fontSize: 12,
-        fontWeight: '700',
-    },
-    comparisonText: {
-        color: colors.textInverse,
-        fontSize: 12,
-        fontWeight: '400'
-    },
-});
