@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, DimensionValue } from 'react-native';
+import { DimensionValue } from 'react-native';
 import { MotiView } from 'moti';
-import { colors } from '@/theme';
+import { Box } from '@/theme/unistyles';
 
 interface SkeletonProps {
     width: DimensionValue; 
@@ -22,20 +22,15 @@ export function Skeleton({ width, height, borderRadius = 8 }: SkeletonProps) {
             from={{ opacity: 0.4 }}
             animate={{ opacity: 0.8 }}
             transition={transition}
-            style={[
-                styles.skeleton,
-                {
+        >
+            <Box
+                backgroundColor="inputBorder"
+                style={{
                     width,
                     height,
                     borderRadius,
-                },
-            ]}
-        />
+                }}
+            />
+        </MotiView>
     );
 }
-
-const styles = StyleSheet.create({
-    skeleton: {
-        backgroundColor: colors.inputBorder,
-    },
-});

@@ -1,13 +1,12 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { colors } from '@/theme';
 import { MotiView } from 'moti';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ScaledSheet } from '@/utils/responsive';
 
 import { ButtonBar } from '@/features/transaction/components/ButtonBar/ButtonBar';
+import { Box, Text, scale } from '@/theme/unistyles';
 
 type TabRoute = 'Home' | 'Graph' | 'Relatório' | 'Perfil';
 
@@ -30,20 +29,29 @@ export function BottomBar({ currentRoute = 'Home', onNavigate, onTransactionCrea
 
     const renderTab = (tab: typeof tabs[0]) => {
         const isActive = currentRoute === tab.route;
-        const activeColor = colors.income || '#2E7D32'; 
-        const inactiveColor = colors.textSecondary || '#94A3B8';
+        const activeColor = "#289653"; 
+        const inactiveColor = "#6F7583";
 
         return (
             <TouchableOpacity
                 key={tab.route}
-                style={styles.tabButton}
+                style={{
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minWidth: scale(60),
+                    height: '100%',
+                }}
                 activeOpacity={0.7}
                 onPress={() => onNavigate?.(tab.route)}
             >
                 <MotiView
                     animate={{ scale: isActive ? 1.1 : 1 }}
                     transition={{ type: 'timing', duration: 150 }}
-                    style={styles.iconContainer}
+                    style={{
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: 4, 
+                    }}
                 >
                     <Feather 
                         name={tab.icon} 
@@ -51,7 +59,11 @@ export function BottomBar({ currentRoute = 'Home', onNavigate, onTransactionCrea
                         color={isActive ? activeColor : inactiveColor} 
                     />
                 </MotiView>
-                <Text style={[styles.tabLabel, { color: isActive ? activeColor : inactiveColor }]}>
+                <Text 
+                    variant="caption" 
+                    fontWeight="500" 
+                    style={{ fontSize: 11, color: isActive ? activeColor : inactiveColor }}
+                >
                     {tab.label}
                 </Text>
             </TouchableOpacity>
@@ -61,71 +73,35 @@ export function BottomBar({ currentRoute = 'Home', onNavigate, onTransactionCrea
     const dynamicPaddingBottom = insets.bottom > 0 ? insets.bottom : 14;
 
     return (
-        <View 
-            style={[
-                styles.container, 
-                { paddingBottom: dynamicPaddingBottom }
-            ]}
+        <Box 
+            backgroundColor="surface"
+            borderTopWidth={scale(1)}
+            borderColor="border"
+            paddingHorizontal="s"
+            paddingTop="xs"
+            flexDirection="row"
+            width="100%"
+            alignItems="center"
+            justifyContent="space-between"
+            style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                paddingBottom: dynamicPaddingBottom
+            }}
         >
-            <View style={styles.tabSection}>
+            <Box flexDirection="row" flex={1} justifyContent="space-around" alignItems="center">
                 {tabs.slice(0, 2).map((tab) => renderTab(tab))}
-            </View>
+            </Box>
             
-            <View style={styles.centerButtonContainer}>
+            <Box width={60} alignItems="center" justifyContent="center" height="100%" style={{ zIndex: 50 }}>
                 <ButtonBar onTransactionCreated={onTransactionCreated} />
-            </View>
+            </Box>
             
-            <View style={styles.tabSection}>
+            <Box flexDirection="row" flex={1} justifyContent="space-around" alignItems="center">
                 {tabs.slice(2, 4).map((tab) => renderTab(tab))}
-            </View>
-        </View>
+            </Box>
+        </Box>
     );
 }
-
-
-const styles = ScaledSheet.create({
-    container: {
-        flexDirection: 'row',
-        width: '100%',
-        backgroundColor: colors.surface,
-        borderTopWidth: 1,
-        borderColor: colors.border,
-        paddingHorizontal: 14, 
-        paddingTop: 4,        
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        
-    },
-    tabSection: {
-        flexDirection: 'row',
-        flex: 1,
-        justifyContent: 'space-around',
-        alignItems: 'center',
-    },
-    tabButton: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        minWidth: 60,
-        height: '100%',
-    },
-    iconContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 4, 
-    },
-    tabLabel: {
-        fontSize: 11, 
-        fontWeight: '500',
-    },
-    centerButtonContainer: {
-        width: 60, 
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
-        zIndex: 50,
-    }
-});

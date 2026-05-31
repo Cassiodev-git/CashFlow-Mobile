@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-    View,
-    Text,
     StyleSheet,
     TouchableOpacity,
     Modal,
@@ -15,14 +13,13 @@ import {
     DeviceEventEmitter
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { colors } from '@/theme';
 import { MotiView, AnimatePresence } from 'moti';
 import { BlurView } from 'expo-blur';
 import { useTranslation } from 'react-i18next';
 import AppTransactionsService from '@/services/AppTransactionsService';
 import AppCategoryService from '@/services/AppCategoryService';
 import type { categories } from '@/features/category/schema';
-import { ScaledSheet } from '@/utils/responsive';
+import { Box, Text, scale } from '@/theme/unistyles';
 
 interface ButtonBarProps {
     onTransactionCreated?: () => void | Promise<void>;
@@ -75,6 +72,11 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
     const [loading, setLoading] = useState(false);
     const [loadingCategories, setLoadingCategories] = useState(false);
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+    // Cores estáticas mapeadas de acordo com as diretrizes do seu tema
+    const activeColor = "#289653";
+    const dangerColor = "#FF4747";
+    const placeholderColor = "#A5ABB6";
 
     const resetForm = () => {
         setTitle('');
@@ -166,9 +168,7 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
 
     useEffect(() => {
         async function loadCategories() {
-            if (!isOpen) {
-                return;
-            }
+            if (!isOpen) return;
 
             try {
                 setLoadingCategories(true);
@@ -208,21 +208,15 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
     }, [error]);
 
     return (
-        <View style={styles.anchorContainer}>
+        <Box alignItems="center" justifyContent="center">
             {!isOpen && (
-                <TouchableOpacity
-                    activeOpacity={0.85}
-                    onPress={handleOpen}
-                >
+                <TouchableOpacity activeOpacity={0.85} onPress={handleOpen}>
                     <MotiView
-                        style={styles.plusButton}
-                        animate={{
-                            rotate: '0deg',
-                            backgroundColor: colors.primaryDark,
-                        }}
+                        animate={{ rotate: '0deg', backgroundColor: activeColor }}
                         transition={{ type: 'timing', duration: 220 }}
+                        style={styles.plusButton}
                     >
-                        <Feather name="plus" size={26} color={colors.textInverse} />
+                        <Feather name="plus" size={26} color="#FFF" />
                     </MotiView>
                 </TouchableOpacity>
             )}
@@ -235,11 +229,11 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
                 presentationStyle="overFullScreen"
                 onRequestClose={handleClose}
             >
-                <BlurView intensity={70} tint="dark" style={styles.fullScreenOverlay}>
+                <BlurView intensity={70} tint="dark" style={StyleSheet.absoluteFillObject}>
                     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                         <KeyboardAvoidingView 
                             behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} 
-                            style={styles.modalCenteredContainer}
+                            style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: scale(16), width: '100%' }}
                         >
                             <AnimatePresence>
                                 {isOpen && (
@@ -252,215 +246,236 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
                                         }}
                                         exit={{ opacity: 0, scale: 0.9, translateY: 30 }}
                                         transition={{ type: 'timing', duration: 250 }}
-                                        style={[
-                                            styles.formCard,
-                                            {
-                                                maxHeight: isKeyboardVisible
-                                                    ? Math.min(height * 0.55, 420) 
-                                                    : Math.min(height * 0.84, 700),
-                                            }
-                                        ]}
+                                        style={{
+                                            width: '100%',
+                                            maxHeight: isKeyboardVisible ? Math.min(height * 0.55, 420) : Math.min(height * 0.84, 700),
+                                        }}
                                     >
-                                        <View style={[styles.header, isKeyboardVisible && styles.headerCompact]}>
-                                            <Text style={styles.formTitle}>{t("transactions.newTransaction")}</Text>
-                                        </View>
-
-                                        <ScrollView
-                                            style={styles.formContent}
-                                            contentContainerStyle={[
-                                                styles.formContentContainer,
-                                                isKeyboardVisible && styles.formContentContainerCompact
-                                            ]}
-                                            showsVerticalScrollIndicator={false}
-                                            keyboardShouldPersistTaps="handled"
+                                        <Box
+                                            backgroundColor="card"
+                                            borderRadius="xl"
+                                            borderWidth={scale(1)}
+                                            borderColor="border"
+                                            overflow="hidden"
+                                            style={{
+                                                shadowColor: '#191D29',
+                                                shadowOffset: { width: 0, height: 10 },
+                                                shadowOpacity: 0.15,
+                                                shadowRadius: 14,
+                                                elevation: 10,
+                                            }}
                                         >
-                                            <View style={styles.inputGroup}>
-                                                <Text style={styles.inputLabel}>{t("transactions.title")}</Text>
-                                                <TextInput 
-                                                    style={styles.input}
-                                                    placeholder={t("transactions.titlePlaceholder")}
-                                                    placeholderTextColor={colors.placeholder}
-                                                    value={title}
-                                                    onChangeText={setTitle}
-                                                    maxLength={20}
-                                                />
-                                            </View>
+                                            <Box 
+                                                paddingHorizontal="m" 
+                                                paddingTop="s" 
+                                                paddingBottom="xs" 
+                                                borderBottomWidth={scale(1)} 
+                                                borderColor="inputBorder"
+                                                backgroundColor="card"
+                                                style={isKeyboardVisible ? { paddingTop: 14, paddingBottom: 4 } : {}}
+                                            >
+                                                <Text variant="titleMedium" color="textPrimary" fontWeight="700">
+                                                    {t("transactions.newTransaction")}
+                                                </Text>
+                                            </Box>
 
-                                            <View style={styles.inputGroup}>
-                                                <Text style={styles.inputLabel}>{t("transactions.descriptionLabel")}</Text>
-                                                <TextInput 
-                                                    style={[
-                                                        styles.input,
-                                                        styles.multilineInput,
-                                                        isKeyboardVisible && styles.multilineInputCompact
-                                                    ]}
-                                                    placeholder={t("transactions.descriptionPlaceholder")}
-                                                    placeholderTextColor={colors.placeholder}
-                                                    value={description}
-                                                    onChangeText={setDescription}
-                                                    multiline
-                                                    textAlignVertical="top"
-                                                    maxLength={120}
-                                                />
-                                            </View>
-
-                                            <View style={styles.row}>
-                                                <View style={[styles.inputGroup, styles.halfInputLeft]}>
-                                                    <Text style={styles.inputLabel}>{t("transactions.amountLabel")}</Text>
+                                            <ScrollView
+                                                style={{ width: '100%' }}
+                                                contentContainerStyle={{
+                                                    paddingHorizontal: scale(24),
+                                                    paddingTop: isKeyboardVisible ? scale(8) : scale(16),
+                                                    paddingBottom: isKeyboardVisible ? scale(12) : scale(24),
+                                                }}
+                                                showsVerticalScrollIndicator={false}
+                                                keyboardShouldPersistTaps="handled"
+                                            >
+                                                {/* Campo: Título */}
+                                                <Box width="100%" marginBottom="s">
+                                                    <Text variant="body" fontWeight="600" color="textPrimary" style={{ marginBottom: 4 }}>
+                                                        {t("transactions.title")}
+                                                    </Text>
                                                     <TextInput 
-                                                        style={styles.input}
-                                                        placeholder={t("transactions.amountPlaceholder")}
-                                                        placeholderTextColor={colors.placeholder}
-                                                        keyboardType="numeric"
-                                                        value={amount}
-                                                        onChangeText={setAmount}
+                                                        style={[styles.input, { fontSize: 15, color: '#191D29' }]}
+                                                        placeholder={t("transactions.titlePlaceholder")}
+                                                        placeholderTextColor={placeholderColor}
+                                                        value={title}
+                                                        onChangeText={setTitle}
+                                                        maxLength={20}
                                                     />
-                                                </View>
+                                                </Box>
 
-                                                <View style={[styles.inputGroup, styles.halfInputRight]}>
-                                                    <Text style={styles.inputLabel}>{t("transactions.dateLabel")}</Text>
-                                                    <TextInput
-                                                        style={styles.input}
-                                                        placeholder={i18n.language.startsWith('en') ? "YYYY-MM-DD" : "DD/MM/YYYY"}
-                                                        placeholderTextColor={colors.placeholder}
-                                                        keyboardType="numeric"
-                                                        maxLength={10}
-                                                        value={date}
-                                                        onChangeText={(text) => setDate(applyDateMask(text, i18n.language))}
+                                                {/* Campo: Descrição */}
+                                                <Box width="100%" marginBottom="s">
+                                                    <Text variant="body" fontWeight="600" color="textPrimary" style={{ marginBottom: 4 }}>
+                                                        {t("transactions.descriptionLabel")}
+                                                    </Text>
+                                                    <TextInput 
+                                                        style={[
+                                                            styles.input, 
+                                                            { fontSize: 15, color: '#191D29', textAlignVertical: 'top', paddingTop: 14 },
+                                                            isKeyboardVisible ? { minHeight: 48, height: 48 } : { minHeight: 104, height: 100 }
+                                                        ]}
+                                                        placeholder={t("transactions.descriptionPlaceholder")}
+                                                        placeholderTextColor={placeholderColor}
+                                                        value={description}
+                                                        onChangeText={setDescription}
+                                                        multiline
+                                                        maxLength={120}
                                                     />
-                                                </View>
-                                            </View>
+                                                </Box>
 
-                                            {!shouldHideSecondaryFields && (
-                                                <>
-                                                    <View style={styles.inputGroup}>
-                                                        <Text style={styles.inputLabel}>{t("transactions.typeLabel")}</Text>
-                                                        <View style={styles.choiceRow}>
-                                                            {(['income', 'expense'] as const).map((option) => {
-                                                                const isSelected = type === option;
+                                                {/* Linha: Valor e Data (Mudado aqui de "flat" para "stretch") */}
+                                                <Box flexDirection="row" style={{ gap: scale(12) }} alignItems="stretch" marginBottom="s">
+                                                    <Box flex={1}>
+                                                        <Text variant="body" fontWeight="600" color="textPrimary" style={{ marginBottom: 4 }}>
+                                                            {t("transactions.amountLabel")}
+                                                        </Text>
+                                                        <TextInput 
+                                                            style={[styles.input, { fontSize: 15, color: '#191D29' }]}
+                                                            placeholder={t("transactions.amountPlaceholder")}
+                                                            placeholderTextColor={placeholderColor}
+                                                            keyboardType="numeric"
+                                                            value={amount}
+                                                            onChangeText={setAmount}
+                                                        />
+                                                    </Box>
 
-                                                                return (
-                                                                    <TouchableOpacity
-                                                                        key={option}
-                                                                        style={[
-                                                                            styles.choiceButton,
-                                                                            isSelected && styles.choiceButtonActive
-                                                                        ]}
-                                                                        onPress={() => setType(option)}
-                                                                    >
-                                                                        <Text
-                                                                            style={[
-                                                                                styles.choiceButtonText,
-                                                                                isSelected && styles.choiceButtonTextActive
-                                                                            ]}
+                                                    <Box flex={1}>
+                                                        <Text variant="body" fontWeight="600" color="textPrimary" style={{ marginBottom: 4 }}>
+                                                            {t("transactions.dateLabel")}
+                                                        </Text>
+                                                        <TextInput
+                                                            style={[styles.input, { fontSize: 15, color: '#191D29' }]}
+                                                            placeholder={i18n.language.startsWith('en') ? "YYYY-MM-DD" : "DD/MM/YYYY"}
+                                                            placeholderTextColor={placeholderColor}
+                                                            keyboardType="numeric"
+                                                            maxLength={10}
+                                                            value={date}
+                                                            onChangeText={(text) => setDate(applyDateMask(text, i18n.language))}
+                                                        />
+                                                    </Box>
+                                                </Box>
+
+                                                {/* Campos Secundários (Escondem com teclado aberto) */}
+                                                {!shouldHideSecondaryFields && (
+                                                    <>
+                                                        {/* Tipo */}
+                                                        <Box width="100%" marginBottom="s">
+                                                            <Text variant="body" fontWeight="600" color="textPrimary" style={{ marginBottom: 6 }}>
+                                                                {t("transactions.typeLabel")}
+                                                            </Text>
+                                                            <Box flexDirection="row" style={{ gap: scale(8) }} flexWrap="wrap">
+                                                                {(['income', 'expense'] as const).map((option) => {
+                                                                    const isSelected = type === option;
+                                                                    return (
+                                                                        <TouchableOpacity
+                                                                            key={option}
+                                                                            style={[styles.choiceButton, isSelected && { backgroundColor: '#28965312', borderColor: activeColor }]}
+                                                                            onPress={() => setType(option)}
                                                                         >
-                                                                            {t(`transactions.${option}`)}
-                                                                        </Text>
-                                                                    </TouchableOpacity>
-                                                                );
-                                                            })}
-                                                        </View>
-                                                    </View>
+                                                                            <Text variant="body" fontWeight="600" style={{ color: isSelected ? activeColor : "#6F7583" }}>
+                                                                                {t(`transactions.${option}`)}
+                                                                            </Text>
+                                                                        </TouchableOpacity>
+                                                                    );
+                                                                })}
+                                                            </Box>
+                                                        </Box>
 
-                                                    <View style={styles.inputGroup}>
-                                                        <Text style={styles.inputLabel}>{t("transactions.statusLabel")}</Text>
-                                                        <View style={styles.choiceRow}>
-                                                            {(['pending', 'paid', 'canceled'] as const).map((option) => {
-                                                                const isSelected = status === option;
-
-                                                                return (
-                                                                    <TouchableOpacity
-                                                                        key={option}
-                                                                        style={[
-                                                                            styles.choiceButton,
-                                                                            isSelected && styles.choiceButtonActive
-                                                                        ]}
-                                                                        onPress={() => setStatus(option)}
-                                                                    >
-                                                                        <Text
-                                                                            style={[
-                                                                                styles.choiceButtonText,
-                                                                                isSelected && styles.choiceButtonTextActive
-                                                                            ]}
+                                                        {/* Status */}
+                                                        <Box width="100%" marginBottom="s">
+                                                            <Text variant="body" fontWeight="600" color="textPrimary" style={{ marginBottom: 6 }}>
+                                                                {t("transactions.statusLabel")}
+                                                            </Text>
+                                                            <Box flexDirection="row" style={{ gap: scale(8) }} flexWrap="wrap">
+                                                                {(['pending', 'paid', 'canceled'] as const).map((option) => {
+                                                                    const isSelected = status === option;
+                                                                    return (
+                                                                        <TouchableOpacity
+                                                                            key={option}
+                                                                            style={[styles.choiceButton, isSelected && { backgroundColor: '#28965312', borderColor: activeColor }]}
+                                                                            onPress={() => setStatus(option)}
                                                                         >
-                                                                            {t(`transactions.status.${option}`)}
-                                                                        </Text>
-                                                                    </TouchableOpacity>
-                                                                );
-                                                            })}
-                                                        </View>
-                                                    </View>
+                                                                            <Text variant="body" fontWeight="600" style={{ color: isSelected ? activeColor : "#6F7583" }}>
+                                                                                {t(`transactions.status.${option}`)}
+                                                                            </Text>
+                                                                        </TouchableOpacity>
+                                                                    );
+                                                                })}
+                                                            </Box>
+                                                        </Box>
 
-                                                    <View style={styles.inputGroup}>
-                                                        <Text style={styles.inputLabel}>{t("transactions.categoryLabel")}</Text>
-                                                        {loadingCategories ? (
-                                                            <Text style={styles.helperText}>{t("common.loading")}</Text>
-                                                        ) : filteredCategories.length > 0 ? (
-                                                            <View style={styles.choiceRow}>
-                                                                {filteredCategories.map((category) => {
+                                                        {/* Categoria */}
+                                                        <Box width="100%" marginBottom="s">
+                                                            <Text variant="body" fontWeight="600" color="textPrimary" style={{ marginBottom: 6 }}>
+                                                                {t("transactions.categoryLabel")}
+                                                            </Text>
+                                                            {loadingCategories ? (
+                                                                <Text variant="body" color="textSecondary" style={{ paddingVertical: 2 }}>{t("common.loading")}</Text>
+                                                            ) : filteredCategories.length > 0 ? (
+                                                                <Box flexDirection="row" style={{ gap: scale(8) }} flexWrap="wrap">
+                                                                    {filteredCategories.map((category) => {
                                                                         const isSelected = categoryId === category.id;
-
                                                                         return (
                                                                             <TouchableOpacity
                                                                                 key={category.id}
-                                                                                style={[
-                                                                                    styles.choiceButton,
-                                                                                    isSelected && styles.choiceButtonActive
-                                                                                ]}
+                                                                                style={[styles.choiceButton, isSelected && { backgroundColor: '#28965312', borderColor: activeColor }]}
                                                                                 onPress={() => setCategoryId(category.id)}
                                                                             >
-                                                                                <Text
-                                                                                    style={[
-                                                                                        styles.choiceButtonText,
-                                                                                        isSelected && styles.choiceButtonTextActive
-                                                                                    ]}
-                                                                                >
+                                                                                <Text variant="body" fontWeight="600" style={{ color: isSelected ? activeColor : "#6F7583" }}>
                                                                                     {category.name}
                                                                                 </Text>
                                                                             </TouchableOpacity>
                                                                         );
-                                                                })}
-                                                            </View>
-                                                        ) : (
-                                                            <Text style={styles.helperText}>{t("categories.createCategory")}</Text>
-                                                        )}
-                                                    </View>
-                                                </>
-                                            )}
+                                                                    })}
+                                                                </Box>
+                                                            ) : (
+                                                                <Text variant="body" color="textSecondary" style={{ paddingVertical: 2 }}>{t("categories.createCategory")}</Text>
+                                                            )}
+                                                        </Box>
+                                                    </>
+                                                )}
 
-                                            {!!error && (
-                                                <Text style={styles.errorText}>{error}</Text>
-                                            )}
-
-                                            <View style={styles.buttonRow}>
-                                                <TouchableOpacity 
-                                                    style={styles.saveButton} 
-                                                    onPress={handleSave}
-                                                    disabled={loading}
-                                                    activeOpacity={0.8}
-                                                >
-                                                    <Text style={styles.saveButtonText}>
-                                                        {loading ? t("common.loading") : t("transactions.add")}
+                                                {/* Exibição do Erro */}
+                                                {!!error && (
+                                                    <Text variant="caption" style={{ color: dangerColor, marginBottom: 12, textAlign: 'center' }}>
+                                                        {error}
                                                     </Text>
-                                                </TouchableOpacity>
-                                            </View>
-                                        </ScrollView>
+                                                )}
+
+                                                {/* Botão Salvar */}
+                                                <Box width="100%">
+                                                    <TouchableOpacity 
+                                                        style={[styles.saveButton, { backgroundColor: activeColor }]} 
+                                                        onPress={handleSave}
+                                                        disabled={loading}
+                                                        activeOpacity={0.8}
+                                                    >
+                                                        <Text variant="body" fontWeight="600" style={{ color: '#FFF' }}>
+                                                            {loading ? t("common.loading") : t("transactions.add")}
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                </Box>
+                                            </ScrollView>
+                                        </Box>
                                     </MotiView>
                                 )}
                             </AnimatePresence>
+
+                            {/* Botão de Fechar Dinâmico */}
                             {!isKeyboardVisible && (
                                 <TouchableOpacity
                                     activeOpacity={0.85}
                                     onPress={handleClose}
-                                    style={styles.bottomBarCloseButton}
+                                    style={{ position: 'absolute', bottom: scale(40), left: 0, right: 0, alignItems: 'center', justifyContent: 'center', zIndex: 30 }}
                                 >
                                     <MotiView
-                                        style={[styles.plusButton, styles.closeButton]}
-                                        from={{ rotate: '0deg', backgroundColor: colors.primaryDark }}
-                                        animate={{ rotate: '135deg', backgroundColor: colors.danger }}
+                                        from={{ rotate: '0deg', backgroundColor: activeColor }}
+                                        animate={{ rotate: '135deg', backgroundColor: dangerColor }}
                                         transition={{ type: 'timing', duration: 220 }}
+                                        style={styles.plusButton}
                                     >
-                                        <Feather name="plus" size={26} color={colors.textInverse} />
+                                        <Feather name="plus" size={26} color="#FFF" />
                                     </MotiView>
                                 </TouchableOpacity>
                             )}
@@ -468,177 +483,40 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
                     </TouchableWithoutFeedback>
                 </BlurView>
             </Modal>
-        </View>
+        </Box>
     );
 }
 
-const styles = ScaledSheet.create({
-    fullScreenOverlay: {
-        ...StyleSheet.absoluteFillObject,
-        flex: 1,
-        justifyContent: 'center',
-    },
-    anchorContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
+const styles = StyleSheet.create({
     plusButton: {
         width: 48,
         height: 48,
-        borderRadius: "100%",
-        backgroundColor: colors.primaryDark,
+        borderRadius: 24, 
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: colors.primaryDark,
+        elevation: 5,
+        zIndex: 9999,
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 5,
-        elevation: 5,
-        zIndex: 9999,
-    },
-    closeButton: {
-        backgroundColor: colors.danger,
-        shadowColor: colors.danger,
-        marginBottom: 0, 
-    },
-    bottomBarCloseButton: {
-        position: 'absolute',
-        bottom: 40,
-        left: 0,
-        right: 0,
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 30,
-    },
-    modalCenteredContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        width: '100%',
-    },
-    formCard: {
-        width: '100%',
-        backgroundColor: colors.surface,
-        borderRadius: 24,
-        borderWidth: 1,
-        borderColor: colors.border,
-        shadowColor: colors.textPrimary,
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.15,
-        shadowRadius: 14,
-        elevation: 10,
-        overflow: 'hidden',
-    },
-    header: {
-        paddingHorizontal: 24,
-        paddingTop: 12,
-        paddingBottom: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.divider,
-        backgroundColor: colors.surface,
-    },
-    headerCompact: {
-        paddingTop: 14,
-        paddingBottom: 4,
-    },
-    formContent: {
-        width: '100%',
-    },
-    formContentContainer: {
-        paddingHorizontal: 28,
-        paddingTop: 16,
-        paddingBottom: 24,
-    },
-    formContentContainerCompact: {
-        paddingTop: 8,
-        paddingBottom: 12,
-    },
-    formTitle: {
-        fontSize: 20,
-        fontWeight: '700',
-        color: colors.textPrimary,
-        textAlign: 'left',
-    },
-    inputGroup: {
-        width: '100%',
-        marginBottom: 16,
-    },
-    row: {
-        flexDirection: 'row',
-        gap: 12,
-        alignItems: 'flex-start',
-    },
-    halfInputLeft: {
-        flex: 1,
-    },
-    halfInputRight: {
-        flex: 1,
-    },
-    multilineInput: {
-        minHeight: 104,
-        paddingTop: 14,
-        height: 100,
-    },
-    multilineInputCompact: {
-        minHeight: 48,
-        height: 48,
-    },
-    errorText: {
-        color: colors.danger,
-        fontSize: 12,
-        marginBottom: 12,
-        textAlign: "center"
-    },
-    inputLabel: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: colors.textPrimary,
-        marginBottom: 2,
     },
     input: {
         width: '100%',
         height: 48,
-        backgroundColor: colors.inputBackground,
+        backgroundColor: '#F4F5F7', 
         borderRadius: 12,
         paddingHorizontal: 16,
-        borderWidth: 1,
-        borderColor: colors.inputBorder,
-        fontSize: 15,
-        color: colors.textPrimary,
-    },
-    helperText: {
-        color: colors.textSecondary,
-        fontSize: 14,
-        paddingVertical: 2,
-    },
-    choiceRow: {
-        flexDirection: 'row',
-        gap: 8,
-        flexWrap: 'wrap',
+        borderWidth: scale(1),
+        borderColor: '#E2E8F0', 
     },
     choiceButton: {
         paddingHorizontal: 14,
         paddingVertical: 10,
         borderRadius: 12,
-        borderWidth: 1,
-        borderColor: colors.inputBorder,
-        backgroundColor: colors.surface,
-    },
-    choiceButtonActive: {
-        backgroundColor: colors.primaryLight,
-        borderColor: colors.primary,
-    },
-    choiceButtonText: {
-        color: colors.textSecondary,
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    choiceButtonTextActive: {
-        color: colors.primaryDark,
-    },
-    buttonRow: {
-        width: '100%',
+        borderWidth: scale(1),
+        borderColor: '#E2E8F0',
+        backgroundColor: '#FFF',
     },
     saveButton: {
         width: '100%',
@@ -646,11 +524,5 @@ const styles = ScaledSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 12,
-        backgroundColor: colors.primaryDark,
-    },
-    saveButtonText: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: colors.textInverse,
     },
 });

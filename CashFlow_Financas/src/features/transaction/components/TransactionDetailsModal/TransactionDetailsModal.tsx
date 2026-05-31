@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { Modal, TouchableOpacity, TouchableWithoutFeedback, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { colors } from '@/theme';
 import { MotiView, AnimatePresence } from 'moti';
 import { Transactions as Transaction } from '../../types/Transactions';
 import { useTranslation } from 'react-i18next';
 import { ConfirmationModal } from '@/components/ConfirmationModal/ConfirmationModal'; 
-import { ScaledSheet } from '@/utils/responsive';
+import { Box, Text, scale } from '@/theme/unistyles';
 
 interface TransactionDetailsModalProps {
     isOpen: boolean;
@@ -25,13 +24,15 @@ export function TransactionDetailsModal({
     onDelete,
     isVisible = true 
 }: TransactionDetailsModalProps) {
-    const { t } = useTranslation();
+    const { t } = useTranslation(); // Corrigido: Chamada limpa e direta
     const [isConfirmOpen, setIsConfirmOpen] = useState(false); 
 
     if (!transaction) return null;
 
     const isExpense = String(transaction.type).toLowerCase() === 'expense';
-    const statusColor = isExpense ? colors.expense : colors.income;
+    
+    // Mapeamento dinâmico de cores com base no tema do Unistyles
+    const statusColorHex = isExpense ? "#FF4747" : "#289653"; 
     
     const iconName = isExpense ? 'arrow-down-left' : 'arrow-up-right';
 
@@ -54,94 +55,155 @@ export function TransactionDetailsModal({
                 animationType="none"
                 onRequestClose={onClose}
             >
-                <TouchableWithoutFeedback onPress={onClose}>
-                    <View style={styles.backdrop}>
-                        <AnimatePresence>
-                            {isOpen && (
-                                <MotiView
-                                    from={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    style={StyleSheet.absoluteFillObject}
-                                />
-                            )}
-                        </AnimatePresence>
-
-                        <TouchableWithoutFeedback>
-                            <MotiView
-                                from={{ translateY: 300 }}
-                                animate={{ translateY: 0 }}
-                                exit={{ translateY: 300 }}
-                                transition={{ type: 'timing', duration: 250 }}
-                                style={styles.sheetContainer}
+                <AnimatePresence>
+                    {isOpen && (
+                        <TouchableWithoutFeedback onPress={onClose}>
+                            <MotiView 
+                                from={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ type: 'timing', duration: 200 }}
+                                style={{
+                                    flex: 1,
+                                    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                                    justifyContent: 'flex-end',
+                                }}
                             >
-                                <View style={styles.dragIndicator} />
+                                <TouchableWithoutFeedback>
+                                    <MotiView
+                                        from={{ translateY: 350 }}
+                                        animate={{ translateY: 0 }}
+                                        exit={{ translateY: 350 }}
+                                        transition={{ type: 'timing', duration: 250 }}
+                                        style={{ width: '100%' }}
+                                    >
+                                        <Box
+                                            backgroundColor="card"
+                                            borderTopLeftRadius="xl"
+                                            borderTopRightRadius="xl"
+                                            paddingHorizontal="m"
+                                            paddingTop="s"
+                                            borderWidth={scale(1)}
+                                            borderColor="inputBorder"
+                                            style={{ paddingBottom: scale(34) }}
+                                        >
+                                            {/* Indicador de arrastar (Drag Indicator) */}
+                                            <Box 
+                                                width={38} 
+                                                height={5} 
+                                                backgroundColor="inputBorder" 
+                                                borderRadius="m" 
+                                                alignSelf="center" 
+                                                marginBottom="m" 
+                                            />
 
-                                <View style={styles.header}>
-                                    <Text style={styles.headerTitle}>{t('transactions.detailsTitle')}</Text>
-                                    <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-                                        <Feather name="x" size={20} color={colors.textSecondary} />
-                                    </TouchableOpacity>
-                                </View>
+                                            {/* Cabeçalho */}
+                                            <Box flexDirection="row" justifyContent="space-between" alignItems="center" marginBottom="m">
+                                                <Text variant="body" fontWeight="600" color="textSecondary">
+                                                    {t('transactions.detailsTitle')}
+                                                </Text>
+                                                <TouchableOpacity onPress={onClose} style={{ padding: scale(4) }}>
+                                                    <Feather name="x" size={20} color="#6F7583" />
+                                                </TouchableOpacity>
+                                            </Box>
 
-                                <View style={styles.infoBlock}>
-                                    <View style={[styles.iconBg, { backgroundColor: `${statusColor}1A` }]}>
-                                        <Feather name={iconName} size={24} color={statusColor} />
-                                    </View>
-                                    <Text style={styles.transactionTitle}>{transaction.title}</Text>
-                                    <Text style={[styles.transactionAmount, { color: statusColor }]}>
-                                        {isVisible ? `${isExpense ? '-' : ''}${formattedAmount}` : '••••••'}
-                                    </Text>
-                                </View>
+                                            {/* Bloco de Informações Principais */}
+                                            <Box alignItems="center" marginBottom="l">
+                                                <Box 
+                                                    width={56} 
+                                                    height={56} 
+                                                    borderRadius="xl" 
+                                                    justifyContent="center" 
+                                                    alignItems="center" 
+                                                    marginBottom="s"
+                                                    style={{ backgroundColor: `${statusColorHex}1A` }}
+                                                >
+                                                    <Feather name={iconName} size={24} color={statusColorHex} />
+                                                </Box>
+                                                <Text variant="titleMedium" fontWeight="700" color="textPrimary" marginBottom="xs">
+                                                    {transaction.title}
+                                                </Text>
+                                                <Text variant="titleLarge" fontWeight="800" style={{ color: statusColorHex, letterSpacing: -0.5 }}>
+                                                    {isVisible ? `${isExpense ? '-' : ''}${formattedAmount}` : '••••••'}
+                                                </Text>
+                                            </Box>
 
-                                <View style={styles.detailsList}>
-                                    <View style={styles.detailRow}>
-                                        <Text style={styles.detailLabel}>{t('transactions.type', 'Tipo')}</Text>
-                                        <Text style={[styles.detailValue, { color: statusColor, fontWeight: '600' }]}>
-                                            {isExpense ? t('transactions.expense') : t('transactions.income')}
-                                        </Text>
-                                    </View>
-                                    
-                                    {transaction.description && (
-                                        <View style={styles.detailRow}>
-                                            <Text style={styles.detailLabel}>{t('transactions.description')}</Text>
-                                            <Text 
-                                                style={[styles.detailValue, styles.descriptionValue]}
-                                                numberOfLines={1} 
-                                                ellipsizeMode="tail" 
+                                            {/* Lista de Detalhes */}
+                                            <Box 
+                                                borderTopWidth={scale(1)} 
+                                                borderBottomWidth={scale(1)} 
+                                                borderColor="inputBorder" 
+                                                paddingVertical="m" 
+                                                marginBottom="l" 
+                                                style={{ gap: scale(12) }}
                                             >
-                                                {transaction.description}
-                                            </Text>
-                                        </View>
-                                    )}
-                                </View>
+                                                <Box flexDirection="row" justifyContent="space-between" alignItems="center">
+                                                    <Text variant="body" color="textSecondary">
+                                                        {t('transactions.type', 'Tipo')}
+                                                    </Text>
+                                                    <Text variant="body" fontWeight="600" style={{ color: statusColorHex }}>
+                                                        {isExpense ? t('transactions.expense') : t('transactions.income')}
+                                                    </Text>
+                                                </Box>
+                                                
+                                                {transaction.description && (
+                                                    <Box flexDirection="row" justifyContent="space-between" alignItems="center">
+                                                        <Text variant="body" color="textSecondary">
+                                                            {t('transactions.description')}
+                                                        </Text>
+                                                        <Text 
+                                                            variant="body" 
+                                                            color="textPrimary" 
+                                                            fontWeight="500"
+                                                            numberOfLines={1} 
+                                                            ellipsizeMode="tail" 
+                                                            style={{ flex: 1, textAlign: 'right', marginLeft: scale(24) }}
+                                                        >
+                                                            {transaction.description}
+                                                        </Text>
+                                                    </Box>
+                                                )}
+                                            </Box>
 
-                                <View style={styles.actionRow}>
-                                    <TouchableOpacity 
-                                        style={[styles.btn, styles.btnDelete]} 
-                                        activeOpacity={0.7}
-                                        onPress={() => setIsConfirmOpen(true)} 
-                                    >
-                                        <Feather name="trash-2" size={16} color={colors.expense} />
-                                        <Text style={styles.btnDeleteText}>{t('common.delete')}</Text>
-                                    </TouchableOpacity>
+                                            {/* Botões de Ação */}
+                                            <Box flexDirection="row" style={{ gap: scale(12) }}>
+                                                {/* Botão Deletar */}
+                                                <TouchableOpacity 
+                                                    style={[
+                                                        styles.btnBase, 
+                                                        { backgroundColor: `${statusColorHex}12`, borderWidth: scale(1), borderColor: `${statusColorHex}33` }
+                                                    ]} 
+                                                    activeOpacity={0.7}
+                                                    onPress={() => setIsConfirmOpen(true)} 
+                                                >
+                                                    <Feather name="trash-2" size={16} color={statusColorHex} />
+                                                    <Text variant="body" fontWeight="600" style={{ color: statusColorHex }}>
+                                                        {t('common.delete')}
+                                                    </Text>
+                                                </TouchableOpacity>
 
-                                    <TouchableOpacity 
-                                        style={[styles.btn, styles.btnEdit]} 
-                                        activeOpacity={0.7}
-                                        onPress={() => {
-                                            onEdit(transaction);
-                                            onClose();
-                                        }}
-                                    >
-                                        <Feather name="edit-3" size={16} color="#FFF" />
-                                        <Text style={styles.btnEditText}>{t('common.edit')}</Text>
-                                    </TouchableOpacity>
-                                </View>
+                                                {/* Botão Editar */}
+                                                <TouchableOpacity 
+                                                    style={[styles.btnBase, { backgroundColor: isExpense ? '#FF4747' : '#289653' }]} 
+                                                    activeOpacity={0.7}
+                                                    onPress={() => {
+                                                        onEdit(transaction);
+                                                        onClose();
+                                                    }}
+                                                >
+                                                    <Feather name="edit-3" size={16} color="#FFF" />
+                                                    <Text variant="body" fontWeight="600" style={{ color: '#FFF' }}>
+                                                        {t('common.edit')}
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            </Box>
+                                        </Box>
+                                    </MotiView>
+                                </TouchableWithoutFeedback>
                             </MotiView>
                         </TouchableWithoutFeedback>
-                    </View>
-                </TouchableWithoutFeedback>
+                    )}
+                </AnimatePresence>
             </Modal>
 
             <ConfirmationModal
@@ -158,100 +220,8 @@ export function TransactionDetailsModal({
     );
 }
 
-const styles = ScaledSheet.create({
-    backdrop: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
-        justifyContent: 'flex-end',
-    },
-    sheetContainer: {
-        backgroundColor: colors.card,
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        paddingHorizontal: 24,
-        paddingBottom: 34,
-        paddingTop: 12,
-        width: '100%',
-        borderWidth: 1,
-        borderColor: colors.inputBorder,
-    },
-    dragIndicator: {
-        width: 38,
-        height: 5,
-        backgroundColor: colors.inputBorder,
-        borderRadius: 3,
-        alignSelf: 'center',
-        marginBottom: 20,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 24,
-    },
-    headerTitle: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: colors.textSecondary,
-    },
-    closeBtn: {
-        padding: 4,
-    },
-    infoBlock: {
-        alignItems: 'center',
-        marginBottom: 28,
-    },
-    iconBg: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    transactionTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: colors.textPrimary,
-        marginBottom: 6,
-    },
-    transactionAmount: {
-        fontSize: 26,
-        fontWeight: '800',
-        letterSpacing: -0.5,
-    },
-    detailsList: {
-        borderTopWidth: 1,
-        borderBottomWidth: 1,
-        borderColor: colors.inputBorder,
-        paddingVertical: 16,
-        marginBottom: 28,
-        gap: 12,
-    },
-    detailRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    detailLabel: {
-        fontSize: 14,
-        color: colors.textSecondary,
-    },
-    detailValue: {
-        fontSize: 14,
-        color: colors.textPrimary,
-        fontWeight: '500',
-    },
-    descriptionValue: {
-        flex: 1,              
-        textAlign: 'right',  
-        marginLeft: 24,       
-    },
-    actionRow: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    btn: {
+const styles = StyleSheet.create({
+    btnBase: {
         flex: 1,
         height: 48,
         borderRadius: 14,
@@ -259,23 +229,5 @@ const styles = ScaledSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         gap: 8,
-    },
-    btnEdit: {
-        backgroundColor: colors.income,
-    },
-    btnEditText: {
-        color: '#FFF',
-        fontSize: 15,
-        fontWeight: '600',
-    },
-    btnDelete: {
-        backgroundColor: `${colors.expense}12`, 
-        borderWidth: 1,
-        borderColor: `${colors.expense}33`,
-    },
-    btnDeleteText: {
-        color: colors.expense,
-        fontSize: 15,
-        fontWeight: '600',
     },
 });

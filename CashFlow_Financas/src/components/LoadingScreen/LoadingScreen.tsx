@@ -1,50 +1,42 @@
 import React from 'react';
-import { View, ActivityIndicator, Image } from 'react-native';
+import { ActivityIndicator, Image } from 'react-native';
 import { MotiView } from 'moti';
-import { ScaledSheet } from '@/utils/responsive';
-import { colors } from '@/theme';
+import { Box, scale } from '@/theme/unistyles';
+
 export function LoadingScreen() {
     return (
-        <View style={styles.container}>
-        <MotiView
-            from={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: 'timing', duration: 600 }}
-            style={styles.logoContainer}
+        <Box 
+            flex={1} 
+            backgroundColor="background" 
+            justifyContent="center" 
+            alignItems="center"
         >
-            <Image
-            source={require('@/assets/Logo_CashFlow.png')}
-            style={styles.logo}
-            resizeMode="contain"
-            />
-        </MotiView>
+            <MotiView
+                from={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: 'timing', duration: 600 }}
+                style={{ alignItems: 'center', justifyContent: 'center' }}
+            >
+                <Image
+                    source={require('@/assets/Logo_CashFlow.png')}
+                    style={{
+                        width: scale(200),
+                        height: scale(200),
+                    }}
+                    resizeMode="contain"
+                />
+            </MotiView>
 
-        <ActivityIndicator 
-            size="small" 
-            color={colors.primaryDark || '#2ecc71'} 
-            style={styles.spinner} 
-        />
-        </View>
+            <ActivityIndicator 
+                size="small" 
+                // Usando a cor primária direto do nosso tema/design system se disponível, 
+                // ou mantendo o fallback padrão do projeto
+                color="#2ecc71" 
+                style={{
+                    position: 'absolute',
+                    bottom: scale(80),
+                }}
+            />
+        </Box>
     );
 }
-
-const styles = ScaledSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: colors.background, 
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    logoContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    logo: {
-        width: '200@ms', 
-        height: '200@ms',
-    },
-    spinner: {
-        position: 'absolute',
-        bottom: '80@ms', 
-    },
-});
