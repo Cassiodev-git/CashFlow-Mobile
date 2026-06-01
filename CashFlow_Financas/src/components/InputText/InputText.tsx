@@ -1,49 +1,39 @@
-import { StyleSheet, TextInput, TextInputProps, View, Text } from "react-native";
-//cores
-import { colors } from "@/theme";
-//hooks
+import { TextInput, TextInputProps } from "react-native";
+import { useTheme } from "@shopify/restyle";
+import { Box, Text, scale, type Theme } from "@/theme/unistyles";
 
 type InputTextProps = TextInputProps & {
     error?: string
 }
 
 export function InputText({ style, error, ...rest}: InputTextProps){ 
+    const theme = useTheme<Theme>();
+
     return (
-        <View style={styles.container}>
+        <Box width="90%" style={{ gap: scale(4) }}>
             <TextInput
-            placeholderTextColor={colors.placeholder}
-            style={[styles.input, style, error && styles.inputError]}
-            {...rest}
+                placeholderTextColor={theme.colors.placeholder}
+                style={[
+                    {
+                        width: "100%",
+                        minHeight: scale(48),
+                        paddingHorizontal: scale(14),
+                        backgroundColor: theme.colors.inputBackground,
+                        borderColor: error ? theme.colors.inputBorderError : theme.colors.inputBorder,
+                        color: theme.colors.textPrimary,
+                        borderWidth: scale(1),
+                        borderRadius: scale(8),
+                        fontSize: scale(14)
+                    },
+                    style
+                ]}
+                {...rest}
             />
             {error && (
-                <Text style={styles.erroText} >
+                <Text variant="caption" color="danger">
                     {error}
                 </Text>
             )}
-        </View>
+        </Box>
     )
 }
-
-const styles = StyleSheet.create({
-    container: {
-        width: "90%",
-        gap: 4,
-    },
-    input: {
-        width: "100%",
-        minHeight: 48,
-        paddingHorizontal: 14,
-        backgroundColor: colors.inputBackground,
-        borderColor: colors.inputBorder,
-        color: colors.textPrimary,
-        borderWidth: 1,
-        borderRadius: 8,
-        fontSize: 14
-    },
-    inputError: {
-        borderColor: colors.inputBorderError
-    },
-    erroText: {
-        color: colors.danger
-    }
-})

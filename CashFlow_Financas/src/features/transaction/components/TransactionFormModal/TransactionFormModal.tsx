@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-    View,
-    Text,
     TouchableOpacity,
     Modal,
     TextInput,
@@ -14,7 +12,7 @@ import {
     DeviceEventEmitter
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { colors } from '@/theme';
+import { useTheme } from '@shopify/restyle';
 import { MotiView, AnimatePresence } from 'moti';
 import { BlurView } from 'expo-blur';
 import { useTranslation } from 'react-i18next';
@@ -27,8 +25,8 @@ import AppCategoryService from '@/services/AppCategoryService';
 
 // Types
 import { Transactions as Transaction } from '../../types/Transactions';
-import { ScaledSheet, verticalScale } from '@/utils/responsive'; 
 import { logger } from '@/utils/logger';
+import { Box, Text, scale, verticalScale, type Theme } from '@/theme/unistyles';
 
 interface TransactionFormModalProps {
     isOpen: boolean;
@@ -77,8 +75,10 @@ const formatFromBackendDate = (dateStr: string | null | undefined, lang: string)
 
 export function TransactionFormModal({ isOpen, onClose, transaction }: TransactionFormModalProps) {
     const { t, i18n } = useTranslation();
+    const theme = useTheme<Theme>();
     const { height } = useWindowDimensions();
     const insets = useSafeAreaInsets();
+    const styles = createStyles(theme);
     
     const isEditMode = !!transaction;
 
@@ -219,7 +219,7 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
 
     const modalMaxHeight = isKeyboardVisible ? height * 0.52 : height * 0.75;
 
-    const dynamicButtonBottom = insets.bottom > 0 ? insets.bottom + 12 : 16;
+    const dynamicButtonBottom = insets.bottom > 0 ? insets.bottom + scale(12) : scale(16);
 
     return (
         <Modal visible={isOpen} transparent animationType="none" statusBarTranslucent onRequestClose={onClose}>
@@ -241,11 +241,11 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
                                     transition={{ type: 'timing', duration: 220 }}
                                     style={[styles.formCard, { maxHeight: modalMaxHeight }]}
                                 >
-                                    <View style={[styles.header, isKeyboardVisible && styles.headerCompact]}>
+                                    <Box style={[styles.header, isKeyboardVisible && styles.headerCompact]}>
                                         <Text style={styles.formTitle}>
                                             {isEditMode ? t("transactions.editTitle", "Editar Transação") : t("transactions.newTransaction")}
                                         </Text>
-                                    </View>
+                                    </Box>
 
                                     <ScrollView 
                                         style={styles.formContent} 
@@ -253,33 +253,33 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
                                         showsVerticalScrollIndicator={true} 
                                         keyboardShouldPersistTaps="handled"
                                     >
-                                        <View style={styles.inputGroup}>
+                                        <Box style={styles.inputGroup}>
                                             <Text style={styles.inputLabel}>{t("transactions.title", "Título")}</Text>
-                                            <TextInput style={styles.input} placeholder={t("transactions.titlePlaceholder")} placeholderTextColor={colors.placeholder} value={title} onChangeText={setTitle} maxLength={20} />
-                                        </View>
+                                            <TextInput style={styles.input} placeholder={t("transactions.titlePlaceholder")} placeholderTextColor={theme.colors.placeholder} value={title} onChangeText={setTitle} maxLength={20} />
+                                        </Box>
 
-                                        <View style={styles.inputGroup}>
+                                        <Box style={styles.inputGroup}>
                                             <Text style={styles.inputLabel}>{t("transactions.descriptionLabel")}</Text>
-                                            <TextInput style={[styles.input, styles.multilineInput, isKeyboardVisible && styles.multilineInputCompact]} placeholder={t("transactions.descriptionPlaceholder", "Opcional")} placeholderTextColor={colors.placeholder} value={description} onChangeText={setDescription} multiline textAlignVertical="top" maxLength={120} />
-                                        </View>
+                                            <TextInput style={[styles.input, styles.multilineInput, isKeyboardVisible && styles.multilineInputCompact]} placeholder={t("transactions.descriptionPlaceholder", "Opcional")} placeholderTextColor={theme.colors.placeholder} value={description} onChangeText={setDescription} multiline textAlignVertical="top" maxLength={120} />
+                                        </Box>
 
-                                        <View style={styles.row}>
-                                            <View style={[styles.inputGroup, styles.halfInputLeft]}>
+                                        <Box style={styles.row}>
+                                            <Box style={[styles.inputGroup, styles.halfInputLeft]}>
                                                 <Text style={styles.inputLabel}>{t("transactions.amountLabel")}</Text>
-                                                <TextInput style={styles.input} placeholder="0,00" placeholderTextColor={colors.placeholder} keyboardType="numeric" value={amount} onChangeText={setAmount} />
-                                            </View>
+                                                <TextInput style={styles.input} placeholder="0,00" placeholderTextColor={theme.colors.placeholder} keyboardType="numeric" value={amount} onChangeText={setAmount} />
+                                            </Box>
 
-                                            <View style={[styles.inputGroup, styles.halfInputRight]}>
+                                            <Box style={[styles.inputGroup, styles.halfInputRight]}>
                                                 <Text style={styles.inputLabel}>{t("transactions.dateLabel")}</Text>
-                                                <TextInput style={styles.input} placeholder={i18n.language.startsWith('en') ? "YYYY-MM-DD" : "DD/MM/YYYY"} placeholderTextColor={colors.placeholder} keyboardType="numeric" maxLength={10} value={date} onChangeText={(text) => setDate(applyDateMask(text, i18n.language))} />
-                                            </View>
-                                        </View>
+                                                <TextInput style={styles.input} placeholder={i18n.language.startsWith('en') ? "YYYY-MM-DD" : "DD/MM/YYYY"} placeholderTextColor={theme.colors.placeholder} keyboardType="numeric" maxLength={10} value={date} onChangeText={(text) => setDate(applyDateMask(text, i18n.language))} />
+                                            </Box>
+                                        </Box>
 
                                         {!isKeyboardVisible && (
                                             <>
-                                                <View style={styles.inputGroup}>
+                                                <Box style={styles.inputGroup}>
                                                     <Text style={styles.inputLabel}>{t("transactions.typeLabel")}</Text>
-                                                    <View style={styles.choiceRow}>
+                                                    <Box style={styles.choiceRow}>
                                                         {(['income', 'expense'] as const).map((option) => {
                                                             const isSelected = type === option;
                                                             return (
@@ -288,12 +288,12 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
                                                                 </TouchableOpacity>
                                                             );
                                                         })}
-                                                    </View>
-                                                </View>
+                                                    </Box>
+                                                </Box>
 
-                                                <View style={styles.inputGroup}>
+                                                <Box style={styles.inputGroup}>
                                                     <Text style={styles.inputLabel}>{t("transactions.statusLabel")}</Text>
-                                                    <View style={styles.choiceRow}>
+                                                    <Box style={styles.choiceRow}>
                                                         {(['pending', 'paid', 'canceled'] as const).map((option) => {
                                                             const isSelected = status === option;
                                                             return (
@@ -302,15 +302,15 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
                                                                 </TouchableOpacity>
                                                             );
                                                         })}
-                                                    </View>
-                                                </View>
+                                                    </Box>
+                                                </Box>
 
-                                                <View style={styles.inputGroup}>
+                                                <Box style={styles.inputGroup}>
                                                     <Text style={styles.inputLabel}>{t("transactions.categoryLabel")}</Text>
                                                     {loadingCategories ? (
                                                         <Text style={styles.helperText}>{t("common.loading")}</Text>
                                                     ) : filteredCategories.length > 0 ? (
-                                                        <View style={styles.choiceRow}>
+                                                        <Box style={styles.choiceRow}>
                                                             {filteredCategories.map((cat) => {
                                                                 const isSelected = categoryId === cat.id;
                                                                 return (
@@ -319,22 +319,22 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
                                                                     </TouchableOpacity>
                                                                 );
                                                             })}
-                                                        </View>
+                                                        </Box>
                                                     ) : (
                                                         <Text style={styles.helperText}>{t("categories.createCategory")}</Text>
                                                     )}
-                                                </View>
+                                                </Box>
                                             </>
                                         )}
                                         {!!error && <Text style={styles.errorText}>{error}</Text>}
 
-                                        <View style={styles.buttonRow}>
+                                        <Box style={styles.buttonRow}>
                                             <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={loading} activeOpacity={0.8}>
                                                 <Text style={styles.saveButtonText}>
                                                     {loading ? t("common.loading") : isEditMode ? t("common.save") : t("transactions.add")}
                                                 </Text>
                                             </TouchableOpacity>
-                                        </View>
+                                        </Box>
                                     </ScrollView>
                                 </MotiView>
                             )}
@@ -347,7 +347,7 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
                                 style={[styles.bottomBarCloseButton, { bottom: dynamicButtonBottom }]}
                             >
                                 <MotiView style={styles.plusButtonCircle} from={{ rotate: '0deg' }} animate={{ rotate: '135deg' }} transition={{ type: 'timing', duration: 220 }}>
-                                    <Feather name="plus" size={26} color={colors.textInverse} />
+                                    <Feather name="plus" size={26} color={theme.colors.textInverse} />
                                 </MotiView>
                             </TouchableOpacity>
                         )}
@@ -358,34 +358,34 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
     );
 }
 
-const styles = ScaledSheet.create({
+const createStyles = (theme: Theme) => ({
     fullScreenOverlay: { flex: 1, justifyContent: 'center' },
-    modalCenteredContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16, width: '100%' },
-    plusButtonCircle: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.danger, justifyContent: 'center', alignItems: 'center', shadowColor: colors.danger, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5, elevation: 5 },
+    modalCenteredContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: scale(16), width: '100%' },
+    plusButtonCircle: { width: scale(48), height: scale(48), borderRadius: scale(24), backgroundColor: theme.colors.danger, justifyContent: 'center', alignItems: 'center', shadowColor: theme.colors.danger, shadowOffset: { width: 0, height: scale(4) }, shadowOpacity: 0.3, shadowRadius: scale(5), elevation: 5 },
     bottomBarCloseButton: { position: 'absolute', left: 0, right: 0, alignItems: 'center', justifyContent: 'center', zIndex: 30 },
-    formCard: { width: '100%', backgroundColor: colors.surface, borderRadius: 24, borderWidth: 1, borderColor: colors.border, shadowColor: colors.textPrimary, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.15, shadowRadius: 14, elevation: 10, overflow: 'hidden' },
-    header: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: colors.divider, backgroundColor: colors.surface },
-    headerCompact: { paddingTop: 14, paddingBottom: 8 },
+    formCard: { width: '100%', backgroundColor: theme.colors.surface, borderRadius: scale(24), borderWidth: scale(1), borderColor: theme.colors.border, shadowColor: theme.colors.textPrimary, shadowOffset: { width: 0, height: scale(10) }, shadowOpacity: 0.15, shadowRadius: scale(14), elevation: 10, overflow: 'hidden' },
+    header: { paddingHorizontal: scale(24), paddingTop: scale(24), paddingBottom: scale(16), borderBottomWidth: scale(1), borderBottomColor: theme.colors.divider, backgroundColor: theme.colors.surface },
+    headerCompact: { paddingTop: scale(14), paddingBottom: scale(8) },
     formContent: { width: '100%' },
-    formContentContainer: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 24 },
-    formContentContainerCompact: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 16 },
-    formTitle: { fontSize: 20, fontWeight: '700', color: colors.textPrimary, textAlign: 'left' },
-    inputGroup: { width: '100%', marginBottom: 16 },
-    row: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
+    formContentContainer: { paddingHorizontal: scale(24), paddingTop: scale(16), paddingBottom: scale(24) },
+    formContentContainerCompact: { paddingHorizontal: scale(24), paddingTop: scale(8), paddingBottom: scale(16) },
+    formTitle: { fontSize: scale(20), fontWeight: '700', color: theme.colors.textPrimary, textAlign: 'left' },
+    inputGroup: { width: '100%', marginBottom: scale(16) },
+    row: { flexDirection: 'row', gap: scale(12), alignItems: 'flex-start' },
     halfInputLeft: { flex: 1 },
     halfInputRight: { flex: 1 },
-    multilineInput: { minHeight: 90, paddingTop: 12, height: 90 },
-    multilineInputCompact: { minHeight: 48, height: 48 },
-    errorText: { color: colors.danger, fontSize: 12, marginBottom: 8, marginTop: 4, textAlign: "center" },
-    inputLabel: { fontSize: 14, fontWeight: '600', color: colors.textPrimary, marginBottom: 6 },
-    input: { width: '100%', height: 46, backgroundColor: colors.inputBackground, borderRadius: 12, paddingHorizontal: 16, borderWidth: 1, borderColor: colors.inputBorder, fontSize: 15, color: colors.textPrimary },
-    helperText: { color: colors.textSecondary, fontSize: 13, paddingVertical: 2 },
-    choiceRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-    choiceButton: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: colors.inputBorder, backgroundColor: colors.surface },
-    choiceButtonActive: { backgroundColor: colors.primaryLight, borderColor: colors.primary },
-    choiceButtonText: { color: colors.textSecondary, fontSize: 14, fontWeight: '600' },
-    choiceButtonTextActive: { color: colors.primaryDark },
-    buttonRow: { width: '100%', marginTop: 12 },
-    saveButton: { width: '100%', height: 48, justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: colors.primaryDark },
-    saveButtonText: { fontSize: 15, fontWeight: '600', color: colors.textInverse }
-});
+    multilineInput: { minHeight: scale(90), paddingTop: scale(12), height: scale(90) },
+    multilineInputCompact: { minHeight: scale(48), height: scale(48) },
+    errorText: { color: theme.colors.danger, fontSize: scale(12), marginBottom: scale(8), marginTop: scale(4), textAlign: "center" },
+    inputLabel: { fontSize: scale(14), fontWeight: '600', color: theme.colors.textPrimary, marginBottom: scale(6) },
+    input: { width: '100%', height: scale(46), backgroundColor: theme.colors.inputBackground, borderRadius: scale(12), paddingHorizontal: scale(16), borderWidth: scale(1), borderColor: theme.colors.inputBorder, fontSize: scale(15), color: theme.colors.textPrimary },
+    helperText: { color: theme.colors.textSecondary, fontSize: scale(13), paddingVertical: scale(2) },
+    choiceRow: { flexDirection: 'row', gap: scale(8), flexWrap: 'wrap' },
+    choiceButton: { paddingHorizontal: scale(14), paddingVertical: scale(10), borderRadius: scale(12), borderWidth: scale(1), borderColor: theme.colors.inputBorder, backgroundColor: theme.colors.surface },
+    choiceButtonActive: { backgroundColor: theme.colors.primaryLight, borderColor: theme.colors.primary },
+    choiceButtonText: { color: theme.colors.textSecondary, fontSize: scale(14), fontWeight: '600' },
+    choiceButtonTextActive: { color: theme.colors.primaryDark },
+    buttonRow: { width: '100%', marginTop: scale(12) },
+    saveButton: { width: '100%', height: scale(48), justifyContent: 'center', alignItems: 'center', borderRadius: scale(12), backgroundColor: theme.colors.primaryDark },
+    saveButtonText: { fontSize: scale(15), fontWeight: '600', color: theme.colors.textInverse }
+} as const);

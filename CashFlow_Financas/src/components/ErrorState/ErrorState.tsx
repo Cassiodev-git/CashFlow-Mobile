@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { colors } from '@/theme';
+import { useTheme } from '@shopify/restyle';
 import { useTranslation } from 'react-i18next';
 import { MotiView } from 'moti';
 import { logger } from '@/utils/logger';
+import { Box, Text, scale, type Theme } from '@/theme/unistyles';
 
 interface ErrorStateProps {
     message?: string;
@@ -13,6 +14,7 @@ interface ErrorStateProps {
 
 export function ErrorState({ message, onRetry }: ErrorStateProps) {
     const { t } = useTranslation();
+    const theme = useTheme<Theme>();
     const [isRetrying, setIsRetrying] = useState(false); 
 
     const handleRetry = async () => {
@@ -27,112 +29,88 @@ export function ErrorState({ message, onRetry }: ErrorStateProps) {
     };
 
     return (
-        <View style={styles.outerContainer}>
+        <Box
+            flex={1}
+            alignItems="center"
+            justifyContent="center"
+            paddingHorizontal="l"
+            backgroundColor="background"
+            style={{ marginTop: '50%' }}
+        >
             <MotiView
                 from={{ opacity: 0, scale: 0.95, translateY: 10 }}
                 animate={{ opacity: 1, scale: 1, translateY: 0 }}
                 transition={{ type: 'timing', duration: 350 }}
-                style={styles.card}
+                style={{
+                    backgroundColor: theme.colors.card,
+                    borderRadius: scale(20),
+                    padding: scale(28),
+                    width: '100%',
+                    maxWidth: scale(328),
+                    alignItems: 'center',
+                    borderWidth: scale(1),
+                    borderColor: theme.colors.inputBorder,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: scale(4) },
+                    shadowOpacity: 0.04,
+                    shadowRadius: scale(12),
+                    elevation: 2,
+                }}
             >
-                <View style={styles.iconBg}>
-                    <Feather name="alert-circle" size={28} color={colors.expense} />
-                </View>
+                <Box
+                    width={scale(56)}
+                    height={scale(56)}
+                    borderRadius="xl"
+                    backgroundColor="dangerLight"
+                    alignItems="center"
+                    justifyContent="center"
+                    marginBottom="m"
+                >
+                    <Feather name="alert-circle" size={scale(28)} color={theme.colors.expense} />
+                </Box>
                 
-                <Text style={styles.title}>
+                <Text variant="titleMedium" color="textPrimary" fontWeight="700" marginBottom="s">
                     {t('common.errorTitle')}
                 </Text>
                 
-                <Text style={styles.message}>
+                <Text
+                    variant="body"
+                    color="textSecondary"
+                    marginBottom="l"
+                    style={{ textAlign: 'center', lineHeight: scale(20) }}
+                >
                     {message || t('common.errorMessage')}
                 </Text>
                 
                 <TouchableOpacity 
-                    style={[styles.button, isRetrying && styles.buttonDisabled]} 
+                    style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: scale(8),
+                        backgroundColor: theme.colors.income,
+                        height: scale(46),
+                        paddingHorizontal: scale(24),
+                        borderRadius: scale(12),
+                        width: '100%',
+                        opacity: isRetrying ? 0.6 : 1,
+                    }} 
                     onPress={handleRetry} 
                     activeOpacity={0.7}
                     disabled={isRetrying} 
                 >
                     {isRetrying ? (
-                        <ActivityIndicator size="small" color={colors.surface} />
+                        <ActivityIndicator size="small" color={theme.colors.surface} />
                     ) : (
                         <>
-                            <Feather name="refresh-cw" size={15} color={colors.surface} />
-                            <Text style={styles.buttonText}>
+                            <Feather name="refresh-cw" size={scale(15)} color={theme.colors.surface} />
+                            <Text variant="body" color="surface" fontWeight="600">
                                 {t('common.retry')}
                             </Text>
                         </>
                     )}
                 </TouchableOpacity>
             </MotiView>
-        </View>
+        </Box>
     );
 }
-
-const styles = StyleSheet.create({
-    outerContainer: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        marginTop: "50%",
-        backgroundColor: colors.background,
-    },
-    card: {
-        backgroundColor: colors.card,
-        borderRadius: 20,
-        padding: 28,
-        width: '100%',
-        maxWidth: 328,
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: colors.inputBorder,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.04,
-        shadowRadius: 12,
-        elevation: 2,
-    },
-    iconBg: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        backgroundColor: `${colors.expense}12`,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 16,
-    },
-    title: {
-        fontSize: 17,
-        fontWeight: '700',
-        color: colors.textPrimary,
-        marginBottom: 8,
-        letterSpacing: -0.3,
-    },
-    message: {
-        fontSize: 14,
-        color: colors.textSecondary,
-        textAlign: 'center',
-        marginBottom: 24,
-        lineHeight: 20,
-    },
-    button: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-        backgroundColor: colors.income,
-        height: 46,
-        paddingHorizontal: 24,
-        borderRadius: 12,
-        width: '100%',
-    },
-    buttonDisabled: {
-        opacity: 0.6, 
-    },
-    buttonText: {
-        color: colors.surface,
-        fontSize: 14,
-        fontWeight: '600',
-        letterSpacing: -0.1,
-    },
-});

@@ -19,6 +19,7 @@ const lightTheme = createTheme({
     textSecondary: "#6F7583",
     textMuted: "#A5ABB6",
     textInverse: "#FFFFFF",
+    modalOverlay: 'rgba(0, 0, 0, 0.5)',
 
     primary: "#289653",
     primaryDark: "#1E7A42",

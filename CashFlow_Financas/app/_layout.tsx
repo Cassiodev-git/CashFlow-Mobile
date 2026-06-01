@@ -12,6 +12,13 @@ import "@/i18n";
 import { logger } from '@/utils/logger';
 import { lightTheme } from '@/theme/unistyles';
 
+import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
+
+configureReanimatedLogger({
+  level: ReanimatedLogLevel.warn,
+  strict: false, 
+});
+
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {

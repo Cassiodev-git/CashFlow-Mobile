@@ -1,7 +1,8 @@
 import { ScrollView } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useState, useEffect } from "react"; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from "@shopify/restyle";
 //compoenets
 import { TopBar, TopBarSkeleton } from "@/components/TopBar/TopBar";
 import { BalanceCard, BalanceCardSkeleton } from "@/features/transaction/components/BalanceCard/BalanceCard";
@@ -13,11 +14,13 @@ import { ErrorState } from "@/components/ErrorState/ErrorState";
 import { useHomeData } from "@/hooks/useHomeData";
 import { Transactions } from "@/features/transaction/types/Transactions";
 import { logger } from "@/utils/logger";
-import { Box, scale, lightTheme } from "@/theme/unistyles";
+import { Box, scale, verticalScale, type Theme } from "@/theme/unistyles";
 
 const VISIBILITY_KEY = "@app_finance_visibility";
 
 export default function HomeScreen() {
+    const theme = useTheme<Theme>();
+    const insets = useSafeAreaInsets();
     const {
         user,
         summary,
@@ -71,77 +74,83 @@ export default function HomeScreen() {
     const isFinanceLoading = loadingSummary || !isVisibilityLoaded;
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: lightTheme.colors.background }}>
-            <Box flex={1} width="100%">
-                <ScrollView
-                    contentContainerStyle={{
-                        padding: scale(24),
-                        gap: scale(16),
-                        paddingBottom: scale(10)
-                    }}
-                    showsVerticalScrollIndicator={false}
-                >
-                    {loadingUser ? <TopBarSkeleton /> : <TopBar user={user} />}
+        <Box 
+            flex={1} 
+            width="100%" 
+            style={{ 
+                backgroundColor: theme.colors.background,
+                paddingTop: insets.top,
+                paddingBottom: insets.bottom
+            }}
+        >
+            <ScrollView
+                contentContainerStyle={{
+                    padding: scale(24),
+                    gap: scale(16),
+                    paddingBottom: verticalScale(40) 
+                }}
+                showsVerticalScrollIndicator={false}
+            >
+                {loadingUser ? <TopBarSkeleton /> : <TopBar user={user} />}
 
-                    {hasError ? (
-                        <ErrorState onRetry={refetch} />
-                    ) : (
-                        <>
-                            {isBalanceLoading || !summary || !monthlyStats ? (
-                                <BalanceCardSkeleton balance={0} percentage={0} status="neutral" isVisible={true} />
-                            ) : (
-                                <BalanceCard
-                                    balance={summary.balance}
-                                    percentage={monthlyStats.percentage}
-                                    status={monthlyStats.status}
-                                    isVisible={isVisible}
-                                    onToggleVisibility={toggleVisibility}
-                                />
-                            )}
+                {hasError ? (
+                    <ErrorState onRetry={refetch} />
+                ) : (
+                    <>
+                        {isBalanceLoading || !summary || !monthlyStats ? (
+                            <BalanceCardSkeleton balance={0} percentage={0} status="neutral" isVisible={true} />
+                        ) : (
+                            <BalanceCard
+                                balance={summary.balance}
+                                percentage={monthlyStats.percentage}
+                                status={monthlyStats.status}
+                                isVisible={isVisible}
+                                onToggleVisibility={toggleVisibility}
+                            />
+                        )}
 
-                            <Box flexDirection="row" justifyContent="space-between" width="100%">
-                                {isFinanceLoading || !summary ? (
-                                    <>
-                                        <FinanceCardSkeleton isIncome={true} />
-                                        <FinanceCardSkeleton isIncome={false} />
-                                    </>
-                                ) : (
-                                    <>
-                                        <FinanceCard isIncome={true} value={summary.income ?? 0} isVisible={isVisible} />
-                                        <FinanceCard isIncome={false} value={summary.expense ?? 0} isVisible={isVisible} />
-                                    </>
-                                )}
-                            </Box>
-                            
-                            {loadingTransactions ? (
-                                <RecentTransactionsSkeleton />
+                        <Box flexDirection="row" justifyContent="space-between" width="100%">
+                            {isFinanceLoading || !summary ? (
+                                <>
+                                    <FinanceCardSkeleton isIncome={true} />
+                                    <FinanceCardSkeleton isIncome={false} />
+                                </>
                             ) : (
-                                <RecentTransactions
-                                    transactions={transactions}
-                                    isVisible={isVisible}
-                                    onDelete={deleteTransaction}
-                                    onLoadMore={loadMoreTransactions}
-                                    hasMore={hasMoreTransactions}
-                                    isLoadingMore={loadingMoreTransactions}
-                                    onEdit={(tx: Transactions) => {
-                                        setSelectedTxToEdit(tx);
-                                        setIsEditOpen(true);
-                                    }}
-                                />
+                                <>
+                                    <FinanceCard isIncome={true} value={summary.income ?? 0} isVisible={isVisible} />
+                                    <FinanceCard isIncome={false} value={summary.expense ?? 0} isVisible={isVisible} />
+                                </>
                             )}
-                        </>
-                    )}
-                </ScrollView>
-                
-                <TransactionFormModal 
-                    isOpen={isEditOpen}
-                    transaction={selectedTxToEdit}
-                    onClose={() => {
-                        setIsEditOpen(false);
-                        setSelectedTxToEdit(null);
-                    }}
-                />
-            </Box>
-        </SafeAreaView>
+                        </Box>
+                        
+                        {loadingTransactions ? (
+                            <RecentTransactionsSkeleton />
+                        ) : (
+                            <RecentTransactions
+                                transactions={transactions}
+                                isVisible={isVisible}
+                                onDelete={deleteTransaction}
+                                onLoadMore={loadMoreTransactions}
+                                hasMore={hasMoreTransactions}
+                                isLoadingMore={loadingMoreTransactions}
+                                onEdit={(tx: Transactions) => {
+                                    setSelectedTxToEdit(tx);
+                                    setIsEditOpen(true);
+                                }}
+                            />
+                        )}
+                    </>
+                )}
+            </ScrollView>
+            
+            <TransactionFormModal 
+                isOpen={isEditOpen}
+                transaction={selectedTxToEdit}
+                onClose={() => {
+                    setIsEditOpen(false);
+                    setSelectedTxToEdit(null);
+                }}
+            />
+        </Box>
     );
 }

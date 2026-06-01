@@ -1,11 +1,10 @@
 import React, { useMemo } from 'react';
-import { View, Text } from 'react-native';
 import { PolarChart, Pie } from "victory-native";
-import { ScaledSheet } from '@/utils/responsive';
-import { colors } from '@/theme';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '@shopify/restyle';
 import { MotiView } from 'moti';
 import { Skeleton } from '../Skeleton/Skeleton';
+import { Box, Text, scale, type Theme } from '@/theme/unistyles';
 
 interface CategoryItem {
     label: string;
@@ -25,12 +24,12 @@ export function ExpensesDistributionChart({ data }: ExpensesDistributionChartPro
     const labelKey: "label" = "label";
 
     return (
-        <View style={[styles.card, styles.cardMarginBottom]}>
-            <Text style={styles.cardTitle}>{t("graph.cardTitleExpense")}</Text>
+        <Box backgroundColor="card" borderRadius="xl" padding="m" style={{ marginBottom: scale(100), elevation: 2 }}>
+            <Text variant="body" color="textPrimary" fontWeight="700">{t("graph.cardTitleExpense")}</Text>
             
-            <View style={styles.chartContainer}>
+            <Box alignItems="center" style={{ marginTop: scale(15) }}>
 
-                <View style={styles.donutContainer}>
+                <Box width={scale(150)} height={scale(150)} style={{ marginBottom: scale(20) }}>
                     <PolarChart
                         data={data}
                         colorKey={colorKey}
@@ -39,26 +38,27 @@ export function ExpensesDistributionChart({ data }: ExpensesDistributionChartPro
                     >
                         <Pie.Chart innerRadius={50} />
                     </PolarChart>
-                </View>
+                </Box>
 
-                <View style={styles.categoryLegendHorizontal}>
+                <Box flexDirection="row" flexWrap="wrap" justifyContent="center" width="100%" style={{ gap: scale(12) }}>
                     {data.map((item, index) => (
-                        <View key={index} style={styles.categoryItemRow}>
-                            <View style={[styles.categoryDot, { backgroundColor: item.color }]} />
-                            <Text style={styles.categoryLabel} numberOfLines={1}>
+                        <Box key={index} flexDirection="row" alignItems="center" style={{ paddingVertical: scale(6), paddingHorizontal: scale(10), borderRadius: scale(20) }}>
+                            <Box width={scale(8)} height={scale(8)} style={{ borderRadius: scale(4), marginRight: scale(6), backgroundColor: item.color }} />
+                            <Text variant="caption" color="textSecondary" numberOfLines={1} style={{ marginRight: scale(4) }}>
                                 {item.label}
                             </Text>
-                            <Text style={styles.categoryValue}>{item.value}%</Text>
-                        </View>
+                            <Text variant="caption" color="textPrimary" fontWeight="700">{item.value}%</Text>
+                        </Box>
                     ))}
-                </View>
+                </Box>
 
-            </View>
-        </View>
+            </Box>
+        </Box>
     );
 }
 
 export function ExpensesDistributionChartSkeleton() {
+    const theme = useTheme<Theme>();
     const transition = useMemo(() => ({
         type: 'timing' as const,
         duration: 1000,
@@ -71,59 +71,38 @@ export function ExpensesDistributionChartSkeleton() {
             from={{ opacity: 0.4 }}
             animate={{ opacity: 0.8 }}
             transition={transition}
-            style={[styles.card, styles.cardMarginBottom]}
+            style={{
+                backgroundColor: theme.colors.card,
+                borderRadius: scale(24),
+                padding: scale(20),
+                marginBottom: scale(100),
+                elevation: 2,
+            }}
         >
-            <Text style={styles.cardTitle}>
+            <Text variant="body" color="textPrimary" fontWeight="700">
                 <Skeleton width={180} height={18} borderRadius={4} />
             </Text>
             
-            <View style={styles.chartContainer}>
-                <View style={[styles.donutContainer, { justifyContent: 'center', alignItems: 'center' }]}>
+            <Box alignItems="center" style={{ marginTop: scale(15) }}>
+                <Box width={scale(150)} height={scale(150)} justifyContent="center" alignItems="center" style={{ marginBottom: scale(20) }}>
                     <Skeleton width={130} height={130} borderRadius={65} />
-                </View>
+                </Box>
 
-                <View style={styles.categoryLegendHorizontal}>
-                    <View style={styles.categoryItemRow}>
+                <Box flexDirection="row" flexWrap="wrap" justifyContent="center" width="100%" style={{ gap: scale(12) }}>
+                    <Box flexDirection="row" alignItems="center" style={{ paddingVertical: scale(6), paddingHorizontal: scale(10), borderRadius: scale(20) }}>
                         <Skeleton width={75} height={14} borderRadius={10} />
-                    </View>
-                    <View style={styles.categoryItemRow}>
+                    </Box>
+                    <Box flexDirection="row" alignItems="center" style={{ paddingVertical: scale(6), paddingHorizontal: scale(10), borderRadius: scale(20) }}>
                         <Skeleton width={60} height={14} borderRadius={10} />
-                    </View>
-                    <View style={styles.categoryItemRow}>
+                    </Box>
+                    <Box flexDirection="row" alignItems="center" style={{ paddingVertical: scale(6), paddingHorizontal: scale(10), borderRadius: scale(20) }}>
                         <Skeleton width={85} height={14} borderRadius={10} />
-                    </View>
-                    <View style={styles.categoryItemRow}>
+                    </Box>
+                    <Box flexDirection="row" alignItems="center" style={{ paddingVertical: scale(6), paddingHorizontal: scale(10), borderRadius: scale(20) }}>
                         <Skeleton width={55} height={14} borderRadius={10} />
-                    </View>
-                </View>
-            </View>
+                    </Box>
+                </Box>
+            </Box>
         </MotiView>
     );
 }
-
-const styles = ScaledSheet.create({
-    card: { backgroundColor: colors.card, borderRadius: 24, padding: 20, marginBottom: 20, elevation: 2 },
-    cardMarginBottom: { marginBottom: 100 },
-    cardTitle: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
-    
-    chartContainer: { alignItems: 'center', marginTop: 15 },
-    donutContainer: { width: 150, height: 150, marginBottom: 20 },
-    
-    categoryLegendHorizontal: { 
-        flexDirection: 'row', 
-        flexWrap: 'wrap', 
-        justifyContent: 'center', 
-        gap: 12, 
-        width: '100%' 
-    },
-    categoryItemRow: { 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        paddingVertical: 6, 
-        paddingHorizontal: 10, 
-        borderRadius: 20 
-    },
-    categoryDot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
-    categoryLabel: { fontSize: 12, color: colors.textSecondary, marginRight: 4 },
-    categoryValue: { fontSize: 12, fontWeight: '700', color: colors.textPrimary },
-});

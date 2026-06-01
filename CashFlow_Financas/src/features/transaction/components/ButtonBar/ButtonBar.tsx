@@ -16,10 +16,11 @@ import { Feather } from '@expo/vector-icons';
 import { MotiView, AnimatePresence } from 'moti';
 import { BlurView } from 'expo-blur';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '@shopify/restyle';
 import AppTransactionsService from '@/services/AppTransactionsService';
 import AppCategoryService from '@/services/AppCategoryService';
 import type { categories } from '@/features/category/schema';
-import { Box, Text, scale } from '@/theme/unistyles';
+import { Box, Text, scale, type Theme } from '@/theme/unistyles';
 
 interface ButtonBarProps {
     onTransactionCreated?: () => void | Promise<void>;
@@ -58,6 +59,7 @@ const formatToBackendDate = (dateStr: string, lang: string): string => {
 
 export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
     const { t, i18n } = useTranslation();
+    const theme = useTheme<Theme>();
     const { height } = useWindowDimensions();
     const [isOpen, setIsOpen] = useState(false);
     const [title, setTitle] = useState('');
@@ -72,11 +74,6 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
     const [loading, setLoading] = useState(false);
     const [loadingCategories, setLoadingCategories] = useState(false);
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-
-    // Cores estáticas mapeadas de acordo com as diretrizes do seu tema
-    const activeColor = "#289653";
-    const dangerColor = "#FF4747";
-    const placeholderColor = "#A5ABB6";
 
     const resetForm = () => {
         setTitle('');
@@ -212,11 +209,11 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
             {!isOpen && (
                 <TouchableOpacity activeOpacity={0.85} onPress={handleOpen}>
                     <MotiView
-                        animate={{ rotate: '0deg', backgroundColor: activeColor }}
+                        animate={{ rotate: '0deg', backgroundColor: theme.colors.primary }}
                         transition={{ type: 'timing', duration: 220 }}
-                        style={styles.plusButton}
+                        style={plusButtonStyle}
                     >
-                        <Feather name="plus" size={26} color="#FFF" />
+                        <Feather name="plus" size={26} color={theme.colors.textInverse} />
                     </MotiView>
                 </TouchableOpacity>
             )}
@@ -295,9 +292,9 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
                                                         {t("transactions.title")}
                                                     </Text>
                                                     <TextInput 
-                                                        style={[styles.input, { fontSize: 15, color: '#191D29' }]}
+                                                        style={[inputStyle(theme), { fontSize: scale(15), color: theme.colors.textPrimary }]}
                                                         placeholder={t("transactions.titlePlaceholder")}
-                                                        placeholderTextColor={placeholderColor}
+                                                        placeholderTextColor={theme.colors.placeholder}
                                                         value={title}
                                                         onChangeText={setTitle}
                                                         maxLength={20}
@@ -311,12 +308,12 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
                                                     </Text>
                                                     <TextInput 
                                                         style={[
-                                                            styles.input, 
-                                                            { fontSize: 15, color: '#191D29', textAlignVertical: 'top', paddingTop: 14 },
-                                                            isKeyboardVisible ? { minHeight: 48, height: 48 } : { minHeight: 104, height: 100 }
+                                                            inputStyle(theme), 
+                                                            { fontSize: scale(15), color: theme.colors.textPrimary, textAlignVertical: 'top', paddingTop: scale(14) },
+                                                            isKeyboardVisible ? { minHeight: scale(48), height: scale(48) } : { minHeight: scale(104), height: scale(100) }
                                                         ]}
                                                         placeholder={t("transactions.descriptionPlaceholder")}
-                                                        placeholderTextColor={placeholderColor}
+                                                        placeholderTextColor={theme.colors.placeholder}
                                                         value={description}
                                                         onChangeText={setDescription}
                                                         multiline
@@ -331,9 +328,9 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
                                                             {t("transactions.amountLabel")}
                                                         </Text>
                                                         <TextInput 
-                                                            style={[styles.input, { fontSize: 15, color: '#191D29' }]}
+                                                            style={[inputStyle(theme), { fontSize: scale(15), color: theme.colors.textPrimary }]}
                                                             placeholder={t("transactions.amountPlaceholder")}
-                                                            placeholderTextColor={placeholderColor}
+                                                            placeholderTextColor={theme.colors.placeholder}
                                                             keyboardType="numeric"
                                                             value={amount}
                                                             onChangeText={setAmount}
@@ -345,9 +342,9 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
                                                             {t("transactions.dateLabel")}
                                                         </Text>
                                                         <TextInput
-                                                            style={[styles.input, { fontSize: 15, color: '#191D29' }]}
+                                                            style={[inputStyle(theme), { fontSize: scale(15), color: theme.colors.textPrimary }]}
                                                             placeholder={i18n.language.startsWith('en') ? "YYYY-MM-DD" : "DD/MM/YYYY"}
-                                                            placeholderTextColor={placeholderColor}
+                                                            placeholderTextColor={theme.colors.placeholder}
                                                             keyboardType="numeric"
                                                             maxLength={10}
                                                             value={date}
@@ -370,10 +367,10 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
                                                                     return (
                                                                         <TouchableOpacity
                                                                             key={option}
-                                                                            style={[styles.choiceButton, isSelected && { backgroundColor: '#28965312', borderColor: activeColor }]}
+                                                                            style={[choiceButtonStyle(theme), isSelected && { backgroundColor: theme.colors.primaryLight, borderColor: theme.colors.primary }]}
                                                                             onPress={() => setType(option)}
                                                                         >
-                                                                            <Text variant="body" fontWeight="600" style={{ color: isSelected ? activeColor : "#6F7583" }}>
+                                                                            <Text variant="body" fontWeight="600" color={isSelected ? 'primary' : 'textSecondary'}>
                                                                                 {t(`transactions.${option}`)}
                                                                             </Text>
                                                                         </TouchableOpacity>
@@ -393,10 +390,10 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
                                                                     return (
                                                                         <TouchableOpacity
                                                                             key={option}
-                                                                            style={[styles.choiceButton, isSelected && { backgroundColor: '#28965312', borderColor: activeColor }]}
+                                                                            style={[choiceButtonStyle(theme), isSelected && { backgroundColor: theme.colors.primaryLight, borderColor: theme.colors.primary }]}
                                                                             onPress={() => setStatus(option)}
                                                                         >
-                                                                            <Text variant="body" fontWeight="600" style={{ color: isSelected ? activeColor : "#6F7583" }}>
+                                                                            <Text variant="body" fontWeight="600" color={isSelected ? 'primary' : 'textSecondary'}>
                                                                                 {t(`transactions.status.${option}`)}
                                                                             </Text>
                                                                         </TouchableOpacity>
@@ -419,10 +416,10 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
                                                                         return (
                                                                             <TouchableOpacity
                                                                                 key={category.id}
-                                                                                style={[styles.choiceButton, isSelected && { backgroundColor: '#28965312', borderColor: activeColor }]}
+                                                                                style={[choiceButtonStyle(theme), isSelected && { backgroundColor: theme.colors.primaryLight, borderColor: theme.colors.primary }]}
                                                                                 onPress={() => setCategoryId(category.id)}
                                                                             >
-                                                                                <Text variant="body" fontWeight="600" style={{ color: isSelected ? activeColor : "#6F7583" }}>
+                                                                                <Text variant="body" fontWeight="600" color={isSelected ? 'primary' : 'textSecondary'}>
                                                                                     {category.name}
                                                                                 </Text>
                                                                             </TouchableOpacity>
@@ -438,7 +435,7 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
 
                                                 {/* Exibição do Erro */}
                                                 {!!error && (
-                                                    <Text variant="caption" style={{ color: dangerColor, marginBottom: 12, textAlign: 'center' }}>
+                                                    <Text variant="caption" color="danger" style={{ marginBottom: scale(12), textAlign: 'center' }}>
                                                         {error}
                                                     </Text>
                                                 )}
@@ -446,12 +443,12 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
                                                 {/* Botão Salvar */}
                                                 <Box width="100%">
                                                     <TouchableOpacity 
-                                                        style={[styles.saveButton, { backgroundColor: activeColor }]} 
+                                                        style={saveButtonStyle(theme)}
                                                         onPress={handleSave}
                                                         disabled={loading}
                                                         activeOpacity={0.8}
                                                     >
-                                                        <Text variant="body" fontWeight="600" style={{ color: '#FFF' }}>
+                                                        <Text variant="body" fontWeight="600" color="textInverse">
                                                             {loading ? t("common.loading") : t("transactions.add")}
                                                         </Text>
                                                     </TouchableOpacity>
@@ -470,12 +467,12 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
                                     style={{ position: 'absolute', bottom: scale(40), left: 0, right: 0, alignItems: 'center', justifyContent: 'center', zIndex: 30 }}
                                 >
                                     <MotiView
-                                        from={{ rotate: '0deg', backgroundColor: activeColor }}
-                                        animate={{ rotate: '135deg', backgroundColor: dangerColor }}
+                                        from={{ rotate: '0deg', backgroundColor: theme.colors.primary }}
+                                        animate={{ rotate: '135deg', backgroundColor: theme.colors.danger }}
                                         transition={{ type: 'timing', duration: 220 }}
-                                        style={styles.plusButton}
+                                        style={plusButtonStyle}
                                     >
-                                        <Feather name="plus" size={26} color="#FFF" />
+                                        <Feather name="plus" size={26} color={theme.colors.textInverse} />
                                     </MotiView>
                                 </TouchableOpacity>
                             )}
@@ -487,42 +484,44 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
     );
 }
 
-const styles = StyleSheet.create({
-    plusButton: {
-        width: 48,
-        height: 48,
-        borderRadius: 24, 
-        justifyContent: 'center',
-        alignItems: 'center',
-        elevation: 5,
-        zIndex: 9999,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 5,
-    },
-    input: {
-        width: '100%',
-        height: 48,
-        backgroundColor: '#F4F5F7', 
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        borderWidth: scale(1),
-        borderColor: '#E2E8F0', 
-    },
-    choiceButton: {
-        paddingHorizontal: 14,
-        paddingVertical: 10,
-        borderRadius: 12,
-        borderWidth: scale(1),
-        borderColor: '#E2E8F0',
-        backgroundColor: '#FFF',
-    },
-    saveButton: {
-        width: '100%',
-        height: 48,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderRadius: 12,
-    },
+const plusButtonStyle = {
+    width: scale(48),
+    height: scale(48),
+    borderRadius: scale(24), 
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    elevation: 5,
+    zIndex: 9999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: scale(4) },
+    shadowOpacity: 0.3,
+    shadowRadius: scale(5),
+};
+
+const inputStyle = (theme: Theme) => ({
+    width: '100%' as const,
+    height: scale(48),
+    backgroundColor: theme.colors.inputBackground, 
+    borderRadius: scale(12),
+    paddingHorizontal: scale(16),
+    borderWidth: scale(1),
+    borderColor: theme.colors.inputBorder, 
+});
+
+const choiceButtonStyle = (theme: Theme) => ({
+    paddingHorizontal: scale(14),
+    paddingVertical: scale(10),
+    borderRadius: scale(12),
+    borderWidth: scale(1),
+    borderColor: theme.colors.inputBorder,
+    backgroundColor: theme.colors.surface,
+});
+
+const saveButtonStyle = (theme: Theme) => ({
+    width: '100%' as const,
+    height: scale(48),
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    borderRadius: scale(12),
+    backgroundColor: theme.colors.primary,
 });

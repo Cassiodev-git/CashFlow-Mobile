@@ -1,27 +1,30 @@
-import { colors } from "@/theme";
-import { StyleSheet, TouchableOpacity, TouchableOpacityProps, Text } from "react-native";
+import React from 'react';
+import { TouchableOpacity, TouchableOpacityProps } from "react-native";
+import { Box, Text, scale } from "@/theme/unistyles";
+
 type ButtonProps = TouchableOpacityProps & {
-    label: string
-}
-export function ButtonForm({label, style, ...rest}: ButtonProps){
-    return(
-        <TouchableOpacity style={[styles.button, style]} activeOpacity={0.85} {...rest}>
-            <Text style={styles.label}>{label}</Text>
+    label: string;
+};
+
+export function ButtonForm({ label, style, ...rest }: ButtonProps) {
+    return (
+        <TouchableOpacity activeOpacity={0.85} {...rest} style={[{ width: "90%" }, style]}>
+            <Box
+                width="100%"
+                minHeight={scale(48)}
+                backgroundColor="primary"
+                borderRadius="m"
+                alignItems="center"
+                justifyContent="center"
+            >
+                <Text 
+                    variant="body" 
+                    fontWeight="600" 
+                    color="textInverse"
+                >
+                    {label}
+                </Text>
+            </Box>
         </TouchableOpacity>
-    )
+    );
 }
-const styles = StyleSheet.create({
-    button: {
-        width: "90%",
-        minHeight: 48,
-        backgroundColor: colors.primary,
-        borderRadius: 8,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    label: {
-        color: colors.textInverse,
-        fontSize: 14,
-        fontWeight: "600",
-    }
-})

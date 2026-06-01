@@ -1,12 +1,14 @@
 import React from 'react';
 import { Tabs, useRouter, useSegments } from 'expo-router';
+import { useTheme } from '@shopify/restyle';
 import { BottomBar } from '@/components/BottomBar/BottomBar';
-import { colors } from '@/theme';
+import { type Theme } from '@/theme/unistyles';
 type TabRoute = 'Home' | 'Graph' | 'Relatório' | 'Perfil';
 
 export default function TabsLayout() {
     const router = useRouter();
     const segments = useSegments();
+    const theme = useTheme<Theme>();
     const currentScreen = segments[segments.length - 1];
 
     const getCurrentRoute = (): TabRoute => {
@@ -51,7 +53,7 @@ export default function TabsLayout() {
         screenOptions={{
             headerShown: false,
             animation: 'none', 
-            sceneStyle: { backgroundColor: colors.card } 
+            sceneStyle: { backgroundColor: theme.colors.card } 
         }}
         >
         <Tabs.Screen name="home" />

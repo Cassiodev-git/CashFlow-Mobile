@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import { CartesianChart, Line, Area, useChartPressState } from "victory-native";
 import { Circle, useFont } from "@shopify/react-native-skia";
-import { ScaledSheet } from '@/utils/responsive';
-import { colors } from '@/theme';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '@shopify/restyle';
 import { MotiView } from 'moti';
 import { Skeleton } from '../Skeleton/Skeleton';
+import { Box, Text, scale, type Theme } from '@/theme/unistyles';
 
 interface ChartItem {
     day: string;
@@ -21,6 +21,7 @@ interface RevenueExpenseChartProps {
 
 export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
     const { t } = useTranslation();
+    const theme = useTheme<Theme>();
     const { state, isActive } = useChartPressState({
         x: "",
         y: { revenue: 0, expense: 0 },
@@ -84,58 +85,62 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 
     if (!data || data.length < 2) {
         return (
-            <View style={[styles.card, styles.emptyContainer]}>
-                <Text style={styles.cardTitle}>{t("graph.cardTitleRevenue")}</Text>
-                <Text style={styles.emptyText}>{t("graph.titleDescription")}</Text>
-            </View>
+            <Box backgroundColor="card" borderRadius="xl" padding="l" marginBottom="s" height={scale(200)} justifyContent="center" alignItems="center" style={{ elevation: 2 }}>
+                <Text variant="body" color="textPrimary" fontWeight="700">{t("graph.cardTitleRevenue")}</Text>
+                <Text variant="caption" color="textSecondary" style={{ textAlign: 'center', marginTop: scale(15), paddingHorizontal: scale(20) }}>{t("graph.titleDescription")}</Text>
+            </Box>
         );
     }
 
     return (
-        <View style={styles.card}>
-            <View style={styles.cardHeader}>
-                <View>
-                    <Text style={styles.cardTitle}>{t("graph.titleDescription")}</Text>
+        <Box backgroundColor="card" borderRadius="xl" padding="l" marginBottom="s" style={{ elevation: 2 }}>
+            <Box flexDirection="row" justifyContent="space-between" alignItems="center" marginBottom="s">
+                <Box>
+                    <Text variant="body" color="textPrimary" fontWeight="700">{t("graph.titleDescription")}</Text>
                     {showTooltip ? (
-                        <View style={styles.tooltipRow}>
-                            <Text style={[styles.tooltipValue, { color: '#2ecc71' }]}>
+                        <Box flexDirection="row" backgroundColor="surface" padding="s" borderRadius="s" style={{ gap: scale(12), marginTop: scale(4) }}>
+                            <Text variant="caption" fontWeight="700" color="income">
                                 Rec: {formatCurrency(state.y.revenue.value.value)}
                             </Text>
-                            <Text style={[styles.tooltipValue, { color: '#e74c3c' }]}>
+                            <Text variant="caption" fontWeight="700" color="expense">
                                 Des: {formatCurrency(state.y.expense.value.value)}
                             </Text>
-                        </View>
+                        </Box>
                     ) : (
-                        <Text style={styles.cardSubtitle}>{t("graph.cardSubtitle")}</Text>
+                        <Text variant="caption" color="textSecondary" style={{ marginTop: scale(2) }}>{t("graph.cardSubtitle")}</Text>
                     )}
-                </View>
-            </View>
+                </Box>
+            </Box>
 
-            <View style={styles.legendContainer}>
-                <View style={styles.legendItem}>
-                    <View style={[styles.legendDot, { backgroundColor: '#2ecc71' }]} />
-                    <Text style={styles.legendText}>{t("graph.revenue")}</Text>
-                </View>
-                <View style={styles.legendItem}>
-                    <View style={[styles.legendDot, { backgroundColor: '#e74c3c' }]} />
-                    <Text style={styles.legendText}>{t("graph.expense")}</Text>
-                </View>
-            </View>
+            <Box flexDirection="row" marginBottom="m" style={{ gap: scale(16) }}>
+                <Box flexDirection="row" alignItems="center" style={{ gap: scale(6) }}>
+                    <Box width={scale(8)} height={scale(8)} style={{ borderRadius: scale(4), backgroundColor: theme.colors.income }} />
+                    <Text variant="caption" color="textSecondary">{t("graph.revenue")}</Text>
+                </Box>
+                <Box flexDirection="row" alignItems="center" style={{ gap: scale(6) }}>
+                    <Box width={scale(8)} height={scale(8)} style={{ borderRadius: scale(4), backgroundColor: theme.colors.expense }} />
+                    <Text variant="caption" color="textSecondary">{t("graph.expense")}</Text>
+                </Box>
+            </Box>
 
-            <View style={styles.chartWrapper}>
+            <Box flexDirection="row" alignItems="stretch">
 
-                <View style={[styles.yAxisColumn, {
-                    paddingTop: CHART_PADDING_TOP,
-                    paddingBottom: CHART_PADDING_BOTTOM,
-                }]}>
+                <Box style={{
+                    width: scale(44),
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-end',
+                    paddingRight: scale(8),
+                    paddingTop: scale(CHART_PADDING_TOP),
+                    paddingBottom: scale(CHART_PADDING_BOTTOM),
+                }}>
                     {yLabels.map((label, index) => (
-                        <Text key={`y-lbl-${index}`} style={styles.yAxisLabel}>
+                        <Text key={`y-lbl-${index}`} variant="caption" color="textSecondary" style={{ fontSize: scale(9) }}>
                             {label}
                         </Text>
                     ))}
-                </View>
+                </Box>
 
-                <View style={styles.chartHeight}>
+                <Box flex={1} height={scale(240)}>
                     <CartesianChart
                         data={data}
                         xKey={xKey}
@@ -146,55 +151,56 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
                         chartPressState={state}
                         axisOptions={{
                             font: font || undefined,
-                            lineColor: '#ECEFF1',
+                            lineColor: theme.colors.divider,
                             labelColor: 'transparent',
                             formatYLabel: () => '',
                         }}
                     >
                         {({ points, chartBounds }) => (
                             <>
-                                <Area points={points.revenue} y0={chartBounds.bottom} color="#2ecc71" opacity={0.06} curveType="natural" />
-                                <Area points={points.expense} y0={chartBounds.bottom} color="#e74c3c" opacity={0.06} curveType="natural" />
+                                <Area points={points.revenue} y0={chartBounds.bottom} color={theme.colors.income} opacity={0.06} curveType="natural" />
+                                <Area points={points.expense} y0={chartBounds.bottom} color={theme.colors.expense} opacity={0.06} curveType="natural" />
 
-                                <Line points={points.revenue} color="#2ecc71" strokeWidth={3} curveType="natural" />
-                                <Line points={points.expense} color="#e74c3c" strokeWidth={3} curveType="natural" />
+                                <Line points={points.revenue} color={theme.colors.income} strokeWidth={3} curveType="natural" />
+                                <Line points={points.expense} color={theme.colors.expense} strokeWidth={3} curveType="natural" />
 
                                 {points.revenue?.map((point, index) => {
                                     if (typeof point.y !== 'number') return null;
-                                    return <Circle key={`rev-dot-${index}`} cx={point.x} cy={point.y} r={5} color="#2ecc71" />;
+                                    return <Circle key={`rev-dot-${index}`} cx={point.x} cy={point.y} r={5} color={theme.colors.income} />;
                                 })}
 
                                 {points.expense?.map((point, index) => {
                                     if (typeof point.y !== 'number') return null;
-                                    return <Circle key={`exp-dot-${index}`} cx={point.x} cy={point.y} r={5} color="#e74c3c" />;
+                                    return <Circle key={`exp-dot-${index}`} cx={point.x} cy={point.y} r={5} color={theme.colors.expense} />;
                                 })}
 
                                 {showTooltip && (
                                     <>
-                                        <Circle cx={state.x.position} cy={state.y.revenue.position} r={8} color="#2ecc71" />
-                                        <Circle cx={state.x.position} cy={state.y.revenue.position} r={3} color="#FFF" />
-                                        <Circle cx={state.x.position} cy={state.y.expense.position} r={8} color="#e74c3c" />
-                                        <Circle cx={state.x.position} cy={state.y.expense.position} r={3} color="#FFF" />
+                                        <Circle cx={state.x.position} cy={state.y.revenue.position} r={8} color={theme.colors.income} />
+                                        <Circle cx={state.x.position} cy={state.y.revenue.position} r={3} color={theme.colors.surface} />
+                                        <Circle cx={state.x.position} cy={state.y.expense.position} r={8} color={theme.colors.expense} />
+                                        <Circle cx={state.x.position} cy={state.y.expense.position} r={3} color={theme.colors.surface} />
                                     </>
                                 )}
                             </>
                         )}
                     </CartesianChart>
-                </View>
-            </View>
+                </Box>
+            </Box>
 
-            <View style={styles.xAxisLabelsRow}>
+            <Box flexDirection="row" justifyContent="space-between" style={{ marginTop: scale(8), paddingLeft: scale(44), paddingRight: scale(15) }}>
                 {data.map((item, index) => (
-                    <Text key={`x-lbl-${index}`} style={styles.axisLabelText}>
+                    <Text key={`x-lbl-${index}`} variant="caption" color="textSecondary" fontWeight="600" style={{ fontSize: scale(10) }}>
                         {item.day}
                     </Text>
                 ))}
-            </View>
-        </View>
+            </Box>
+        </Box>
     );
 }
 
 export function RevenueExpenseChartSkeleton() {
+    const theme = useTheme<Theme>();
     const transition = React.useMemo(() => ({
         type: 'timing' as const,
         duration: 1000,
@@ -207,56 +213,41 @@ export function RevenueExpenseChartSkeleton() {
             from={{ opacity: 0.4 }}
             animate={{ opacity: 0.8 }}
             transition={transition}
-            style={styles.card}
+            style={{
+                backgroundColor: theme.colors.card,
+                borderRadius: scale(24),
+                padding: scale(22),
+                marginBottom: scale(10),
+                elevation: 2,
+            }}
         >
-            <View style={[styles.cardHeader, { marginBottom: 16 }]}>
-                <View style={{ gap: 6 }}>
+            <Box flexDirection="row" justifyContent="space-between" alignItems="center" style={{ marginBottom: scale(16) }}>
+                <Box style={{ gap: scale(6) }}>
                     <Skeleton width={160} height={18} borderRadius={4} />
                     <Skeleton width={110} height={12} borderRadius={4} />
-                </View>
-            </View>
+                </Box>
+            </Box>
 
-            <View style={[styles.legendContainer, { marginBottom: 24 }]}>
-                <View style={styles.legendItem}>
+            <Box flexDirection="row" style={{ gap: scale(16), marginBottom: scale(24) }}>
+                <Box flexDirection="row" alignItems="center" style={{ gap: scale(6) }}>
                     <Skeleton width={60} height={14} borderRadius={4} />
-                </View>
-                <View style={styles.legendItem}>
+                </Box>
+                <Box flexDirection="row" alignItems="center" style={{ gap: scale(6) }}>
                     <Skeleton width={60} height={14} borderRadius={4} />
-                </View>
-            </View>
+                </Box>
+            </Box>
 
-            <View style={[styles.chartWrapper, { justifyContent: 'center', alignItems: 'center' }]}>
+            <Box flexDirection="row" alignItems="center" justifyContent="center">
                 <Skeleton width="100%" height={210} borderRadius={12} />
-            </View>
+            </Box>
 
-            <View style={[styles.xAxisLabelsRow, { paddingLeft: 0, paddingRight: 0, marginTop: 16 }]}>
+            <Box flexDirection="row" justifyContent="space-between" style={{ marginTop: scale(16) }}>
                 <Skeleton width={24} height={10} borderRadius={2} />
                 <Skeleton width={24} height={10} borderRadius={2} />
                 <Skeleton width={24} height={10} borderRadius={2} />
                 <Skeleton width={24} height={10} borderRadius={2} />
                 <Skeleton width={24} height={10} borderRadius={2} />
-            </View>
+            </Box>
         </MotiView>
     );
 }
-
-const styles = ScaledSheet.create({
-    card: { backgroundColor: colors.card, borderRadius: 24, padding: 22, marginBottom: 10, elevation: 2 },
-    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-    cardTitle: { fontSize: 16, fontWeight: '700', color: '#1A1A1A' },
-    cardSubtitle: { fontSize: 11, color: '#999', marginTop: 2 },
-    tooltipRow: { flexDirection: 'row', gap: 12, marginTop: 4, backgroundColor: colors.surface, padding: 6, borderRadius: 8 },
-    tooltipValue: { fontSize: 12, fontWeight: '700' },
-    legendContainer: { flexDirection: 'row', gap: 16, marginBottom: 15 },
-    legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    legendDot: { width: 8, height: 8, borderRadius: 4 },
-    legendText: { fontSize: 12, color: '#666' },
-    chartWrapper: { flexDirection: 'row', alignItems: 'stretch' },
-    yAxisColumn: { width: 44, justifyContent: 'space-between', alignItems: 'flex-end', paddingRight: 8 },
-    yAxisLabel: { fontSize: 9, color: colors.textSecondary },
-    chartHeight: { flex: 1, height: 240 },
-    xAxisLabelsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8, paddingLeft: 44, paddingRight: 15 },
-    axisLabelText: { fontSize: 10, color: colors.textSecondary, fontWeight: '600' },
-    emptyContainer: { height: 200, justifyContent: 'center', alignItems: 'center' },
-    emptyText: { fontSize: 13, color: colors.textSecondary, textAlign: 'center', marginTop: 15, paddingHorizontal: 20 },
-});

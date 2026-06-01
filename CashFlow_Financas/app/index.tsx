@@ -1,5 +1,3 @@
-import { View } from "react-native";
-
 //components
 import { UserForm } from "@/features/user/components/UserForm/UserForm";
 //Schema zod
@@ -9,10 +7,7 @@ import { useUser } from "@/features/user/hooks/useUser"
 
 //router
 import { router } from "expo-router";
-//colors
-import { colors } from "@/theme";
-//reponsive
-import { ScaledSheet } from "@/utils/responsive";
+import { Box, scale } from "@/theme/unistyles";
 
 export default function ModalScreen() {
   const {createUser, error, loading} = useUser()
@@ -25,15 +20,8 @@ export default function ModalScreen() {
 
 
   return (
-    <View style={style.container}>
+    <Box flex={1} backgroundColor="background" style={{ gap: scale(16) }}>
       <UserForm onSubmit={handleSaveUser} error={error} loading={loading} />
-    </View>
+    </Box>
   );
 }
-const style = ScaledSheet.create({
-  container: {
-    flex: 1,
-    gap: 16,
-    backgroundColor: colors.background
-  }
-})

@@ -297,9 +297,12 @@ export function RecentTransactions({
                 item.title.toLowerCase().includes(searchQuery.toLowerCase())
             );
         }
+        if (!showAll) {
+            return result.slice(0, 5);
+        }
 
         return result;
-    }, [transactions, searchQuery]);
+    }, [transactions, searchQuery, showAll]);
 
     const renderItem = useCallback(({ item }: { item: Transaction; index: number }) => {
         const isExpense = String(item.type).toLowerCase() === 'expense';
@@ -314,13 +317,12 @@ export function RecentTransactions({
                 onPress={() => setSelectedTransaction(item)}
             >
                 <MotiView
-                    key={item.id}
-                    from={{ opacity: 0, translateY: 4 }}
-                    animate={{ opacity: 1, translateY: 0 }}
+                    from={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{
                         type: 'timing',
-                        duration: 120,
+                        duration: 100,
                     }}
                 >
                     <Box flexDirection="row" justifyContent="space-between" alignItems="center" width="100%" paddingVertical="xs">
@@ -340,31 +342,13 @@ export function RecentTransactions({
                         </Box>
 
                         <Box justifyContent="center" alignItems="flex-end">
-                            <AnimatePresence exitBeforeEnter>
-                                {isVisible ? (
-                                    <MotiView
-                                        key="visible-amount"
-                                        from={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        transition={{ type: 'timing', duration: 90 }}
-                                    >
-                                        <Text variant="body" fontWeight="600" style={{ color: statusColor, letterSpacing: -0.2 }}>
-                                            {formatCurrency(item.amount, isExpense)}
-                                        </Text>
-                                    </MotiView>
-                                ) : (
-                                    <MotiView
-                                        key="hidden-amount"
-                                        from={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        transition={{ type: 'timing', duration: 90 }}
-                                    >
-                                        <Text variant="body" color="textSecondary" fontWeight="bold" style={{ letterSpacing: 1 }}>••••••</Text>
-                                    </MotiView>
-                                )}
-                            </AnimatePresence>
+                            {isVisible ? (
+                                <Text variant="body" fontWeight="600" style={{ color: statusColor, letterSpacing: -0.2 }}>
+                                    {formatCurrency(item.amount, isExpense)}
+                                </Text>
+                            ) : (
+                                <Text variant="body" color="textSecondary" fontWeight="bold" style={{ letterSpacing: 1 }}>••••••</Text>
+                            )}
                         </Box>
                     </Box>
                 </MotiView>
@@ -393,7 +377,7 @@ export function RecentTransactions({
                                 <Text variant="body" fontWeight="700" color="textPrimary" style={{ fontSize: moderateScale(16), letterSpacing: -0.3 }}>
                                     {t('transactions.recentTitle')}
                                 </Text>
-                                {(transactions.length > 0 || hasMore) && ( 
+                                {(transactions.length > 5 || hasMore) && ( 
                                     <TouchableOpacity
                                         activeOpacity={0.6}
                                         onPress={() => {
@@ -453,7 +437,7 @@ export function RecentTransactions({
                     </AnimatePresence>
                 </Box>
 
-                <Box width="100%" style={showAll ? { height: verticalScale(260), maxHeight: verticalScale(260) } : {}}>
+                <Box width="100%" style={showAll ? { maxHeight: verticalScale(350) } : undefined}>
                     <OtimizedList
                         data={processedTransactions}
                         renderItem={renderItem}
@@ -461,7 +445,7 @@ export function RecentTransactions({
                         keyExtractor={(item: any) => item.id.toString()}
                         showsVerticalScrollIndicator={showAll}
                         scrollEnabled={showAll}
-                        nestedScrollEnabled={true} 
+                        nestedScrollEnabled={true}
                         contentContainerStyle={{ paddingBottom: scale(4) }}
                         onEndReached={showAll && hasMore && !isLoadingMore ? onLoadMore : undefined}
                         onEndReachedThreshold={0.4}

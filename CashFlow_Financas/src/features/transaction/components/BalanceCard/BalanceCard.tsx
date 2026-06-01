@@ -6,7 +6,7 @@ import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { MotiView, AnimatePresence } from 'moti';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
-import { Box, Text, scale, verticalScale } from '@/theme/unistyles';
+import { Box, Text, verticalScale } from '@/theme/unistyles';
 
 interface BalanceCardProps {
     balance: number;

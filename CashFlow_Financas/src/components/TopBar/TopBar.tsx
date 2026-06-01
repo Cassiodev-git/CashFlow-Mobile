@@ -4,10 +4,11 @@ import {
 } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '@shopify/restyle';
 
 import { User } from "@/features/user/types/User";
 import { Skeleton } from '../Skeleton/Skeleton';
-import { Box, Text } from '@/theme/unistyles';
+import { Box, Text, type Theme } from '@/theme/unistyles';
 
 interface TopBarProps {
     user: User | null;
@@ -20,6 +21,7 @@ export function TopBar({
 }: TopBarProps) {
 
     const { t } = useTranslation();
+    const theme = useTheme<Theme>();
 
     const fullText = `${t("greetings.hello")}, ${user?.name ?? ""} 👋`;
 
@@ -62,7 +64,7 @@ export function TopBar({
                         {
                             fontSize: 22,
                             fontWeight: '700',
-                            color: '#191D29',
+                            color: theme.colors.textPrimary,
                             marginBottom: 4,
                             opacity: fadeAnim,
                             transform: [
