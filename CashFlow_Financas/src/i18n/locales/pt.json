@@ -151,6 +151,11 @@
         "others": "Outros",
         "empty": "Sem dados registrados"
     },
+    "report":{
+        "title":"Relatório",
+        "subtitle": "Veja seu histórico completo",
+        "balance": "Saldo"
+    },
     "auth": {
     "login": "Entrar",
     "logout": "Sair",
@@ -159,6 +164,7 @@
     "password": "Senha",
     "forgotPassword": "Esqueci minha senha"
     },
+
     "alerts": {
         "permissionRequiredTitle": "Permissão necessária",
         "permissionRequiredMessage": "Autorize o acesso à galeria para selecionar uma imagem de avatar."

@@ -5,14 +5,16 @@ import TransactionStatsService, {
 
 class AppTransactionSummaryService {
     async getSummary(): Promise<TransactionSummary> {
-        const result = await TransactionStatsService.getSummary()
-        return result
+        return await TransactionStatsService.getSummary();
+    }
+
+    async getSummaryByPeriod(month: number, year: number): Promise<TransactionSummary> {
+        return await TransactionStatsService.getSummaryByPeriod(month, year);
     }
 
     async getMonthlyExpensePercentage(): Promise<MonthlyExpensePercentage> {
-        const result = await TransactionStatsService.getMonthlyExpensePercentage()
-        return result
+        return await TransactionStatsService.getMonthlyExpensePercentage();
     }
 }
 
-export default new AppTransactionSummaryService()
+export default new AppTransactionSummaryService();
