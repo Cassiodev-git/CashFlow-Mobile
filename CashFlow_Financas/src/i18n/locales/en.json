@@ -162,6 +162,11 @@
         "password": "Password",
         "forgotPassword": "Forgot password"
     },
+    "report":{
+        "title":"Report",
+        "subtitle": "See your full history",
+        "balance": "balance"
+    },
 
     "alerts": {
         "success": "Success",
