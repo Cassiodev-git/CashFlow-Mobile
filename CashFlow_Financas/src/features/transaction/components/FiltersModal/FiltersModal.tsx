@@ -5,6 +5,7 @@ import { useTheme } from '@shopify/restyle';
 import { Box, Text, type Theme } from '@/theme/unistyles';
 import { FilterOptions } from '@/hooks/useTransactionFilter';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
     visible: boolean;
@@ -17,12 +18,11 @@ interface Props {
 
 export function FiltersModal({ visible, onClose, currentFilters, onApply, onReset, loading = false }: Props) {
     const theme = useTheme<Theme>();
+    const { t } = useTranslation();
     const [tempFilters, setTempFilters] = useState(currentFilters);
-    
     const [startDateError, setStartDateError] = useState(false);
     const [endDateError, setEndDateError] = useState(false);
 
-    // Captura o idioma do sistema operacional
     const deviceLocale = useMemo(() => {
         if (Platform.OS === 'android') {
             return NativeModules.I18nManager.localeIdentifier || 'pt-BR';
@@ -33,7 +33,7 @@ export function FiltersModal({ visible, onClose, currentFilters, onApply, onRese
     }, []);
 
     const isEnUS = deviceLocale.includes('en');
-    const placeholderFormat = isEnUS ? 'MM/DD/AAAA' : 'DD/MM/AAAA';
+    const placeholderFormat = isEnUS ? 'MM/DD/YYYY' : 'DD/MM/YYYY';
 
     useEffect(() => {
         if (visible) {
@@ -43,7 +43,6 @@ export function FiltersModal({ visible, onClose, currentFilters, onApply, onRese
         }
     }, [visible, currentFilters]);
 
-    // Aplica a máscara de digitação conforme a ordem cronológica do idioma
     const maskDate = (value: string) => {
         return value
             .replace(/\D/g, '') 
@@ -52,14 +51,11 @@ export function FiltersModal({ visible, onClose, currentFilters, onApply, onRese
             .replace(/(\d{4})(\d)/, '$1'); 
     };
 
-    // Validação inteligente baseada no idioma do sistema
     const isValidDate = (dateStr: string) => {
         if (!dateStr) return true; 
         if (dateStr.length !== 10) return false;
 
         const parts = dateStr.split('/').map(Number);
-        
-        // Se for en-US, inverte a leitura de dia e mês na validação
         const day = isEnUS ? parts[1] : parts[0];
         const month = isEnUS ? parts[0] : parts[1];
         const year = parts[2];
@@ -112,16 +108,15 @@ export function FiltersModal({ visible, onClose, currentFilters, onApply, onRese
                 <Box backgroundColor="card" borderTopLeftRadius="xl" borderTopRightRadius="xl" padding="l" maxHeight="90%">
                     
                     <Box flexDirection="row" justifyContent="space-between" alignItems="center" marginBottom="l">
-                        <Text variant="titleMedium">Filtros Avançados</Text>
+                        <Text variant="titleMedium">{t("report.titleModal")}</Text>
                         <TouchableOpacity onPress={onClose}>
                             <Feather name="x" size={24} color={theme.colors.textPrimary} />
                         </TouchableOpacity>
                     </Box>
 
                     <ScrollView showsVerticalScrollIndicator={false}>
-                        {/* Status de Pagamento */}
                         <Box marginBottom="l">
-                            <Text variant="body" style={{ fontWeight: '600' }} marginBottom="s">Status do Pagamento</Text>
+                            <Text variant="body" style={{ fontWeight: '600' }} marginBottom="s">{t("report.status")}</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                 <Box flexDirection="row" style={{ gap: 8 }}>
                                     {loading ? (
@@ -147,7 +142,7 @@ export function FiltersModal({ visible, onClose, currentFilters, onApply, onRese
                                                         backgroundColor={isActive ? 'primary' : 'card'}
                                                     >
                                                         <Text color={isActive ? 'textInverse' : 'textPrimary'} style={{ fontSize: 14, fontWeight: '500' }}>
-                                                            {s === 'all' ? 'Todos' : s === 'paid' ? 'Pago' : s === 'pending' ? 'Pendente' : 'Cancelado'}
+                                                            {t(`report.filters.${s}`)}
                                                         </Text>
                                                     </Box>
                                                 </TouchableOpacity>
@@ -158,12 +153,11 @@ export function FiltersModal({ visible, onClose, currentFilters, onApply, onRese
                             </ScrollView>
                         </Box>
 
-                        {/* Filtro de Datas Internacionalizado */}
                         <Box marginBottom="l">
-                            <Text variant="body" style={{ fontWeight: '600' }} marginBottom="s">Período</Text>
+                            <Text variant="body" style={{ fontWeight: '600' }} marginBottom="s">{t("report.filters.period")}</Text>
                             <Box flexDirection="row" style={{ gap: 16 }}>
                                 <Box flex={1}>
-                                    <Text variant="caption" marginBottom="xs" color={startDateError ? "expense" : "textSecondary"}>Início</Text>
+                                    <Text variant="caption" marginBottom="xs" color={startDateError ? "expense" : "textSecondary"}>{t("report.filters.startDate")}</Text>
                                     {loading ? (
                                         <Skeleton width="100%" height={45} borderRadius={8} />
                                     ) : (
@@ -184,13 +178,13 @@ export function FiltersModal({ visible, onClose, currentFilters, onApply, onRese
                                                 }} 
                                             />
                                             {startDateError && (
-                                                <Text variant="caption" color="expense" style={{ marginTop: 4, fontSize: 11 }}>Formato inválido</Text>
+                                                <Text variant="caption" color="expense" style={{ marginTop: 4, fontSize: 11 }}>{t("report.filters.invalidFormat")}</Text>
                                             )}
                                         </>
                                     )}
                                 </Box>
                                 <Box flex={1}>
-                                    <Text variant="caption" marginBottom="xs" color={endDateError ? "expense" : "textSecondary"}>Fim</Text>
+                                    <Text variant="caption" marginBottom="xs" color={endDateError ? "expense" : "textSecondary"}>{t("report.filters.endDate")}</Text>
                                     {loading ? (
                                         <Skeleton width="100%" height={45} borderRadius={8} />
                                     ) : (
@@ -211,7 +205,7 @@ export function FiltersModal({ visible, onClose, currentFilters, onApply, onRese
                                                 }} 
                                             />
                                             {endDateError && (
-                                                <Text variant="caption" color="expense" style={{ marginTop: 4, fontSize: 11 }}>Formato inválido</Text>
+                                                <Text variant="caption" color="expense" style={{ marginTop: 4, fontSize: 11 }}>{t("report.filters.invalidFormat")}</Text>
                                             )}
                                         </>
                                     )}
@@ -219,12 +213,11 @@ export function FiltersModal({ visible, onClose, currentFilters, onApply, onRese
                             </Box>
                         </Box>
 
-                        {/* Faixa de Valor */}
                         <Box marginBottom="l">
-                            <Text variant="body" style={{ fontWeight: '600' }} marginBottom="s">Faixa de Valor</Text>
+                            <Text variant="body" style={{ fontWeight: '600' }} marginBottom="s">{t("report.filters.amountRange")}</Text>
                             <Box flexDirection="row" style={{ gap: 16 }}>
                                 <Box flex={1}>
-                                    <Text variant="caption" marginBottom="xs">Mínimo</Text>
+                                    <Text variant="caption" marginBottom="xs">{t("report.filters.min")}</Text>
                                     {loading ? (
                                         <Skeleton width="100%" height={45} borderRadius={8} />
                                     ) : (
@@ -239,7 +232,7 @@ export function FiltersModal({ visible, onClose, currentFilters, onApply, onRese
                                     )}
                                 </Box>
                                 <Box flex={1}>
-                                    <Text variant="caption" marginBottom="xs">Máximo</Text>
+                                    <Text variant="caption" marginBottom="xs">{t("report.filters.max")}</Text>
                                     {loading ? (
                                         <Skeleton width="100%" height={45} borderRadius={8} />
                                     ) : (
@@ -256,15 +249,15 @@ export function FiltersModal({ visible, onClose, currentFilters, onApply, onRese
                             </Box>
                         </Box>
 
-                        {/* Categorias */}
                         <Box marginBottom="xl">
-                            <Text variant="body" style={{ fontWeight: '600' }} marginBottom="s">Categorias</Text>
+                            <Text variant="body" style={{ fontWeight: '600' }} marginBottom="s">{t("report.filters.categories")}</Text>
                             {loading ? (
                                 <Skeleton width="100%" height={45} borderRadius={8} />
                             ) : (
                                 <TextInput 
                                     style={[baseInputStyle, { borderColor: 'transparent' }]} 
-                                    placeholder="Selecione as categorias" 
+                                    placeholder={t("report.filters.selectCategories")} 
+                                    placeholderTextColor={theme.colors.textSecondary}
                                     editable={false} 
                                 />
                             )}
@@ -274,7 +267,7 @@ export function FiltersModal({ visible, onClose, currentFilters, onApply, onRese
                     <Box flexDirection="row" style={{ gap: 16 }} marginTop="s">
                         <TouchableOpacity onPress={handleReset} style={{ flex: 1 }}>
                             <Box padding="m" borderRadius="s" alignItems="center" borderWidth={1} borderColor="border">
-                                <Text color="textSecondary" style={{ fontWeight: '700' }}>Resetar</Text>
+                                <Text color="textSecondary" style={{ fontWeight: '700' }}>{t("report.filters.reset")}</Text>
                             </Box>
                         </TouchableOpacity>
                         
@@ -291,12 +284,11 @@ export function FiltersModal({ visible, onClose, currentFilters, onApply, onRese
                                 style={{ opacity: isButtonDisabled ? 0.6 : 1 }}
                             >
                                 <Text color={isButtonDisabled ? "textSecondary" : "textInverse"} style={{ fontWeight: '700' }}>
-                                    Aplicar
+                                    {t("report.filters.apply")}
                                 </Text>
                             </Box>
                         </TouchableOpacity>
                     </Box>
-
                 </Box>
             </Box>
         </Modal>

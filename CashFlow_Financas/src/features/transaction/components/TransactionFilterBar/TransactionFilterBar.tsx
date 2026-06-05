@@ -6,6 +6,7 @@ import { Box, Text, type Theme } from '@/theme/unistyles';
 import { FilterOptions } from '@/hooks/useTransactionFilter';
 import { FiltersModal } from '../FiltersModal/FiltersModal';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
+import { useTranslation } from 'react-i18next'; // Import adicionado
 
 interface Props {
     filters: FilterOptions;
@@ -16,6 +17,7 @@ interface Props {
 
 export function TransactionFilterBar({ filters, onUpdate, onReset, loading = false }: Props) {
     const theme = useTheme<Theme>();
+    const { t } = useTranslation(); // Hook adicionado
     const [isModalVisible, setIsModalVisible] = useState(false);
 
     return (
@@ -38,7 +40,7 @@ export function TransactionFilterBar({ filters, onUpdate, onReset, loading = fal
                         style={{ marginRight: 8 }} 
                     />
                     <TextInput
-                        placeholder="Buscar transação..."
+                        placeholder={t("transaction.searchPlaceholder")} // Traduzido
                         placeholderTextColor={theme.colors.textSecondary}
                         value={filters.searchQuery}
                         onChangeText={(text) => onUpdate({ searchQuery: text })}
@@ -84,7 +86,7 @@ export function TransactionFilterBar({ filters, onUpdate, onReset, loading = fal
                                                 color={isActive ? 'textInverse' : 'textSecondary'}
                                                 style={{ fontSize: 14, fontWeight: '500' }}
                                             >
-                                                {type === 'all' ? 'Todas' : type === 'income' ? 'Receitas' : 'Despesas'}
+                                                {t(`transaction.types.${type}`)} {/* Traduzido dinamicamente */}
                                             </Text>
                                         </Box>
                                     </TouchableOpacity>
@@ -104,7 +106,7 @@ export function TransactionFilterBar({ filters, onUpdate, onReset, loading = fal
                                     backgroundColor="card"
                                 >
                                     <Text color="textSecondary" style={{ marginRight: 4, fontSize: 14, fontWeight: '500' }}>
-                                        Mais filtros
+                                        {t("transaction.moreFilters")} {/* Traduzido */}
                                     </Text>
                                     <Feather name="chevron-down" size={16} color={theme.colors.textSecondary} />
                                 </Box>

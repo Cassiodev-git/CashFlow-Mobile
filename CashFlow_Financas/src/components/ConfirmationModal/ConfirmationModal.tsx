@@ -24,7 +24,6 @@ export function ConfirmationModal({
     isDestructive = true,
 }: ConfirmationModalProps) {
     
-    // Mapeia o background dinamicamente com base nos tokens do seu tema Unistyles
     const confirmButtonBg = isDestructive ? "expense" : "primary"; 
 
     return (
@@ -70,11 +69,9 @@ export function ConfirmationModal({
                                 {cancelText}
                             </Text>
                         </TouchableOpacity>
-                        
-                        {/* Botão Confirmar */}
                         <TouchableOpacity 
-                            style={{ flex: 1 }} // Corrigido: propriedade activeOpacity removida do objeto style
-                            activeOpacity={0.85} // Movido para cá como propriedade direta do componente
+                            style={{ flex: 1 }} 
+                            activeOpacity={0.85} 
                             onPress={onConfirm}
                         >
                             <Box

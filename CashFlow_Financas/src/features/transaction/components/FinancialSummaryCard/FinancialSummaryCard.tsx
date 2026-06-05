@@ -4,6 +4,7 @@ import { Feather } from '@expo/vector-icons';
 import { Box, Text, scale } from '@/theme/unistyles';
 import { Skeleton } from '@/components/Skeleton/Skeleton'; 
 import { useTranslation } from 'react-i18next'; 
+
 interface FinancialSummaryCardProps {
     periodo: string;
     receitas: string;
@@ -23,7 +24,12 @@ export function FinancialSummaryCard({
     onNext,
     loading = false
 }: FinancialSummaryCardProps) {
-    const {t} = useTranslation()
+    const { t } = useTranslation();
+    
+    // Normaliza o mês: pega a primeira palavra, minúscula e remove o 'ç' para casar com a chave 'marco'
+    const mesNormalizado = periodo.split(' ')[0].toLowerCase().replace('ç', 'c');
+    const ano = periodo.split(' ')[1];
+
     return (
         <Box 
             backgroundColor="primary" 
@@ -39,7 +45,7 @@ export function FinancialSummaryCard({
         >
             <Box flexDirection="row" justifyContent="space-between" alignItems="center" marginBottom="m">
                 <Text variant="body" color="card" fontWeight="600">
-                    {periodo}
+                    {t(`date.months.${mesNormalizado}`)} {ano}
                 </Text>
                 <Box flexDirection="row" alignItems="center">
                     <TouchableOpacity onPress={onPrev} style={{ padding: scale(4) }}>
@@ -61,10 +67,8 @@ export function FinancialSummaryCard({
                     )}
                 </Box>
                 
-                {/* Linha Divisória 1 */}
                 <Box height={30} width={1} backgroundColor="card" opacity={0.3} marginHorizontal="s" />
 
-                {/* Despesas */}
                 <Box flex={1} alignItems="center">
                     <Text variant="caption" color="card" opacity={0.8} marginBottom="xs">{t("graph.expense")}</Text>
                     {loading ? (
@@ -81,7 +85,7 @@ export function FinancialSummaryCard({
                     {loading ? (
                         <Skeleton width="80%" height={16} borderRadius={4} />
                     ) : (
-                        <Text variant="body" color="card" fontWeight="700" numberOfLines={1} adjustsFontSizeToFit>{saldo}</Text>
+                        <Text variant="body" color="card" fontWeight="700"  numberOfLines={1} adjustsFontSizeToFit>{saldo}</Text>
                     )}
                 </Box>
             </Box>

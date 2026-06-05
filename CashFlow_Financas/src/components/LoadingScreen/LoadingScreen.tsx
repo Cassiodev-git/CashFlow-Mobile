@@ -29,8 +29,6 @@ export function LoadingScreen() {
 
             <ActivityIndicator 
                 size="small" 
-                // Usando a cor primária direto do nosso tema/design system se disponível, 
-                // ou mantendo o fallback padrão do projeto
                 color="#2ecc71" 
                 style={{
                     position: 'absolute',

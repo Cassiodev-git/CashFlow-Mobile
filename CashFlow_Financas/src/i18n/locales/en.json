@@ -13,7 +13,6 @@
         "week": "Week",
         "month": "Month",
         "year": "Year",
-        
         "yes": "Yes",
         "no": "No",
         "done": "Done",
@@ -23,7 +22,7 @@
         "error": "Error",
         "errorTitle": "Oops! Something went wrong.",
         "errorMenssage": "There was a problem loading the information. Please try again.",
-        "retry":"Retry"
+        "retry": "Retry"
     },
     "greetings": {
         "hello": "Hello",
@@ -54,7 +53,6 @@
             "descriptionTooLong": "Description is too long"
         }
     },
-
     "user": {
         "title": "Create your profile",
         "subtitle": "Enter your name and choose an avatar image.",
@@ -66,7 +64,6 @@
         "updateSuccess": "User updated successfully",
         "deleteSuccess": "User successfully deleted"
     },
-
     "transactions": {
         "income": "Income",
         "type": "Type",
@@ -118,7 +115,18 @@
         "report": "Report",
         "profile": "Profile"
     },
-
+    "transaction": {
+        "searchPlaceholder": "Search transaction...",
+        "moreFilters": "More filters",
+        "count": "{{count}} transaction",
+        "count_plural": "{{count}} transactions",
+        "noTransactions": "No transactions found",
+        "types": {
+            "all": "All",
+            "income": "Income",
+            "expense": "Expenses"
+        }
+    },
     "categories": {
         "food": "Food",
         "transport": "Transport",
@@ -129,7 +137,6 @@
         "entertainment": "Entertainment",
         "createCategory": "Create your category"
     },
-
     "settings": {
         "title": "Settings",
         "theme": "Theme",
@@ -142,7 +149,7 @@
     "balance": {
         "title": "Current balance",
         "comparedToLastMonth": "compared to last month"
-        },
+    },
     "graph": {
         "cardTitleRevenue": "Revenue vs Expenses",
         "cardTitleExpense": "Expense distribution",
@@ -162,12 +169,58 @@
         "password": "Password",
         "forgotPassword": "Forgot password"
     },
-    "report":{
-        "title":"Report",
+    "report": {
+        "status": "Status",
+        "title": "Report",
         "subtitle": "See your full history",
-        "balance": "balance"
+        "balance": "balance",
+        "titleModal": "Advanced Filters",
+        "statusModal": "Payment Status",
+        "filters": {
+            "all": "All",
+            "paid": "Paid",
+            "pending": "Pending",
+            "canceled": "Canceled",
+            "period": "Period",
+            "startDate": "Start",
+            "endDate": "End",
+            "invalidFormat": "Invalid format",
+            "amountRange": "Amount Range",
+            "min": "Min",
+            "max": "Max",
+            "categories": "Categories",
+            "selectCategories": "Select categories",
+            "reset": "Reset",
+            "apply": "Apply"
+        }
     },
-
+    "date": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "months": {
+            "janeiro": "January",
+            "fevereiro": "February",
+            "marco": "March",
+            "abril": "April",
+            "maio": "May",
+            "junho": "June",
+            "julho": "July",
+            "agosto": "August",
+            "setembro": "September",
+            "outubro": "October",
+            "novembro": "November",
+            "dezembro": "December"
+        },
+        "days": {
+            "domingo": "Sunday",
+            "segunda-feira": "Monday",
+            "terca-feira": "Tuesday",
+            "quarta-feira": "Wednesday",
+            "quinta-feira": "Thursday",
+            "sexta-feira": "Friday",
+            "sabado": "Saturday"
+        }
+    },
     "alerts": {
         "success": "Success",
         "error": "Error",

@@ -13,7 +13,6 @@
         "week": "Semana",
         "month": "Mês",
         "year": "Ano",
-        
         "yes": "Sim",
         "no": "Não",
         "done": "Concluído",
@@ -29,7 +28,6 @@
         "hello": "Olá",
         "financeSummary": "Aqui está o resumo das suas finanças"
     },
-    
     "errors": {
         "unexpected": "Erro inesperado",
         "requiredField": "Campo obrigatório",
@@ -111,6 +109,18 @@
             "canceled": "Cancelado"
         }
     },
+    "transaction": {
+        "searchPlaceholder": "Buscar transação...",
+        "moreFilters": "Mais filtros",
+        "count": "{{count}} transação",
+        "   count_plural": "{{count}} transações",
+        "   noTransactions": "Nenhuma transação encontrada",
+        "types": {
+            "all": "Todas",
+            "income": "Receitas",
+            "expense": "Despesas"
+        }
+    },
     "bottomBar": {
         "home": "Home",
         "graph": "Gráfico",
@@ -118,23 +128,23 @@
         "profile": "Perfil"
     },
     "categories": {
-    "food": "Alimentação",
-    "transport": "Transporte",
-    "health": "Saúde",
-    "education": "Educação",
-    "salary": "Salário",
-    "investment": "Investimentos",
-    "entertainment": "Lazer",
-    "createCategory": "Crie sua categoria"
+        "food": "Alimentação",
+        "transport": "Transporte",
+        "health": "Saúde",
+        "education": "Educação",
+        "salary": "Salário",
+        "investment": "Investimentos",
+        "entertainment": "Lazer",
+        "createCategory": "Crie sua categoria"
     },
     "settings": {
-    "title": "Configurações",
-    "theme": "Tema",
-    "language": "Idioma",
-    "currency": "Moeda",
-    "notifications": "Notificações",
-    "darkMode": "Modo escuro",
-    "lightMode": "Modo claro"
+        "title": "Configurações",
+        "theme": "Tema",
+        "language": "Idioma",
+        "currency": "Moeda",
+        "notifications": "Notificações",
+        "darkMode": "Modo escuro",
+        "lightMode": "Modo claro"
     },
     "balance": {
         "title": "Saldo atual",
@@ -151,20 +161,65 @@
         "others": "Outros",
         "empty": "Sem dados registrados"
     },
-    "report":{
-        "title":"Relatório",
+    "report": {
+        "title": "Relatório",
+        "balance": "Saldo",
         "subtitle": "Veja seu histórico completo",
-        "balance": "Saldo"
+        "titleModal": "Filtrar Transações",
+        "status": "Status",
+        "filters": {
+            "all": "Todos",
+            "paid": "Pago",
+            "pending": "Pendente",
+            "canceled": "Cancelado",
+            "period": "Período",
+            "startDate": "Início",
+            "endDate": "Fim",
+            "invalidFormat": "Formato inválido",
+            "amountRange": "Faixa de Valor",
+            "min": "Mínimo",
+            "max": "Máximo",
+            "categories": "Categorias",
+            "selectCategories": "Selecione as categorias",
+            "reset": "Resetar",
+            "apply": "Aplicar"
+        },
+        "date": {
+            "today": "Hoje",
+            "yesterday": "Ontem",
+            "months": {
+                "janeiro": "Janeiro",
+                "fevereiro": "Fevereiro",
+                "marco": "Março",
+                "abril": "Abril",
+                "maio": "Maio",
+                "junho": "Junho",
+                "julho": "Julho",
+                "agosto": "Agosto",
+                "setembro": "Setembro",
+                "outubro": "Outubro",
+                "novembro": "Novembro",
+                "dezembro": "Dezembro"
+            },
+            "days": {
+                "domingo": "Domingo",
+                "segunda-feira": "Segunda-feira",
+                "terca-feira": "Terça-feira",
+                "quarta-feira": "Quarta-feira",
+                "quinta-feira": "Quinta-feira",
+                "sexta-feira": "Sexta-feira",
+                "sabado": "Sábado"
+            }
+        }
     },
     "auth": {
-    "login": "Entrar",
-    "logout": "Sair",
-    "register": "Cadastrar",
-    "email": "Email",
-    "password": "Senha",
-    "forgotPassword": "Esqueci minha senha"
+        "login": "Entrar",
+        "logout": "Sair",
+        "register": "Cadastrar",
+        "email": "Email",
+        "password": "Senha",
+        "forgotPassword": "Esqueci minha senha"
     },
-
     "alerts": {
         "permissionRequiredTitle": "Permissão necessária",
         "permissionRequiredMessage": "Autorize o acesso à galeria para selecionar uma imagem de avatar."
