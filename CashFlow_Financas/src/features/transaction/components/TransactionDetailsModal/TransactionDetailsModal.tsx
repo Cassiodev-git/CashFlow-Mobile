@@ -18,6 +18,8 @@ interface TransactionDetailsModalProps {
     isVisible?: boolean;
 }
 
+type TransactionStatus = 'paid' | 'canceled' | 'pending';
+
 export function TransactionDetailsModal({ 
     isOpen, 
     onClose, 
@@ -38,6 +40,17 @@ export function TransactionDetailsModal({
     const deleteColorHex = theme.colors.expense;
     const editColorHex = theme.colors.income;
     const iconName = isExpense ? 'arrow-down-left' : 'arrow-up-right';
+    
+    const rawStatus = transaction.status;
+    const status: TransactionStatus = rawStatus === 'paid' || rawStatus === 'canceled' || rawStatus === 'pending'
+        ? rawStatus
+        : 'pending';
+    const statusColor = {
+        paid: theme.colors.income,
+        canceled: theme.colors.danger,
+        pending: theme.colors.warning,
+    }[status];
+    const statusBackgroundColor = `${statusColor}1A`;
 
     const formattedAmount = transaction.amount.toLocaleString(i18n.language, {
         style: 'currency',
@@ -50,7 +63,7 @@ export function TransactionDetailsModal({
         onClose(); 
     };
 
-    const bottomPadding = insets.bottom + scale(16);
+    const bottomPadding = insets.bottom > 0 ? insets.bottom + scale(16) : scale(32);
 
     return (
         <>
@@ -119,6 +132,14 @@ export function TransactionDetailsModal({
                                                 <Text variant="body" color="textSecondary">{t('transactions.type')}</Text>
                                                 <Text variant="body" fontWeight="600" style={{ color: statusColorHex }}>{isExpense ? t('transactions.expense') : t('transactions.income')}</Text>
                                             </Box>
+                                            <Box flexDirection="row" justifyContent="space-between" alignItems="center">
+                                                <Text variant="body" color="textSecondary">{t('transactions.statusLabel')}</Text>
+                                                <Box style={[styles.statusBadge, { backgroundColor: statusBackgroundColor }]}>
+                                                    <Text variant="caption" fontWeight="700" style={{ color: statusColor }}>
+                                                        {t(`transactions.status.${status}`)}
+                                                    </Text>
+                                                </Box>
+                                            </Box>
                                             {transaction.description && (
                                                 <Box flexDirection="row" justifyContent="space-between" alignItems="center">
                                                     <Text variant="body" color="textSecondary">{t('transactions.descriptionLabel')}</Text>
@@ -178,5 +199,10 @@ const styles = StyleSheet.create({
         gap: scale(8),
         borderWidth: 1,
         borderColor: 'transparent',
+    },
+    statusBadge: {
+        borderRadius: scale(999),
+        paddingHorizontal: scale(10),
+        paddingVertical: scale(4),
     }
 });

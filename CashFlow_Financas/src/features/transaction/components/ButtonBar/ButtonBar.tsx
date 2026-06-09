@@ -68,7 +68,7 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
     const [date, setDate] = useState('');
     const [categoryId, setCategoryId] = useState('');
     const [type, setType] = useState<'income' | 'expense'>('expense');
-    const [status, setStatus] = useState<'paid' | 'pending' | 'canceled'>('pending');
+    const [status, setStatus] = useState<'paid' | 'pending' | 'canceled'>('paid');
     const [categories, setCategories] = useState<Category[]>([]);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -82,7 +82,7 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
         setDate('');
         setCategoryId('');
         setType('expense');
-        setStatus('pending');
+        setStatus('paid');
         setError('');
     };
 
@@ -321,7 +321,7 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
                                                     />
                                                 </Box>
 
-                                                {/* Linha: Valor e Data (Mudado aqui de "flat" para "stretch") */}
+                                                
                                                 <Box flexDirection="row" style={{ gap: scale(12) }} alignItems="stretch" marginBottom="s">
                                                     <Box flex={1}>
                                                         <Text variant="body" fontWeight="600" color="textPrimary" style={{ marginBottom: 4 }}>

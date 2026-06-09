@@ -24,14 +24,14 @@ async function getLocalUserId() {
     return user.id;
 }
 
-function isActiveTransaction(transaction: { status?: string | null }) {
-    return transaction.status !== "canceled";
+function isPaidTransaction(transaction: { status?: string | null }) {
+    return transaction.status === "paid";
 }
 
 class TransactionStatsService {
     async getSummary(): Promise<TransactionSummary> {
         const userId = await getLocalUserId();
-        const transactions = (await transacRepo.listTransactions(userId)).filter(isActiveTransaction);
+        const transactions = (await transacRepo.listTransactions(userId)).filter(isPaidTransaction);
         const income = transactions.filter(t => t.type === "income").reduce((acc, t) => acc + Number(t.amount || 0), 0);
         const expense = transactions.filter(t => t.type === "expense").reduce((acc, t) => acc + Number(t.amount || 0), 0);
         return { income, expense, balance: income - expense };
@@ -39,7 +39,7 @@ class TransactionStatsService {
 
     async getSummaryByPeriod(month: number, year: number): Promise<TransactionSummary> {
         const userId = await getLocalUserId();
-        const transactions = (await transacRepo.listTransactions(userId)).filter(isActiveTransaction);
+        const transactions = (await transacRepo.listTransactions(userId)).filter(isPaidTransaction);
 
         const periodTransactions = transactions.filter((t) => {
             const dateValue = t.date || t.created_at;
@@ -60,7 +60,7 @@ class TransactionStatsService {
 
     async getMonthlyExpensePercentage(): Promise<MonthlyExpensePercentage> {
         const userId = await getLocalUserId();
-        const transactions = (await transacRepo.listTransactions(userId)).filter(isActiveTransaction);
+        const transactions = (await transacRepo.listTransactions(userId)).filter(isPaidTransaction);
         const now = new Date();
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
@@ -70,7 +70,7 @@ class TransactionStatsService {
                 const dateValue = t.date || t.created_at;
                 if (!dateValue) return false;
                 const [datePart] = dateValue.split(' ');
-                const [year, month, day] = datePart.split('-').map(Number);
+                const [year, month] = datePart.split('-').map(Number);
                 return t.type === "expense" && (month - 1) === m && year === y;
             })
             .reduce((acc, t) => acc + Number(t.amount || 0), 0);
