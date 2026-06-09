@@ -53,7 +53,7 @@ export function BalanceCard({
             ? "#FF4747"
             : "#6F7583";
 
-    let displayPercentage = percentage.toFixed(1);
+    let displayPercentage = Math.abs(percentage).toFixed(1);
     if (status === "neutral" || displayPercentage === "-0.0" || parseFloat(displayPercentage) === 0) {
         displayPercentage = "0.0";
     }

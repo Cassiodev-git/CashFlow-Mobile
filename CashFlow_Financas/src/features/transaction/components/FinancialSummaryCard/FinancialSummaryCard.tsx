@@ -29,7 +29,6 @@ export function FinancialSummaryCard({
     // Normaliza o mês: pega a primeira palavra, minúscula e remove o 'ç' para casar com a chave 'marco'
     const mesNormalizado = periodo.split(' ')[0].toLowerCase().replace('ç', 'c');
     const ano = periodo.split(' ')[1];
-
     return (
         <Box 
             backgroundColor="primary" 
@@ -45,7 +44,7 @@ export function FinancialSummaryCard({
         >
             <Box flexDirection="row" justifyContent="space-between" alignItems="center" marginBottom="m">
                 <Text variant="body" color="card" fontWeight="600">
-                    {t(`date.months.${mesNormalizado}`)} {ano}
+                    {t(`report.date.months.${mesNormalizado}`)} {ano}
                 </Text>
                 <Box flexDirection="row" alignItems="center">
                     <TouchableOpacity onPress={onPrev} style={{ padding: scale(4) }}>

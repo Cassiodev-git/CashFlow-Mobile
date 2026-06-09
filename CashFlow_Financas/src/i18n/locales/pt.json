@@ -113,8 +113,8 @@
         "searchPlaceholder": "Buscar transação...",
         "moreFilters": "Mais filtros",
         "count": "{{count}} transação",
-        "   count_plural": "{{count}} transações",
-        "   noTransactions": "Nenhuma transação encontrada",
+        "count_plural": "{{count}} transações",
+        "noTransactions": "Nenhuma transação encontrada",
         "types": {
             "all": "Todas",
             "income": "Receitas",

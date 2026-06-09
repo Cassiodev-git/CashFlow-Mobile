@@ -192,33 +192,33 @@
             "selectCategories": "Select categories",
             "reset": "Reset",
             "apply": "Apply"
-        }
-    },
-    "date": {
-        "today": "Today",
-        "yesterday": "Yesterday",
-        "months": {
-            "janeiro": "January",
-            "fevereiro": "February",
-            "marco": "March",
-            "abril": "April",
-            "maio": "May",
-            "junho": "June",
-            "julho": "July",
-            "agosto": "August",
-            "setembro": "September",
-            "outubro": "October",
-            "novembro": "November",
-            "dezembro": "December"
         },
-        "days": {
-            "domingo": "Sunday",
-            "segunda-feira": "Monday",
-            "terca-feira": "Tuesday",
-            "quarta-feira": "Wednesday",
-            "quinta-feira": "Thursday",
-            "sexta-feira": "Friday",
-            "sabado": "Saturday"
+        "date": {
+            "today": "Today",
+            "yesterday": "Yesterday",
+            "months": {
+                "janeiro": "January",
+                "fevereiro": "February",
+                "marco": "March",
+                "abril": "April",
+                "maio": "May",
+                "junho": "June",
+                "julho": "July",
+                "agosto": "August",
+                "setembro": "September",
+                "outubro": "October",
+                "novembro": "November",
+                "dezembro": "December"
+            },
+            "days": {
+                "domingo": "Sunday",
+                "segunda-feira": "Monday",
+                "terca-feira": "Tuesday",
+                "quarta-feira": "Wednesday",
+                "quinta-feira": "Thursday",
+                "sexta-feira": "Friday",
+                "sabado": "Saturday"
+            }
         }
     },
     "alerts": {

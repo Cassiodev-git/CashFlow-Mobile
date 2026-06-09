@@ -1,74 +1,70 @@
-import React, { useMemo } from 'react';
-import { SectionList, useWindowDimensions } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { SectionList, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { Box, Text, Theme } from '@/theme/unistyles'; 
+import { MotiView } from 'moti';
+import { Box, Text, scale, Theme } from '@/theme/unistyles'; 
 import { useTheme } from '@shopify/restyle';
-import { Transaction } from '@/hooks/useTransactionFilter'; 
-import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Transactions as Transaction } from '../../types/Transactions';
+import { Skeleton } from '@/components/Skeleton/Skeleton';
 
 interface TransactionHistoryListProps {
     transactions: Transaction[]; 
     ListHeaderComponent?: React.ReactElement;
     loading?: boolean;
+    onTransactionPress?: (transaction: Transaction) => void;
 }
 
-interface ExtendedTransaction extends Transaction {
-    created_at?: string;
-    category_icon?: string | null;
-}
-
-export function TransactionHistoryList({ transactions, ListHeaderComponent, loading = false }: TransactionHistoryListProps) {
+export function TransactionHistoryList({ 
+    transactions, 
+    ListHeaderComponent, 
+    loading = false,
+    onTransactionPress
+}: TransactionHistoryListProps) {
     const theme = useTheme<Theme>();
     const { t, i18n } = useTranslation();
-    const { height: screenHeight } = useWindowDimensions();
+    const insets = useSafeAreaInsets();
 
-    const formatDateHeader = (dateString: string) => {
-        const date = new Date(dateString + 'T12:00:00'); 
+    const getDateKey = useCallback((transaction: Transaction) => {
+        const dateRaw = transaction.date || transaction.created_at;
+        return dateRaw ? dateRaw.split(' ')[0].split('T')[0] : new Date().toISOString().split('T')[0];
+    }, []);
+
+    const getSectionTitle = useCallback((dateKey: string) => {
+        const [year, month, day] = dateKey.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
         const today = new Date();
-        const yesterday = new Date();
+        
+        const isToday = 
+            date.getFullYear() === today.getFullYear() &&
+            date.getMonth() === today.getMonth() &&
+            date.getDate() === today.getDate();
+
+        if (isToday) return t("report.date.today");
+
+        const yesterday = new Date(today);
         yesterday.setDate(today.getDate() - 1);
 
-        const isToday = date.toDateString() === today.toDateString();
-        const isYesterday = date.toDateString() === yesterday.toDateString();
+        const isYesterday = 
+            date.getFullYear() === yesterday.getFullYear() &&
+            date.getMonth() === yesterday.getMonth() &&
+            date.getDate() === yesterday.getDate();
 
-        const formattedDate = date.toLocaleString(i18n.language, { day: 'numeric', month: 'long' });
+        if (isYesterday) return t("report.date.yesterday");
 
-        if (isToday) return `${t("date.today")} • ${formattedDate}`;
-        if (isYesterday) return `${t("date.yesterday")} • ${formattedDate}`;
-        
-        const weekday = date.toLocaleString(i18n.language, { weekday: 'long' });
-        const capitalizedWeekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
-        return `${capitalizedWeekday} • ${formattedDate}`;
-    };
-
-    const formatCurrency = (value: number, type: 'income' | 'expense') => {
-        return value.toLocaleString(i18n.language, {
-            style: 'currency',
-            currency: 'BRL',
+        return date.toLocaleDateString(i18n.language, { 
+            weekday: 'long', 
+            day: 'numeric', 
+            month: 'long' 
         });
-    };
+    }, [i18n.language, t]);
 
     const sections = useMemo(() => {
-        if (loading) {
-            return [
-                {
-                    title: t("date.today"),
-                    countText: t("transaction.count", { count: 2 }),
-                    data: [{ id: 's1' }, { id: 's2' }] as any[],
-                },
-                {
-                    title: t("date.yesterday"),
-                    countText: t("transaction.count", { count: 1 }),
-                    data: [{ id: 's3' }] as any[],
-                }
-            ];
-        }
-
-        const groups: { [key: string]: Transaction[] } = {};
+        if (loading) return [];
+        const groups: Record<string, Transaction[]> = {};
         transactions.forEach((transaction) => {
-            const safeDate = transaction.date || new Date().toISOString();
-            const dateKey = safeDate.split('T')[0];
+            const dateKey = getDateKey(transaction);
             if (!groups[dateKey]) groups[dateKey] = [];
             groups[dateKey].push(transaction);
         });
@@ -76,92 +72,112 @@ export function TransactionHistoryList({ transactions, ListHeaderComponent, load
         return Object.keys(groups)
             .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
             .map((dateKey) => ({
-                title: formatDateHeader(dateKey),
+                title: getSectionTitle(dateKey),
                 countText: t("transaction.count", { count: groups[dateKey].length }),
                 data: groups[dateKey],
             }));
-    }, [transactions, loading, i18n.language]);
+    }, [transactions, loading, getDateKey, getSectionTitle, t]);
 
-    const getCategoryIcon = (
-        customIcon: string | null | undefined, 
-        categoryId: string | null | undefined, 
-        title: string
-    ): keyof typeof Feather.glyphMap => {
-        if (customIcon && customIcon in Feather.glyphMap) return customIcon as keyof typeof Feather.glyphMap;
-        const fallbackKey = (categoryId || title || '').toLowerCase();
-        if (fallbackKey.includes('aliment') || fallbackKey.includes('mercado')) return 'shopping-cart';
-        if (fallbackKey.includes('salario') || fallbackKey.includes('trabalho')) return 'dollar-sign';
-        if (fallbackKey.includes('transp') || fallbackKey.includes('combustivel')) return 'truck';
-        return 'file-text';
-    };
+    const formatCurrency = (value: number) => value.toLocaleString(i18n.language, { style: 'currency', currency: 'BRL' });
+    const dynamicPaddingBottom = 95 + (insets.bottom > 0 ? insets.bottom : 4);
 
-    const isGestureNavigation = screenHeight >= 800;
-    const dynamicPaddingBottom = isGestureNavigation ? theme.spacing.xxl * 2 : theme.spacing.xl * 1.5;
+    const renderLoadingSkeleton = () => (
+        <MotiView
+            from={{ opacity: 0, translateY: 6 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: 'timing', duration: 220 }}
+        >
+            {[0, 1].map((sectionIndex) => (
+                <Box key={sectionIndex}>
+                    <Box flexDirection="row" justifyContent="space-between" alignItems="center" marginTop="m" marginBottom="xs" paddingHorizontal="m">
+                        <Skeleton width={110} height={16} borderRadius={4} />
+                        <Skeleton width={65} height={14} borderRadius={4} />
+                    </Box>
+
+                    {[0, 1, 2].map((itemIndex) => (
+                        <Box
+                            key={`${sectionIndex}-${itemIndex}`}
+                            backgroundColor="card"
+                            marginHorizontal="m"
+                            paddingVertical="s"
+                            paddingHorizontal="s"
+                            flexDirection="row"
+                            justifyContent="space-between"
+                            alignItems="center"
+                            borderBottomWidth={1}
+                            borderColor="divider"
+                        >
+                            <Box flexDirection="row" alignItems="center" flex={1}>
+                                <Skeleton width={40} height={40} borderRadius={20} />
+                                <Box marginLeft="m" flex={1} style={{ gap: scale(6) }}>
+                                    <Skeleton width="60%" height={14} borderRadius={4} />
+                                    <Skeleton width="42%" height={12} borderRadius={4} />
+                                </Box>
+                            </Box>
+                            <Skeleton width={72} height={16} borderRadius={4} />
+                        </Box>
+                    ))}
+                </Box>
+            ))}
+        </MotiView>
+    );
 
     return (
         <Box flex={1} backgroundColor="background">
             <SectionList
                 sections={sections}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item.id.toString()}
                 stickySectionHeadersEnabled={false}
+                showsVerticalScrollIndicator={false}
                 ListHeaderComponent={ListHeaderComponent}
+                ListFooterComponent={loading ? renderLoadingSkeleton() : null}
                 ListEmptyComponent={!loading ? (
                     <Box paddingVertical="xl" justifyContent="center" alignItems="center" marginTop="l">
-                        <Feather name="info" size={28} color={theme.colors.textSecondary} style={{ marginBottom: 8 }} />
-                        <Text variant="body" color="textSecondary" style={{ fontWeight: '500' }}>
+                        <Feather name="info" size={28} color={theme.colors.textSecondary} />
+                        <Text variant="body" color="textSecondary" fontWeight="500" marginTop="s">
                             {t("transaction.noTransactions")}
                         </Text>
                     </Box>
                 ) : null}
-                contentContainerStyle={{ paddingBottom: dynamicPaddingBottom }}
+                contentContainerStyle={{ paddingBottom: dynamicPaddingBottom, paddingTop: theme.spacing.s }}
                 renderSectionHeader={({ section: { title, countText } }) => (
                     <Box flexDirection="row" justifyContent="space-between" alignItems="center" marginTop="m" marginBottom="xs" paddingHorizontal="m">
-                        {loading ? (
-                            <><Skeleton width={110} height={16} borderRadius={4} /><Skeleton width={65} height={14} borderRadius={4} /></>
-                        ) : (
-                            <><Text variant="body" color="textSecondary" style={{ fontWeight: '500' }}>{title}</Text>
-                            <Text variant="caption" color="textSecondary">{countText}</Text></>
-                        )}
+                        <Text variant="body" color="textSecondary" fontWeight="600">{title}</Text>
+                        <Text variant="caption" color="textSecondary">{countText}</Text>
                     </Box>
                 )}
-                renderItem={({ item, index, section }) => {
-                    const isFirst = index === 0;
-                    const isLast = index === section.data.length - 1;
-
-                    if (loading) {
-                        return (
-                            <Box backgroundColor="card" marginHorizontal="m" padding="s" flexDirection="row" justifyContent="space-between" alignItems="center" borderLeftWidth={1} borderRightWidth={1} borderTopWidth={isFirst ? 1 : 0} borderBottomWidth={1} borderColor={isLast ? "border" : "divider"} style={{ marginBottom: isLast ? theme.spacing.s : 0 }}>
-                                <Box flexDirection="row" alignItems="center" flex={1}>
-                                    <Skeleton width={36} height={36} borderRadius={18} />
-                                    <Box marginLeft="s" flex={1} style={{ gap: 6 }}><Skeleton width="55%" height={14} borderRadius={4} /><Skeleton width="35%" height={11} borderRadius={4} /></Box>
-                                </Box>
-                            </Box>
-                        );
-                    }
-
+                renderItem={({ item }) => {
                     const isExpense = item.type === 'expense';
-                    const valueColor = isExpense ? 'expense' : 'income';
-                    const iconName = getCategoryIcon(item.category_icon, item.category_id, item.title);
-                    const typeLabel = isExpense ? t("transaction.types.expense") : t("transaction.types.income");
-                    const descriptionText = item.category_id ? `${typeLabel} • ${item.category_id}` : typeLabel;
-                    const time = (item.created_at || item.date || '').split('T')[1]?.substring(0, 5) || '00:00';
+                    const typeLabel = isExpense ? t("transactions.expense") : t("transactions.income");
 
                     return (
-                        <Box backgroundColor="card" marginHorizontal="m" padding="s" flexDirection="row" justifyContent="space-between" alignItems="center" borderLeftWidth={1} borderRightWidth={1} borderTopWidth={isFirst ? 1 : 0} borderBottomWidth={1} borderColor={isLast ? "border" : "divider"} style={{ marginBottom: isLast ? theme.spacing.s : 0 }}>
-                            <Box flexDirection="row" alignItems="center" flex={1}>
-                                <Box width={36} height={36} borderRadius="xl" justifyContent="center" alignItems="center" backgroundColor={isExpense ? 'expenseLight' : 'incomeLight'}>
-                                    <Feather name={iconName} size={18} color={isExpense ? theme.colors.expense : theme.colors.income} />
+                        <TouchableOpacity activeOpacity={0.7} onPress={() => onTransactionPress?.(item)}>
+                            <MotiView
+                                from={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ type: 'timing', duration: 100 }}
+                            >
+                                <Box backgroundColor="card" marginHorizontal="m" paddingVertical="s" paddingHorizontal="s" flexDirection="row" justifyContent="space-between" alignItems="center" borderBottomWidth={1} borderColor="divider">
+                                    <Box flexDirection="row" alignItems="center" flex={1}>
+                                        <Box width={40} height={40} borderRadius="xl" justifyContent="center" alignItems="center" backgroundColor={isExpense ? 'expenseLight' : 'incomeLight'}>
+                                            <Feather name={isExpense ? 'arrow-down' : 'arrow-up'} size={18} color={isExpense ? theme.colors.expense : theme.colors.income} />
+                                        </Box>
+                                        <Box marginLeft="m" flex={1}>
+                                            <Text variant="body" color="textPrimary" fontWeight="500" style={{ fontSize: scale(15) }}>{item.title}</Text>
+                                            <Text variant="caption" color="textSecondary" style={{ fontSize: scale(12) }}>
+                                                {typeLabel} {item.category_id ? `• ${item.category_id}` : ''}
+                                            </Text>
+                                        </Box>
+                                    </Box>
+                                    <Box alignItems="flex-end">
+                                        <Text variant="body" color={isExpense ? 'expense' : 'income'} fontWeight="600" style={{ fontSize: scale(15) }}>
+                                            {isExpense ? '-' : ''}{formatCurrency(item.amount)}
+                                        </Text>
+                                    </Box>
                                 </Box>
-                                <Box marginLeft="s" flex={1}>
-                                    <Text variant="body" color="textPrimary" style={{ fontWeight: '500' }}>{item.title}</Text>
-                                    <Text variant="caption" color="textSecondary">{descriptionText}</Text>
-                                </Box>
-                            </Box>
-                            <Box alignItems="flex-end" marginLeft="s">
-                                <Text variant="body" color={valueColor} style={{ fontWeight: '600' }}>{isExpense ? '-' : ''}{formatCurrency(item.amount, item.type)}</Text>
-                                <Text variant="caption" color="textMuted">{time}</Text>
-                            </Box>
-                        </Box>
+                            </MotiView>
+                        </TouchableOpacity>
                     );
                 }}
             />
