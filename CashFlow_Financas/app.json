@@ -1,26 +1,28 @@
 {
   "expo": {
     "name": "Finno: Financial Manager",
-    "slug": "finno-app",                  
-    "version": "0.0.2",
+    "slug": "finno-app",
+    "version": "0.0.3",
     "orientation": "portrait",
-    "scheme": "finno",                    
+    "scheme": "finno",
     "userInterfaceStyle": "automatic",
-    
     "locales": {
       "en": "./locales/default/InfoPlists.strings",
       "pt": "./locales/pt/InfoPlists.strings"
     },
-
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.finno.app", 
+      "bundleIdentifier": "com.finno.app",
       "infoPlist": {
-        "CFBundleDevelopmentRegion": "en"
+        "CFBundleDevelopmentRegion": "en",
+        "CFBundleLocalizations": [
+          "en",
+          "pt"
+        ]
       }
     },
     "android": {
-      "package": "com.finno.app",         
+      "package": "com.finno.app",
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/Logo_CashFlow.png",
@@ -44,9 +46,18 @@
       [
         "expo-localization",
         {
-          "supportedLocales": ["en", "pt"]
+          "supportedLocales": [
+            "en",
+            "pt"
+          ]
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "41526d5f-5556-4fe3-b212-ffce2e011fd7"
+      }
+    }
   }
 }

@@ -24,10 +24,14 @@ async function getLocalUserId() {
     return user.id;
 }
 
+function isActiveTransaction(transaction: { status?: string | null }) {
+    return transaction.status !== "canceled";
+}
+
 class TransactionStatsService {
     async getSummary(): Promise<TransactionSummary> {
         const userId = await getLocalUserId();
-        const transactions = await transacRepo.listTransactions(userId);
+        const transactions = (await transacRepo.listTransactions(userId)).filter(isActiveTransaction);
         const income = transactions.filter(t => t.type === "income").reduce((acc, t) => acc + Number(t.amount || 0), 0);
         const expense = transactions.filter(t => t.type === "expense").reduce((acc, t) => acc + Number(t.amount || 0), 0);
         return { income, expense, balance: income - expense };
@@ -35,7 +39,7 @@ class TransactionStatsService {
 
     async getSummaryByPeriod(month: number, year: number): Promise<TransactionSummary> {
         const userId = await getLocalUserId();
-        const transactions = await transacRepo.listTransactions(userId);
+        const transactions = (await transacRepo.listTransactions(userId)).filter(isActiveTransaction);
 
         const periodTransactions = transactions.filter((t) => {
             const dateValue = t.date || t.created_at;
@@ -56,7 +60,7 @@ class TransactionStatsService {
 
     async getMonthlyExpensePercentage(): Promise<MonthlyExpensePercentage> {
         const userId = await getLocalUserId();
-        const transactions = await transacRepo.listTransactions(userId);
+        const transactions = (await transacRepo.listTransactions(userId)).filter(isActiveTransaction);
         const now = new Date();
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
