@@ -8,11 +8,14 @@ class AppTransactionsService {
     }
     async listTransactions(options?: { limit?: number; offset?: number }){
         const result = await TransactionService.listTransactions(options)
-        //console.log(result)
         return result
     }
     async deleteTransaction(id: string){
         const result = await TransactionService.deleteTransaction(id)
+        return result
+    }
+    async deleteManyTransactions(ids: string[]){
+        const result = await TransactionService.deleteManyTransactions(ids)
         return result
     }
     async updateTransaction(id: string, data:UpdateTransactionDTO ){

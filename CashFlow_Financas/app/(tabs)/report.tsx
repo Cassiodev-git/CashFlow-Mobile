@@ -18,7 +18,7 @@ import { Skeleton } from '@/components/Skeleton/Skeleton';
 export default function ReportsScreen() {
     const { t, i18n } = useTranslation();
     const { date, data, handleNext, handlePrev, loading: loadingSummary } = useMonthlySummary();
-    const { transactions, loading: loadingTransactions } = useTransactions();
+    const { transactions, loading: loadingTransactions, deleteMultipleTransactions } = useTransactions();
     const { filters, updateFilter, resetFilters, filteredTransactions } = useTransactionFilter(transactions);
     const { deleteTransaction } = useHomeData();
 
@@ -55,6 +55,11 @@ export default function ReportsScreen() {
         setSelectedTransaction(null);
         DeviceEventEmitter.emit("transaction_mutated");
     }, [deleteTransaction]);
+
+    const handleDeleteMultiple = useCallback(async (ids: string[]) => {
+        await deleteMultipleTransactions(ids);
+        setSelectedTransaction(null);
+    }, [deleteMultipleTransactions]);
 
     const renderHeader = () => (
         <MotiView
@@ -106,6 +111,7 @@ export default function ReportsScreen() {
                 ListHeaderComponent={renderHeader()}
                 loading={loadingTransactions}
                 onTransactionPress={setSelectedTransaction}
+                onDeleteMultiple={handleDeleteMultiple}
             />
 
             <TransactionDetailsModal

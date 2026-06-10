@@ -20,6 +20,8 @@
         "update": "Atualizar",
         "remove": "Remover",
         "error": "Error",
+        "deleteDescription": "Tem certeza que deseja deletar?",
+        "deleteTitle": "Confirmar exclusão",
         "errorTitle": "Ops!, Algo deu errado",
         "errorMessage": "Houve um problema ao carregar as informações. Por favor, tente novamente.",
         "retry": "Tentar novamente"

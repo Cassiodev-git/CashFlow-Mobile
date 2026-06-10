@@ -59,7 +59,6 @@ export function ConfirmationModal({
                     </Text>
                     
                     <Box flexDirection="row" style={{ gap: scale(12) }}>
-                        {/* Botão Cancelar */}
                         <TouchableOpacity 
                             style={{ flex: 1, paddingVertical: scale(12), alignItems: 'center' }} 
                             onPress={onClose}

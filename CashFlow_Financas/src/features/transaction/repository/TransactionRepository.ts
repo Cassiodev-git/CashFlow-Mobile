@@ -3,6 +3,7 @@ import { v4 as uuid } from "uuid";
 import { desc, eq } from "drizzle-orm";
 import { transactions } from "../schema";
 import type { CreateTransactionDTO, UpdateTransactionDTO } from "../validation";
+import { inArray } from "drizzle-orm"
 
 export class TransactionRepository {
     async createTransaction(userId: string, data: CreateTransactionDTO) {
@@ -46,5 +47,8 @@ export class TransactionRepository {
 
         const result = await query;
         return result;
+    }
+    async deleteManyTransactions(ids: string[]) {
+        return await db.delete(transactions).where(inArray(transactions.id, ids));
     }
 }

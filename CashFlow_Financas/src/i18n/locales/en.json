@@ -16,6 +16,8 @@
         "yes": "Yes",
         "no": "No",
         "done": "Done",
+        "deleteDescription": "Are you sure you want to delete it?",
+        "deleteTitle": "Confirm deletion",
         "create": "Create",
         "update": "Update",
         "remove": "Remove",

@@ -35,6 +35,19 @@ export function useTransactions() {
             });
     }, []);
 
+    const deleteMultipleTransactions = useCallback(async (ids: string[]) => {
+        setLoading(true);
+        try {
+            await AppTransactionService.deleteManyTransactions(ids);
+            DeviceEventEmitter.emit("transaction_mutated");
+        } catch (err) {
+            console.error("Erro ao deletar transações em lote:", err);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     useFocusEffect(
         useCallback(() => {
             let isMounted = true;
@@ -53,5 +66,5 @@ export function useTransactions() {
         };
     }, [fetchTransactions]);
 
-    return { transactions, loading };
+    return { transactions, loading, deleteMultipleTransactions };
 }
