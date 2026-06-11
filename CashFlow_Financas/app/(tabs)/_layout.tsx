@@ -36,7 +36,7 @@ export default function TabsLayout() {
             router.replace('/(tabs)/report');
             break;
         case 'Perfil':
-            router.replace('/(tabs)/profile');
+            router.replace('/(tabs)/settings');
             break;
         }
     };
@@ -59,7 +59,7 @@ export default function TabsLayout() {
         <Tabs.Screen name="home" />
         <Tabs.Screen name="graph" />
         <Tabs.Screen name="report" />
-        <Tabs.Screen name="profile" />
+        <Tabs.Screen name="settings" />
         </Tabs>
     );
 }
