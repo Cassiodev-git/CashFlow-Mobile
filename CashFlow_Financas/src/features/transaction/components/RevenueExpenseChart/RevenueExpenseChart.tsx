@@ -5,7 +5,7 @@ import { Circle, useFont } from "@shopify/react-native-skia";
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@shopify/restyle';
 import { MotiView } from 'moti';
-import { Skeleton } from '../Skeleton/Skeleton';
+import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { Box, Text, scale, type Theme } from '@/theme/unistyles';
 
 interface ChartItem {

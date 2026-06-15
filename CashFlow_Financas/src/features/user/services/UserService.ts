@@ -33,6 +33,16 @@ export class UserService {
         return await userRepo.updateUser(id, validatedData)
     }
     async deleteUser(id: string){
+        const existingUser = await userRepo.findFirstUser()
+
+        if(!existingUser || existingUser.id !== id){
+            throw new Error(i18n.t("errors.userNotFound"))
+        }
+
         return await userRepo.deleteUser(id)
+    }
+
+    async deleteFistUser(id: string){
+        return await this.deleteUser(id)
     }
 }

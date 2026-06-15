@@ -4,7 +4,9 @@ import { Transactions as Transaction } from "@/features/transaction/types/Transa
 import { useTranslation } from 'react-i18next';
 import { logger } from '@/utils/logger';
 
-export function useReports(selectedTab: string) {
+export type ReportPeriod = 'week' | 'month' | 'year';
+
+export function useReports(selectedTab: ReportPeriod) {
     const { t } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false); 
@@ -61,30 +63,30 @@ export function useReports(selectedTab: string) {
     };
 }
 
-function checkPeriodMatch(transactionDate: Date, period: string): boolean {
+function checkPeriodMatch(transactionDate: Date, period: ReportPeriod): boolean {
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const tDateStart = new Date(transactionDate.getFullYear(), transactionDate.getMonth(), transactionDate.getDate());
 
-    if (period === 'Semana') {
+    if (period === 'week') {
         const sevenDaysAgo = new Date(todayStart);
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         return tDateStart >= sevenDaysAgo && tDateStart <= todayStart;
     }
-    if (period === 'Mês') {
+    if (period === 'month') {
         return transactionDate.getMonth() === now.getMonth() && transactionDate.getFullYear() === now.getFullYear();
     }
-    if (period === 'Ano') {
+    if (period === 'year') {
         return transactionDate.getFullYear() === now.getFullYear();
     }
     return false;
 }
 
-function getXKeyLabel(transactionDate: Date, period: string): string {
-    if (period === 'Ano') {
+function getXKeyLabel(transactionDate: Date, period: ReportPeriod): string {
+    if (period === 'year') {
         return transactionDate.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
     }
-    if (period === 'Semana') {
+    if (period === 'week') {
         return `${transactionDate.getDate()}/${transactionDate.getMonth() + 1}`;
     }
     return String(transactionDate.getDate());
@@ -100,7 +102,7 @@ function getSafeDate(transaction: Transaction): Date | null {
     return isNaN(parsedDate.getTime()) ? null : parsedDate;
 }
 
-function filterAndGroupTransactionsByDay(transactions: Transaction[], period: string) {
+function filterAndGroupTransactionsByDay(transactions: Transaction[], period: ReportPeriod) {
     const validTransactions = transactions
         .map(t => ({ transaction: t, tDate: getSafeDate(t) }))
         .filter(item => item.tDate !== null && checkPeriodMatch(item.tDate, period) && item.transaction.status !== 'canceled');
@@ -115,7 +117,7 @@ function filterAndGroupTransactionsByDay(transactions: Transaction[], period: st
                 day: xAxisLabel, 
                 revenue: 0, 
                 expense: 0,
-                sortIndex: period === 'Ano' ? tDate!.getMonth() : tDate!.getTime()
+                sortIndex: period === 'year' ? tDate!.getMonth() : tDate!.getTime()
             };
         }
 
@@ -129,7 +131,7 @@ function filterAndGroupTransactionsByDay(transactions: Transaction[], period: st
     return Object.values(dailyMap).sort((a, b) => a.sortIndex - b.sortIndex);
 }
 
-function groupTransactionsByCategory(transactions: Transaction[], period: string, t: any) {
+function groupTransactionsByCategory(transactions: Transaction[], period: ReportPeriod, t: any) {
     const expenses = transactions
         .map(t => ({ transaction: t, tDate: getSafeDate(t) }))
         .filter(item => item.tDate !== null && item.transaction.type === 'expense' && checkPeriodMatch(item.tDate, period) && item.transaction.status !== 'canceled');

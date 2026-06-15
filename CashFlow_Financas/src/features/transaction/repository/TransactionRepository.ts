@@ -1,9 +1,8 @@
 import { db } from "@/db";
 import { v4 as uuid } from "uuid";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { transactions } from "../schema";
 import type { CreateTransactionDTO, UpdateTransactionDTO } from "../validation";
-import { inArray } from "drizzle-orm"
 
 export class TransactionRepository {
     async createTransaction(userId: string, data: CreateTransactionDTO) {

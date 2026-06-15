@@ -10,6 +10,9 @@ export default function TabsLayout() {
     const segments = useSegments();
     const theme = useTheme<Theme>();
     const currentScreen = segments[segments.length - 1];
+    const settingsSegmentIndex = segments.indexOf('settings');
+    const settingsChildScreen = settingsSegmentIndex >= 0 ? segments[settingsSegmentIndex + 1] : undefined;
+    const isSettingsDetailsScreen = Boolean(settingsChildScreen && settingsChildScreen !== 'index');
 
     const getCurrentRoute = (): TabRoute => {
         switch (currentScreen) {
@@ -17,6 +20,8 @@ export default function TabsLayout() {
             return 'Graph';
         case 'report':
             return 'Relatório';
+        case 'settings':
+        case 'index':
         case 'profile':
             return 'Perfil';
         default:
@@ -43,7 +48,7 @@ export default function TabsLayout() {
 
     return (
         <Tabs
-        tabBar={() => (
+        tabBar={() => isSettingsDetailsScreen ? null : (
             <BottomBar
             currentRoute={getCurrentRoute()}
             onNavigate={handleNavigate}

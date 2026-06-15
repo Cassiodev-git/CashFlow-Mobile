@@ -3,7 +3,7 @@ import { PolarChart, Pie } from "victory-native";
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@shopify/restyle';
 import { MotiView } from 'moti';
-import { Skeleton } from '../Skeleton/Skeleton';
+import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { Box, Text, scale, type Theme } from '@/theme/unistyles';
 
 interface CategoryItem {

@@ -26,6 +26,15 @@
         "errorMessage": "Houve um problema ao carregar as informações. Por favor, tente novamente.",
         "retry": "Tentar novamente"
     },
+    "profile": {
+        "title": "Perfil",
+        "subtitle": "Atualize seus dados pessoais",
+        "fullName": "Nome completo",
+        "placeholderName": "Digite seu nome",
+        "deleteAccount": "Excluir conta",
+        "deleteConfirmMessage": "Esta ação exclui sua conta e todas as transações vinculadas. Esta operação não pode ser desfeita.",
+        "deleteError": "Não foi possível excluir a conta. Tente novamente."
+    },
     "greetings": {
         "hello": "Olá",
         "financeSummary": "Aqui está o resumo das suas finanças"
@@ -141,12 +150,31 @@
     },
     "settings": {
         "title": "Configurações",
-        "theme": "Tema",
-        "language": "Idioma",
-        "currency": "Moeda",
+        "subtitle": "Gerencie suas preferências",
+        "account": "Conta",
+        "profile": "Perfil",
+        "profileSubtitle": "Gerencie seus dados pessoais",
+        "security": "Segurança",
+        "securitySubtitle": "Senha e autenticação",
         "notifications": "Notificações",
-        "darkMode": "Modo escuro",
-        "lightMode": "Modo claro"
+        "notificationsSubtitle": "Gerencie seus alertas",
+        "preferences": "Preferências",
+        "currency": "Moeda",
+        "currencySubtitle": "Real (R$)",
+        "theme": "Tema",
+        "lightMode": "Modo claro",
+        "language": "Idioma",
+        "languageSubtitle": "Português",
+        "data": "Dados",
+        "about": "Sobre",
+        "defaultCategory": "Categoria padrão",
+        "manageCategories": "Gerenciar categorias",
+        "exportData": "Exportar dados",
+        "exportDataSubtitle": "Exporte seus dados financeiros",
+        "backup": "Backup",
+        "backupSubtitle": "Gerencie seus backups",
+        "aboutApp": "Sobre o Cashflow",
+        "appVersion": "Versão {{version}}"
     },
     "balance": {
         "title": "Saldo atual",
