@@ -1,5 +1,6 @@
 import { db } from "@/db";
 import { users } from "../schema";
+import { transactions } from "@/features/transaction/schema";
 import {v4 as uuid} from "uuid"
 import { eq } from "drizzle-orm";
 import type { CreateUserDTO, UpdateUserDTO } from "../validation";
@@ -27,8 +28,10 @@ export class UserRepository {
         return result 
     }
     async deleteUser(id: string){
-        const result = await db.delete(users).where(eq(users.id, id))
-        return result 
+        return await db.transaction(async (tx) => {
+            await tx.delete(transactions).where(eq(transactions.user_id, id))
+            return await tx.delete(users).where(eq(users.id, id))
+        })
     }
     
 }

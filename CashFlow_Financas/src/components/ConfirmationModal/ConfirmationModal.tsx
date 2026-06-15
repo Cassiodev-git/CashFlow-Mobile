@@ -5,6 +5,7 @@ import { Box, Text, scale } from '@/theme/unistyles';
 interface ConfirmationModalProps {
     visible: boolean;
     title: string;
+    message?: string
     description: string;
     confirmText: string;
     cancelText: string;
@@ -16,6 +17,7 @@ interface ConfirmationModalProps {
 export function ConfirmationModal({
     visible,
     title,
+    message,
     description,
     confirmText,
     cancelText,

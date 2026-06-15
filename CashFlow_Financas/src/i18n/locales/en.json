@@ -26,6 +26,15 @@
         "errorMenssage": "There was a problem loading the information. Please try again.",
         "retry": "Retry"
     },
+    "profile": {
+        "title": "Profile",
+        "subtitle": "Update your personal information",
+        "fullName": "Full name",
+        "placeholderName": "Enter your name",
+        "deleteAccount": "Delete account",
+        "deleteConfirmMessage": "This action deletes your account and all linked transactions. This operation cannot be undone.",
+        "deleteError": "The account could not be deleted. Please try again."
+    },
     "greetings": {
         "hello": "Hello",
         "financeSummary": "Here is the summary of your finances"
@@ -141,12 +150,31 @@
     },
     "settings": {
         "title": "Settings",
-        "theme": "Theme",
-        "language": "Language",
-        "currency": "Currency",
+        "subtitle": "Manage your preferences",
+        "account": "Account",
+        "profile": "Profile",
+        "profileSubtitle": "Manage your personal data",
+        "security": "Security",
+        "securitySubtitle": "Password and authentication",
         "notifications": "Notifications",
-        "darkMode": "Dark mode",
-        "lightMode": "Light mode"
+        "notificationsSubtitle": "Manage your alerts",
+        "preferences": "Preferences",
+        "currency": "Currency",
+        "currencySubtitle": "Brazilian real (R$)",
+        "theme": "Theme",
+        "lightMode": "Light mode",
+        "language": "Language",
+        "languageSubtitle": "English",
+        "data": "Data",
+        "about": "About",
+        "defaultCategory": "Default category",
+        "manageCategories": "Manage categories",
+        "exportData": "Export data",
+        "exportDataSubtitle": "Export your financial data",
+        "backup": "Backup",
+        "backupSubtitle": "Manage your backups",
+        "aboutApp": "About Cashflow",
+        "appVersion": "Version {{version}}"
     },
     "balance": {
         "title": "Current balance",

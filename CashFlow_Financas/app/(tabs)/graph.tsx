@@ -3,23 +3,23 @@ import { ScrollView, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@shopify/restyle';
 
-import { RevenueExpenseChart, RevenueExpenseChartSkeleton } from '@/components/RevenueExpenseChart/RevenueExpenseChart';
-import { ExpensesDistributionChart, ExpensesDistributionChartSkeleton } from '@/components/ExpensesDistributionChart/ExpensesDistributionChart';
+import { RevenueExpenseChart, RevenueExpenseChartSkeleton } from '@/features/transaction/components/RevenueExpenseChart/RevenueExpenseChart';
+import { ExpensesDistributionChart, ExpensesDistributionChartSkeleton } from '@/features/category/components/ExpensesDistributionChart/ExpensesDistributionChart';
 import { ErrorState } from '@/components/ErrorState/ErrorState'; 
-import { useReports } from '@/hooks/useReports'; 
+import { ReportPeriod, useReports } from '@/hooks/useReports'; 
 import { Box, Text, scale, type Theme } from '@/theme/unistyles';
 
 export default function GraphScreen() {
     const { t } = useTranslation();
     const theme = useTheme<Theme>();
     
-    const [selectedTab, setSelectedTab] = useState('Mês');
+    const [selectedTab, setSelectedTab] = useState<ReportPeriod>('month');
     const { loading, error, lineChartData, pieChartData, refresh } = useReports(selectedTab);
 
-    const tabs = [
-        { id: 'Semana', label: t("common.week") },
-        { id: 'Mês', label: t("common.month") },
-        { id: 'Ano', label: t("common.year") },
+    const tabs: { id: ReportPeriod; label: string }[] = [
+        { id: 'week', label: t("common.week") },
+        { id: 'month', label: t("common.month") },
+        { id: 'year', label: t("common.year") },
     ];
 
     if (error) {
