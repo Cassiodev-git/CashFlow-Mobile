@@ -97,6 +97,7 @@
         "statusLabel": "Status",
         "dateLabel": "Data",
         "datePlaceholder": "AAAA-MM-DD",
+        "datePlaceholderLocal": "DD/MM/AAAA",
         "categoryIdLabel": "ID da categoria",
         "categoryIdPlaceholder": "Opcional",
         "errorDelete": "Não foi possível excluir a transação.",
@@ -207,6 +208,7 @@
             "endDate": "Fim",
             "invalidFormat": "Formato inválido",
             "amountRange": "Faixa de Valor",
+            "amountPlaceholder": "R$ 0,00",
             "min": "Mínimo",
             "max": "Máximo",
             "categories": "Categorias",
@@ -249,6 +251,18 @@
         "email": "Email",
         "password": "Senha",
         "forgotPassword": "Esqueci minha senha"
+    },
+    "security": {
+        "biometricEnable": "Ativar biometria",
+        "biometricSubtitle": "Exigir autenticação ao abrir o aplicativo",
+        "authPrompt": "Confirme sua biometria para ativar a proteção",
+        "unlockPrompt": "Autentique-se para acessar o CashFlow",
+        "fallbackLabel": "Usar senha do dispositivo",
+        "notSupported": "Biometria não disponível neste dispositivo.",
+        "lockedTitle": "CashFlow bloqueado",
+        "lockedSubtitle": "Confirme sua identidade para liberar suas informações financeiras.",
+        "unlockAction": "Desbloquear",
+        "authenticating": "Autenticando..."
     },
     "alerts": {
         "permissionRequiredTitle": "Permissão necessária",

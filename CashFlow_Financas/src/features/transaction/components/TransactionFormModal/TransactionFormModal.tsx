@@ -27,6 +27,7 @@ import AppCategoryService from '@/services/AppCategoryService';
 import { Transactions as Transaction } from '../../types/Transactions';
 import { logger } from '@/utils/logger';
 import { Box, Text, scale, verticalScale, type Theme } from '@/theme/unistyles';
+import { Skeleton } from '@/components/Skeleton/Skeleton';
 
 interface TransactionFormModalProps {
     isOpen: boolean;
@@ -243,7 +244,7 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
                                 >
                                     <Box style={[styles.header, isKeyboardVisible && styles.headerCompact]}>
                                         <Text style={styles.formTitle}>
-                                            {isEditMode ? t("transactions.editTitle", "Editar Transação") : t("transactions.newTransaction")}
+                                            {isEditMode ? t("transactions.editTitle") : t("transactions.newTransaction")}
                                         </Text>
                                     </Box>
 
@@ -254,24 +255,24 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
                                         keyboardShouldPersistTaps="handled"
                                     >
                                         <Box style={styles.inputGroup}>
-                                            <Text style={styles.inputLabel}>{t("transactions.title", "Título")}</Text>
+                                            <Text style={styles.inputLabel}>{t("transactions.title")}</Text>
                                             <TextInput style={styles.input} placeholder={t("transactions.titlePlaceholder")} placeholderTextColor={theme.colors.placeholder} value={title} onChangeText={setTitle} maxLength={20} />
                                         </Box>
 
                                         <Box style={styles.inputGroup}>
                                             <Text style={styles.inputLabel}>{t("transactions.descriptionLabel")}</Text>
-                                            <TextInput style={[styles.input, styles.multilineInput, isKeyboardVisible && styles.multilineInputCompact]} placeholder={t("transactions.descriptionPlaceholder", "Opcional")} placeholderTextColor={theme.colors.placeholder} value={description} onChangeText={setDescription} multiline textAlignVertical="top" maxLength={120} />
+                                            <TextInput style={[styles.input, styles.multilineInput, isKeyboardVisible && styles.multilineInputCompact]} placeholder={t("transactions.descriptionPlaceholder")} placeholderTextColor={theme.colors.placeholder} value={description} onChangeText={setDescription} multiline textAlignVertical="top" maxLength={120} />
                                         </Box>
 
                                         <Box style={styles.row}>
                                             <Box style={[styles.inputGroup, styles.halfInputLeft]}>
                                                 <Text style={styles.inputLabel}>{t("transactions.amountLabel")}</Text>
-                                                <TextInput style={styles.input} placeholder="0,00" placeholderTextColor={theme.colors.placeholder} keyboardType="numeric" value={amount} onChangeText={setAmount} />
+                                                <TextInput style={styles.input} placeholder={t("transactions.amountPlaceholder")} placeholderTextColor={theme.colors.placeholder} keyboardType="numeric" value={amount} onChangeText={setAmount} />
                                             </Box>
 
                                             <Box style={[styles.inputGroup, styles.halfInputRight]}>
                                                 <Text style={styles.inputLabel}>{t("transactions.dateLabel")}</Text>
-                                                <TextInput style={styles.input} placeholder={i18n.language.startsWith('en') ? "YYYY-MM-DD" : "DD/MM/YYYY"} placeholderTextColor={theme.colors.placeholder} keyboardType="numeric" maxLength={10} value={date} onChangeText={(text) => setDate(applyDateMask(text, i18n.language))} />
+                                                <TextInput style={styles.input} placeholder={i18n.language.startsWith('en') ? t("transactions.datePlaceholder") : t("transactions.datePlaceholderLocal")} placeholderTextColor={theme.colors.placeholder} keyboardType="numeric" maxLength={10} value={date} onChangeText={(text) => setDate(applyDateMask(text, i18n.language))} />
                                             </Box>
                                         </Box>
 
@@ -308,7 +309,7 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
                                                 <Box style={styles.inputGroup}>
                                                     <Text style={styles.inputLabel}>{t("transactions.categoryLabel")}</Text>
                                                     {loadingCategories ? (
-                                                        <Text style={styles.helperText}>{t("common.loading")}</Text>
+                                                        <Skeleton width="60%" height={scale(18)} borderRadius={scale(8)} />
                                                     ) : filteredCategories.length > 0 ? (
                                                         <Box style={styles.choiceRow}>
                                                             {filteredCategories.map((cat) => {

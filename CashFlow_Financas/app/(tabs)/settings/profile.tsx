@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Alert, TouchableOpacity, ActivityIndicator, ScrollView, TextInput, Image } from 'react-native';
+import { Alert, TouchableOpacity, ScrollView, TextInput, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -9,6 +9,7 @@ import { Box, Text, scale, verticalScale, Theme } from '@/theme/unistyles';
 import { useProfile } from '@/hooks/useProfile';
 import { ConfirmationModal } from '@/components/ConfirmationModal/ConfirmationModal';
 import { useTranslation } from 'react-i18next';
+import { Skeleton } from '@/components/Skeleton/Skeleton';
 
 export default function ProfileScreen() {
     const { t } = useTranslation();
@@ -19,6 +20,7 @@ export default function ProfileScreen() {
     const [name, setName] = useState('');
     const [imageProfile, setImageProfile] = useState<string | null>(null);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const isInitialLoading = loading && !user;
 
     useEffect(() => {
         if (user) {
@@ -94,7 +96,9 @@ export default function ProfileScreen() {
                                 borderWidth={1}
                                 borderColor="border"
                             >
-                                {imageProfile ? (
+                                {isInitialLoading ? (
+                                    <Skeleton width={100} height={100} borderRadius={24} />
+                                ) : imageProfile ? (
                                     <Image source={{ uri: imageProfile }} style={{ width: 100, height: 100 }} />
                                 ) : (
                                     <Feather name="user" size={40} color={theme.colors.textSecondary} />
@@ -105,20 +109,24 @@ export default function ProfileScreen() {
 
                     <Box backgroundColor="surface" padding="m" borderRadius="l" borderWidth={1} borderColor="border">
                         <Text variant="caption" marginBottom="xs">{t("profile.fullName")}</Text>
-                        <TextInput
-                            value={name}
-                            onChangeText={setName}
-                            placeholder={t("profile.placeholderName")}
-                            placeholderTextColor={theme.colors.placeholder}
-                            maxLength={100}
-                            style={{ fontSize: 16, color: theme.colors.textPrimary, paddingVertical: 8 }}
-                        />
+                        {isInitialLoading ? (
+                            <Skeleton width="70%" height={24} borderRadius={6} />
+                        ) : (
+                            <TextInput
+                                value={name}
+                                onChangeText={setName}
+                                placeholder={t("profile.placeholderName")}
+                                placeholderTextColor={theme.colors.placeholder}
+                                maxLength={100}
+                                style={{ fontSize: 16, color: theme.colors.textPrimary, paddingVertical: 8 }}
+                            />
+                        )}
                     </Box>
 
                     <TouchableOpacity onPress={handleSave} disabled={loading} activeOpacity={0.85}>
                         <Box marginTop="l" padding="m" backgroundColor="primary" borderRadius="s" alignItems="center">
                             {loading ? (
-                                <ActivityIndicator color="white" />
+                                <Skeleton width={scale(72)} height={scale(18)} borderRadius={scale(8)} />
                             ) : (
                                 <Text color="textInverse" fontWeight="600">{t("common.save")}</Text>
                             )}

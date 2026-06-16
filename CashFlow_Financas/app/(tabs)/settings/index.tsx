@@ -51,7 +51,7 @@ export default function SettingsScreen() {
                         icon="lock" 
                         title={t("settings.security")} 
                         subtitle={t("settings.securitySubtitle")} 
-                        onPress={() => {}} 
+                        onPress={() => router.push("/(tabs)/settings/security")} 
                     />
                     <SettingsItem 
                         icon="bell" 

@@ -47,6 +47,7 @@ export default function SettingsLayout() {
         >
             <Stack.Screen name="index" options={{ animation: 'none', headerShown: false }} />
             <Stack.Screen name="profile" options={{ title: t("profile.title") }} />
+            <Stack.Screen name="security" options={{ title: t("settings.security") }} />
         </Stack>
     );
 }

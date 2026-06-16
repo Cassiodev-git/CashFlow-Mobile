@@ -223,7 +223,7 @@ export function FiltersModal({ visible, onClose, currentFilters, onApply, onRese
                                     ) : (
                                         <TextInput 
                                             style={[baseInputStyle, { borderColor: 'transparent' }]} 
-                                            placeholder="R$ 0,00"
+                                            placeholder={t("report.filters.amountPlaceholder")}
                                             placeholderTextColor={theme.colors.textSecondary} 
                                             keyboardType="numeric" 
                                             value={tempFilters.minAmount?.toString() || ''} 
@@ -238,7 +238,7 @@ export function FiltersModal({ visible, onClose, currentFilters, onApply, onRese
                                     ) : (
                                         <TextInput 
                                             style={[baseInputStyle, { borderColor: 'transparent' }]} 
-                                            placeholder="R$ 0,00"
+                                            placeholder={t("report.filters.amountPlaceholder")}
                                             placeholderTextColor={theme.colors.textSecondary} 
                                             keyboardType="numeric" 
                                             value={tempFilters.maxAmount?.toString() || ''} 

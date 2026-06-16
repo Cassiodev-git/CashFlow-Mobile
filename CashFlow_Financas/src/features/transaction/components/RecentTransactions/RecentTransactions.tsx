@@ -165,7 +165,7 @@ function TransactionDetailsModal({
                                         </Box>
                                         {transaction.description && (
                                             <Box flexDirection="row" justifyContent="space-between" alignItems="center">
-                                                <Text variant="body" color="textSecondary">{t('transactions.description', 'Descrição')}</Text>
+                                                <Text variant="body" color="textSecondary">{t('transactions.descriptionLabel')}</Text>
                                                 <Text
                                                     variant="body"
                                                     color="textPrimary"

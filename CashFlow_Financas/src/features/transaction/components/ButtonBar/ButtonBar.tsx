@@ -21,6 +21,7 @@ import AppTransactionsService from '@/services/AppTransactionsService';
 import AppCategoryService from '@/services/AppCategoryService';
 import type { categories } from '@/features/category/schema';
 import { Box, Text, scale, type Theme } from '@/theme/unistyles';
+import { Skeleton } from '@/components/Skeleton/Skeleton';
 
 interface ButtonBarProps {
     onTransactionCreated?: () => void | Promise<void>;
@@ -111,7 +112,7 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
 
         if (normalizedDate) {
             if (normalizedDate.length !== 10) {
-                setError(t("transactions.invalidDate", "Insira uma data válida no formato DD/MM/AAAA."));
+                setError(t("transactions.invalidDate"));
                 return;
             }
 
@@ -121,7 +122,7 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
             const diaDigitado = Number(partesAno[2]);
 
             if (anoDigitado < 2000 || anoDigitado > new Date().getFullYear() + 2 || mesDigitado > 12 || diaDigitado > 31) {
-                setError(t("transactions.dateOutRange", "Por favor, insira uma data válida a partir do ano 2000."));
+                setError(t("transactions.dateOutRange"));
                 return;
             }
         }
@@ -343,7 +344,7 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
                                                         </Text>
                                                         <TextInput
                                                             style={[inputStyle(theme), { fontSize: scale(15), color: theme.colors.textPrimary }]}
-                                                            placeholder={i18n.language.startsWith('en') ? "YYYY-MM-DD" : "DD/MM/YYYY"}
+                                                            placeholder={i18n.language.startsWith('en') ? t("transactions.datePlaceholder") : t("transactions.datePlaceholderLocal")}
                                                             placeholderTextColor={theme.colors.placeholder}
                                                             keyboardType="numeric"
                                                             maxLength={10}
@@ -408,7 +409,7 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
                                                                 {t("transactions.categoryLabel")}
                                                             </Text>
                                                             {loadingCategories ? (
-                                                                <Text variant="body" color="textSecondary" style={{ paddingVertical: 2 }}>{t("common.loading")}</Text>
+                                                                <Skeleton width="60%" height={scale(18)} borderRadius={scale(8)} />
                                                             ) : filteredCategories.length > 0 ? (
                                                                 <Box flexDirection="row" style={{ gap: scale(8) }} flexWrap="wrap">
                                                                     {filteredCategories.map((category) => {

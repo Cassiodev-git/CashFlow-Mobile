@@ -97,6 +97,7 @@
         "dateLabel": "Date",
         "dateOutRange": "Please enter a valid date from the year 2000 onwards.",
         "datePlaceholder": "YYYY-MM-DD",
+        "datePlaceholderLocal": "DD/MM/YYYY",
         "categoryIdLabel": "Category ID",
         "categoryIdPlaceholder": "Optional",
         "errorDelete": "The transaction could not be deleted.",
@@ -216,6 +217,7 @@
             "endDate": "End",
             "invalidFormat": "Invalid format",
             "amountRange": "Amount Range",
+            "amountPlaceholder": "R$ 0.00",
             "min": "Min",
             "max": "Max",
             "categories": "Categories",
@@ -250,6 +252,18 @@
                 "sabado": "Saturday"
             }
         }
+    },
+    "security": {
+        "biometricEnable": "Enable biometrics",
+        "biometricSubtitle": "Require authentication when opening the app",
+        "authPrompt": "Confirm your biometrics to enable protection",
+        "unlockPrompt": "Authenticate to access CashFlow",
+        "fallbackLabel": "Use device passcode",
+        "notSupported": "Biometrics are not available on this device.",
+        "lockedTitle": "CashFlow locked",
+        "lockedSubtitle": "Confirm your identity to unlock your financial information.",
+        "unlockAction": "Unlock",
+        "authenticating": "Authenticating..."
     },
     "alerts": {
         "success": "Success",

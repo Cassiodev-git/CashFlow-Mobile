@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { TouchableOpacity, ActivityIndicator } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '@shopify/restyle';
 import { useTranslation } from 'react-i18next';
 import { MotiView } from 'moti';
 import { logger } from '@/utils/logger';
 import { Box, Text, scale, type Theme } from '@/theme/unistyles';
+import { Skeleton } from '@/components/Skeleton/Skeleton';
 
 interface ErrorStateProps {
     message?: string;
@@ -100,7 +101,7 @@ export function ErrorState({ message, onRetry }: ErrorStateProps) {
                     disabled={isRetrying} 
                 >
                     {isRetrying ? (
-                        <ActivityIndicator size="small" color={theme.colors.surface} />
+                        <Skeleton width={scale(74)} height={scale(16)} borderRadius={scale(8)} />
                     ) : (
                         <>
                             <Feather name="refresh-cw" size={scale(15)} color={theme.colors.surface} />
