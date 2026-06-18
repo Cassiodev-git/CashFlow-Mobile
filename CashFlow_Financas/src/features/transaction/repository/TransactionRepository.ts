@@ -10,7 +10,7 @@ export class TransactionRepository {
             ...data,
             id: uuid(),
             user_id: userId,
-        });
+        }).returning();
 
         return result;
     }

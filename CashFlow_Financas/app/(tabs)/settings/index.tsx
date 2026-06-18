@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next';
 import { SettingsItem } from '@/components/SettingsItem/SettingsItem';
 import { Box, Text, scale, verticalScale } from '@/theme/unistyles';
 
-
 export default function SettingsScreen() {
     const router = useRouter();
     const { t } = useTranslation();
@@ -29,7 +28,7 @@ export default function SettingsScreen() {
                 <MotiView
                     from={{ opacity: 0, translateY: 6 }}
                     animate={{ opacity: 1, translateY: 0 }}
-                    transition={{ type: 'timing', duration: 220 }}
+                    transition={{ type: 'timing', duration: 150 }}
                 >
                     <Box paddingTop="xxl" marginBottom="m">
                         <Text variant="titleLarge" color="textPrimary" fontWeight="700">
@@ -57,10 +56,16 @@ export default function SettingsScreen() {
                         icon="bell" 
                         title={t("settings.notifications")} 
                         subtitle={t("settings.notificationsSubtitle")} 
-                        onPress={() => {}} 
+                        onPress={() => router.push("/(tabs)/settings/notification")} 
                     />
 
                     <SectionTitle title={t("settings.preferences")} />
+                    <SettingsItem 
+                        icon="repeat" 
+                        title={t("settings.recurringTransactions")} 
+                        subtitle={t("settings.recurringTransactionsSubtitle")} 
+                        onPress={() => {}} 
+                    />
                     <SettingsItem 
                         icon="dollar-sign" 
                         title={t("settings.currency")} 
