@@ -3,8 +3,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useState, useEffect } from "react"; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from "@shopify/restyle";
-//compoenets
-import { TopBar, TopBarSkeleton } from "@/components/TopBar/TopBar";
+
+// components
+import { TopBar } from "@/components/TopBar/TopBar";
 import { BalanceCard, BalanceCardSkeleton } from "@/features/transaction/components/BalanceCard/BalanceCard";
 import { FinanceCard, FinanceCardSkeleton } from "@/features/transaction/components/FinanceCard/FinanceCard";
 import { RecentTransactions, RecentTransactionsSkeleton } from "@/features/transaction/components/RecentTransactions/RecentTransactions";
@@ -91,7 +92,8 @@ export default function HomeScreen() {
                 }}
                 showsVerticalScrollIndicator={false}
             >
-                {loadingUser ? <TopBarSkeleton /> : <TopBar user={user} />}
+                {/* Corrigido: Removido o Skeleton, tratando o loading apenas com a verificação de user */}
+                {!loadingUser && <TopBar user={user} />}
 
                 {hasError ? (
                     <ErrorState onRetry={refetch} />

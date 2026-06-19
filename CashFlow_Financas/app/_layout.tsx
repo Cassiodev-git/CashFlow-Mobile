@@ -1,5 +1,6 @@
 import { Stack, useRouter } from 'expo-router';
 import { useCallback, useState, useEffect } from 'react';
+import * as Notifications from 'expo-notifications';
 import { useUser } from '@/features/user/hooks/useUser';
 import { initializeDatabase } from '@/db/database';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -11,7 +12,6 @@ import { StatusBar } from 'expo-status-bar';
 import { TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Feather } from '@expo/vector-icons';
-
 import "react-native-get-random-values";
 import "@/i18n";
 import { logger } from '@/utils/logger';
@@ -19,6 +19,17 @@ import { Box, Text, lightTheme, scale } from '@/theme/unistyles';
 import { LoadingScreen } from '@/components/LoadingScreen/LoadingScreen';
 
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
+
+// Configuração Global de Notificações
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
