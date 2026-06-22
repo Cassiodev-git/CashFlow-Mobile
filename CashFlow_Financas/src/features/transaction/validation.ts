@@ -14,7 +14,13 @@ export const createTransactionSchema = z.object({
     status: z.enum(["paid","pending","canceled"]).default("pending").optional(),
     date: z.string().optional(),
     category_id: z.string().optional(),
+    is_recurring: z.boolean().default(false),
+    
+    frequency: z.enum(["daily", "weekly", "monthly", "yearly"]).optional(),
+    interval: z.number().int().min(1).default(1).optional(),
+    end_date: z.string().optional(),
 })
+
 export const updateTransactionSchema = z.object({
     title: z.string()
         .min(3, i18n.t("validation.transaction.titleTooShort"))
@@ -29,6 +35,11 @@ export const updateTransactionSchema = z.object({
     status: z.enum(["paid","pending","canceled"]).default("pending").optional(),
     date: z.string().optional(),
     category_id: z.string().optional(),
+    
+    is_recurring: z.boolean().optional(),
+    frequency: z.enum(["daily", "weekly", "monthly", "yearly"]).optional(),
+    interval: z.number().int().min(1).optional(),
+    end_date: z.string().optional(),
 })
 
 export type CreateTransactionDTO = z.infer<typeof createTransactionSchema>

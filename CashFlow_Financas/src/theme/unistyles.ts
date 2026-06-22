@@ -24,7 +24,6 @@ const lightTheme = createTheme({
     primary: "#289653",
     primaryDark: "#1E7A42",
     primaryLight: "#E4F5EA",
-
     success: "#289653",
     successLight: "#E4F5EA",
 

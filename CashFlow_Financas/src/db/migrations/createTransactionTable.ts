@@ -12,10 +12,13 @@ export default function createTransactionTable(db: SQlite.SQLiteDatabase){
             user_id TEXT NOT NULL,
             category_id TEXT,
             status TEXT DEFAULT 'pending' CHECK (status IN ('paid', 'canceled', 'pending')),
+            is_recurring INTEGER DEFAULT 0 NOT NULL,
+            recurrence_id TEXT,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
             updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id),
-            FOREIGN KEY (category_id) REFERENCES categories(id)
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (category_id) REFERENCES categories(id),
+            FOREIGN KEY (recurrence_id) REFERENCES recurrence_rules(id) ON DELETE SET NULL
         );
     `);
 }
