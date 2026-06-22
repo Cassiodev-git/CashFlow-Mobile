@@ -19,49 +19,68 @@ class TransactionService {
     async createTransaction(data: CreateTransactionDTO) {
         const userId = await getLocalUserId();
         
-        const result = await transacRepo.createTransaction(userId, data);
-        const transaction = Array.isArray(result) ? result[0] : result;
+        let recurrenceId: string | null = null;
 
         if (data.is_recurring && data.frequency) {
-            await recurrenceService.createRecurrence({
-                transaction_id: transaction.id,
+            const transactionDate = data.date || new Date().toISOString().split('T')[0];
+            
+            const recurrenceResult = await recurrenceService.createRecurrence({
                 frequency: data.frequency,
                 interval: data.interval || 1,
-                next_occurrence: data.date || new Date().toISOString(),
+                last_generated_date: transactionDate,
                 end_date: data.end_date
             });
+            
+            const recurrence = Array.isArray(recurrenceResult) ? recurrenceResult[0] : recurrenceResult;
+            recurrenceId = recurrence?.id || null;
         }
+        
+        const result = await transacRepo.createTransaction(userId, {
+            ...data,
+            recurrence_id: recurrenceId
+        });
+        const transaction = Array.isArray(result) ? result[0] : result;
 
         await scheduleDueNotification(transaction.id, data);
         return transaction;
     }
 
     async updateTransaction(id: string, data: UpdateTransactionDTO) {
-        const result = await transacRepo.updateTransaction(id, data);
-        
-        const existingRecurrence = await recurrenceService.findByTransactionId(id);
+        const currentTransaction = await transacRepo.findById(id);
+        let recurrenceId = currentTransaction?.recurrence_id || null;
 
         if (data.is_recurring) {
-            if (existingRecurrence) {
-                await recurrenceService.updateRecurrence(existingRecurrence.id, {
+            const transactionDate = data.date || new Date().toISOString().split('T')[0];
+
+            if (recurrenceId) {
+                await recurrenceService.updateRecurrence(recurrenceId, {
                     frequency: data.frequency,
                     interval: data.interval,
+                    last_generated_date: transactionDate,
                     end_date: data.end_date
                 });
             } else {
-                await recurrenceService.createRecurrence({
-                    transaction_id: id,
+                const newRecurrenceResult = await recurrenceService.createRecurrence({
                     frequency: data.frequency!,
                     interval: data.interval || 1,
-                    next_occurrence: data.date || new Date().toISOString(),
+                    last_generated_date: transactionDate,
                     end_date: data.end_date
                 });
+                
+                const newRecurrence = Array.isArray(newRecurrenceResult) ? newRecurrenceResult[0] : newRecurrenceResult;
+                recurrenceId = newRecurrence?.id || null;
             }
         } else {
-            if (existingRecurrence) {
-                await recurrenceService.deleteRecurrence(existingRecurrence.id);
+            if (recurrenceId) {
+                await recurrenceService.deleteRecurrence(recurrenceId);
+                recurrenceId = null;
             }
         }
+
+        const result = await transacRepo.updateTransaction(id, {
+            ...data,
+            recurrence_id: recurrenceId
+        });
 
         await notificationService.deleteNotification(id);
         await scheduleDueNotification(id, data);
@@ -69,15 +88,25 @@ class TransactionService {
         return result;
     }
 
+    async findById(id: string) {
+        return await transacRepo.findById(id);
+    }
+
     async deleteTransaction(id: string) {
-        await recurrenceService.deleteByTransactionId(id);
+        const transaction = await transacRepo.findById(id);
+        if (transaction?.recurrence_id) {
+            await recurrenceService.deleteRecurrence(transaction.recurrence_id);
+        }
         await notificationService.deleteNotification(id);
         return await transacRepo.deleteTransaction(id);
     }
 
     async deleteManyTransactions(ids: string[]) {
         for (const id of ids) {
-            await recurrenceService.deleteByTransactionId(id);
+            const transaction = await transacRepo.findById(id);
+            if (transaction?.recurrence_id) {
+                await recurrenceService.deleteRecurrence(transaction.recurrence_id);
+            }
             await notificationService.deleteNotification(id);
         }
         return await transacRepo.deleteManyTransactions(ids);

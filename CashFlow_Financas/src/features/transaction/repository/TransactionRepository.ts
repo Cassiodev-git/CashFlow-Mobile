@@ -50,4 +50,12 @@ export class TransactionRepository {
     async deleteManyTransactions(ids: string[]) {
         return await db.delete(transactions).where(inArray(transactions.id, ids));
     }
+    async findById(id: string) {
+        const result = await db
+            .select()
+            .from(transactions)
+            .where(eq(transactions.id, id));
+        
+        return result[0] || null;
+    }
 }

@@ -67,7 +67,7 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
     
     const [isRecurring, setIsRecurring] = useState(false);
     const [frequency, setFrequency] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
-    const [interval, setInterval] = useState('1');
+    const [interval, setInterval] = useState('');
     const [endDate, setEndDate] = useState('');
 
     const [categories, setCategories] = useState<Category[]>([]);
@@ -86,7 +86,7 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
         setStatus('paid');
         setIsRecurring(false);
         setFrequency('monthly');
-        setInterval('1');
+        setInterval('');
         setEndDate('');
         setError('');
         setFocusedSection(null);
@@ -96,6 +96,15 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
     const handleClose = () => {
         setIsOpen(false);
         setTimeout(() => resetForm(), 300);
+    };
+
+    const handleBackdropPress = () => {
+        if (focusedSection !== null) {
+            Keyboard.dismiss();
+            setFocusedSection(null);
+        } else {
+            handleClose();
+        }
     };
 
     const handleSave = async () => {
@@ -121,7 +130,7 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
                 category_id: categoryId.trim() || undefined,
                 is_recurring: isRecurring,
                 frequency: isRecurring ? frequency : undefined,
-                interval: isRecurring ? Number(interval) : undefined,
+                interval: isRecurring ? (Number(interval) || 1) : undefined,
                 end_date: (isRecurring && endDate) ? formatToBackendDate(endDate, i18n.language) : undefined,
             });
 
@@ -148,9 +157,7 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
 
     useEffect(() => {
         const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-            setTimeout(() => {
-                setFocusedSection(null);
-            }, 150);
+            setFocusedSection(null);
         });
         return () => hideSubscription.remove();
     }, []);
@@ -176,15 +183,15 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
 
             <Modal visible={isOpen} transparent animationType="fade" statusBarTranslucent presentationStyle="overFullScreen" onRequestClose={handleClose}>
                 <BlurView intensity={70} tint="dark" style={StyleSheet.absoluteFillObject}>
-                    <Pressable style={StyleSheet.absoluteFillObject} onPress={handleClose} />
+                    <Pressable style={StyleSheet.absoluteFillObject} onPress={handleBackdropPress} />
                     
                     <KeyboardAvoidingView 
                         behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
                         style={{ 
                             flex: 1, 
-                            justifyContent: focusedSection ? 'flex-end' : 'center', 
+                            justifyContent: 'center', 
                             paddingHorizontal: scale(16),
-                            paddingBottom: focusedSection ? scale(24) : scale(56)
+                            paddingBottom: scale(24)
                         }}
                     >
                         <AnimatePresence>
@@ -264,7 +271,7 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
                                                     <Box borderTopWidth={focusedSection === 'recurrence' ? 0 : 1} borderColor="inputBorder" paddingTop={focusedSection === 'recurrence' ? 'none' : 's'}>
                                                         {focusedSection !== 'recurrence' && (
                                                             <>
-                                                                <Text variant="body" fontWeight="600" marginBottom="xs">Recorrência</Text>
+                                                                <Text variant="body" fontWeight="600" marginBottom="xs">Transação recorrente?</Text>
                                                                 <TouchableOpacity style={[choiceButtonStyle(theme), isRecurring && activeChoiceStyle(theme)]} onPress={() => setIsRecurring(!isRecurring)}>
                                                                     <Text color={isRecurring ? 'primary' : 'textSecondary'}>{isRecurring ? 'Sim' : 'Não'}</Text>
                                                                 </TouchableOpacity>
@@ -282,7 +289,7 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
                                                                         </TouchableOpacity>
                                                                     ))}
                                                                 </ScrollView>
-                                                                <TextInput style={[inputStyle(theme), { marginBottom: scale(8) }]} placeholder="Intervalo (ex: 1)" placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" value={interval} onChangeText={setInterval} onFocus={() => setFocusedSection('recurrence')} />
+                                                                <TextInput style={[inputStyle(theme), { marginBottom: scale(8) }]} placeholder="A cada quantos períodos? (ex: 1)" placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" value={interval} onChangeText={setInterval} onFocus={() => setFocusedSection('recurrence')} />
                                                                 <TextInput style={inputStyle(theme)} placeholder="Data final (DD/MM/AAAA)" placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" maxLength={10} value={endDate} onChangeText={(t) => setEndDate(applyDateMask(t, i18n.language))} onFocus={() => setFocusedSection('recurrence')} />
                                                             </Box>
                                                         )}
