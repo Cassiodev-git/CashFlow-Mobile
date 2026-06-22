@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
     StyleSheet,
     TouchableOpacity,
@@ -75,21 +75,20 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
     const [loading, setLoading] = useState(false);
     const [loadingCategories, setLoadingCategories] = useState(false);
     const [focusedSection, setFocusedSection] = useState<'basic' | 'recurrence' | null>(null);
+    const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const triggerError = (errorMessage: string) => {
+        setError(errorMessage);
+        if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+        errorTimeoutRef.current = setTimeout(() => setError(''), 6000);
+    };
 
     const resetForm = () => {
-        setTitle('');
-        setDescription('');
-        setAmount('');
-        setDate('');
-        setCategoryId('');
-        setType('expense');
-        setStatus('paid');
-        setIsRecurring(false);
-        setFrequency('monthly');
-        setInterval('');
-        setEndDate('');
-        setError('');
+        setTitle(''); setDescription(''); setAmount(''); setDate(''); setCategoryId('');
+        setType('expense'); setStatus('paid'); setIsRecurring(false);
+        setFrequency('monthly'); setInterval(''); setEndDate(''); setError('');
         setFocusedSection(null);
+        if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
     };
 
     const handleOpen = () => setIsOpen(true);
@@ -113,13 +112,13 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
         const normalizedDate = date.trim() ? formatToBackendDate(date.trim(), i18n.language) : undefined;
 
         if (!normalizedTitle || Number.isNaN(normalizedAmount) || normalizedAmount <= 0) {
-            setError(t("transactions.invalidCreateData"));
+            triggerError(t("transactions.invalidCreateData"));
             return;
         }
 
         try {
             setLoading(true);
-            setError('');
+            Keyboard.dismiss();
             await createTransaction({
                 title: normalizedTitle,
                 description: description.trim() || undefined,
@@ -138,7 +137,7 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
             handleClose();
             await onTransactionCreated?.();
         } catch {
-            setError(t("errors.unexpected"));
+            triggerError(t("errors.unexpected"));
         } finally {
             setLoading(false);
         }
@@ -156,11 +155,14 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
     }, [isOpen]);
 
     useEffect(() => {
-        const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-            setFocusedSection(null);
-        });
-        return () => hideSubscription.remove();
+        const hideSubscription = Keyboard.addListener('keyboardDidHide', () => setFocusedSection(null));
+        return () => {
+            hideSubscription.remove();
+            if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+        };
     }, []);
+
+    useEffect(() => { setCategoryId(''); }, [type]);
 
     const showBasic = focusedSection !== 'recurrence';
     const showMiddle = focusedSection === null;
@@ -169,14 +171,7 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
     return (
         <Box alignItems="center" justifyContent="center">
             <TouchableOpacity activeOpacity={0.85} onPress={isOpen ? handleClose : handleOpen}>
-                <MotiView 
-                    animate={{ 
-                        rotate: isOpen ? '45deg' : '0deg', 
-                        backgroundColor: isOpen ? theme.colors.danger : theme.colors.primary 
-                    }} 
-                    transition={{ type: 'timing', duration: 250 }} 
-                    style={plusButtonStyle(theme)}
-                >
+                <MotiView animate={{ rotate: isOpen ? '45deg' : '0deg', backgroundColor: isOpen ? theme.colors.danger : theme.colors.primary }} transition={{ type: 'timing', duration: 250 }} style={plusButtonStyle(theme)}>
                     <Feather name="plus" size={26} color={theme.colors.textInverse} />
                 </MotiView>
             </TouchableOpacity>
@@ -184,111 +179,60 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
             <Modal visible={isOpen} transparent animationType="fade" statusBarTranslucent presentationStyle="overFullScreen" onRequestClose={handleClose}>
                 <BlurView intensity={70} tint="dark" style={StyleSheet.absoluteFillObject}>
                     <Pressable style={StyleSheet.absoluteFillObject} onPress={handleBackdropPress} />
-                    
-                    <KeyboardAvoidingView 
-                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
-                        style={{ 
-                            flex: 1, 
-                            justifyContent: 'center', 
-                            paddingHorizontal: scale(16),
-                            paddingBottom: scale(24)
-                        }}
-                    >
+                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1, justifyContent: 'center', paddingHorizontal: scale(16), paddingBottom: scale(24) }}>
                         <AnimatePresence>
                             {isOpen && (
-                                <MotiView
-                                    from={{ opacity: 0, scale: 0.9, translateY: 30 }}
-                                    animate={{ opacity: 1, scale: 1, translateY: 0 }}
-                                    exit={{ opacity: 0, scale: 0.9, translateY: 30 }}
-                                    transition={{ type: 'timing', duration: 250 }}
-                                    style={{ width: '100%', maxHeight: Math.min(height * 0.78, 580) }}
-                                >
+                                <MotiView from={{ opacity: 0, scale: 0.9, translateY: 30 }} animate={{ opacity: 1, scale: 1, translateY: 0 }} exit={{ opacity: 0, scale: 0.9, translateY: 30 }} transition={{ type: 'timing', duration: 250 }} style={{ width: '100%', maxHeight: Math.min(height * 0.85, 640) }}>
                                     <Box backgroundColor="card" borderRadius="xl" borderWidth={scale(1)} borderColor="border" overflow="hidden">
-                                        <Box padding="m" borderBottomWidth={1} borderColor="inputBorder">
-                                            <Text variant="titleMedium" fontWeight="700">{t("transactions.newTransaction")}</Text>
-                                        </Box>
-
-                                        <ScrollView 
-                                            showsVerticalScrollIndicator={false} 
-                                            keyboardShouldPersistTaps="handled"
-                                            contentContainerStyle={{ padding: scale(16) }}
-                                        >
+                                        <Box padding="m" borderBottomWidth={1} borderColor="inputBorder"><Text variant="titleMedium" fontWeight="700">{t("transactions.newTransaction")}</Text></Box>
+                                        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: scale(16) }}>
                                             {showBasic && (
                                                 <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 200 }}>
-                                                    <Box width="100%" marginBottom="s">
-                                                        <Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.title")}</Text>
-                                                        <TextInput style={inputStyle(theme)} placeholder={t("transactions.titlePlaceholder")} placeholderTextColor={theme.colors.textSecondary} value={title} onChangeText={setTitle} onFocus={() => setFocusedSection('basic')} />
-                                                    </Box>
-
-                                                    <Box width="100%" marginBottom="s">
-                                                        <Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.descriptionLabel")}</Text>
-                                                        <TextInput style={[inputStyle(theme), { height: scale(80) }]} multiline placeholder={t("transactions.descriptionPlaceholder")} placeholderTextColor={theme.colors.textSecondary} value={description} onChangeText={setDescription} onFocus={() => setFocusedSection('basic')} />
-                                                    </Box>
+                                                    <Box width="100%" marginBottom="s"><Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.title")}</Text><TextInput style={inputStyle(theme)} placeholder={t("transactions.titlePlaceholder")} placeholderTextColor={theme.colors.textSecondary} value={title} onChangeText={setTitle} onFocus={() => setFocusedSection('basic')} /></Box>
+                                                    <Box width="100%" marginBottom="s"><Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.descriptionLabel")}</Text><TextInput style={[inputStyle(theme), { height: scale(80) }]} multiline placeholder={t("transactions.descriptionPlaceholder")} placeholderTextColor={theme.colors.textSecondary} value={description} onChangeText={setDescription} onFocus={() => setFocusedSection('basic')} /></Box>
                                                 </MotiView>
                                             )}
-
                                             {showMiddle && (
                                                 <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 200 }}>
                                                     <Box flexDirection="row" gap="s" marginBottom="s">
-                                                        <Box flex={1}>
-                                                            <Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.amountLabel")}</Text>
-                                                            <TextInput style={inputStyle(theme)} placeholder={t("transactions.amountPlaceholder")} placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" value={amount} onChangeText={setAmount} />
-                                                        </Box>
-                                                        <Box flex={1}>
-                                                            <Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.dateLabel")}</Text>
-                                                            <TextInput style={inputStyle(theme)} placeholder={i18n.language.startsWith('en') ? t("transactions.datePlaceholder") : t("transactions.datePlaceholderLocal")} placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" maxLength={10} value={date} onChangeText={(t) => setDate(applyDateMask(t, i18n.language))} />
-                                                        </Box>
+                                                        <Box flex={1}><Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.amountLabel")}</Text><TextInput style={inputStyle(theme)} placeholder={t("transactions.amountPlaceholder")} placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" value={amount} onChangeText={setAmount} /></Box>
+                                                        <Box flex={1}><Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.dateLabel")}</Text><TextInput style={inputStyle(theme)} placeholder={i18n.language.startsWith('en') ? t("transactions.datePlaceholder") : t("transactions.datePlaceholderLocal")} placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" maxLength={10} value={date} onChangeText={(t) => setDate(applyDateMask(t, i18n.language))} /></Box>
                                                     </Box>
-
+                                                    <Box marginBottom="s"><Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.typeLabel")}</Text><Box flexDirection="row" gap="s">{(['income', 'expense'] as const).map((opt) => (<TouchableOpacity key={opt} style={[choiceButtonStyle(theme), type === opt && activeChoiceStyle(theme)]} onPress={() => setType(opt)}><Text color={type === opt ? 'primary' : 'textSecondary'}>{t(`transactions.${opt}`)}</Text></TouchableOpacity>))}</Box></Box>
+                                                    
                                                     <Box marginBottom="s">
-                                                        <Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.typeLabel")}</Text>
-                                                        <Box flexDirection="row" gap="s">
-                                                            {(['income', 'expense'] as const).map((opt) => (
-                                                                <TouchableOpacity key={opt} style={[choiceButtonStyle(theme), type === opt && activeChoiceStyle(theme)]} onPress={() => setType(opt)}>
-                                                                    <Text color={type === opt ? 'primary' : 'textSecondary'}>{t(`transactions.${opt}`)}</Text>
+                                                        <Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.statusLabel")}</Text>
+                                                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: scale(8) }}>
+                                                            {(['paid', 'pending', 'canceled'] as const).map((opt) => (
+                                                                <TouchableOpacity key={opt} style={[choiceButtonStyle(theme), status === opt && activeChoiceStyle(theme)]} onPress={() => setStatus(opt)}>
+                                                                    <Text color={status === opt ? 'primary' : 'textSecondary'}>{t(`transactions.status.${opt}`)}</Text>
                                                                 </TouchableOpacity>
                                                             ))}
-                                                        </Box>
+                                                        </ScrollView>
                                                     </Box>
 
                                                     <Box marginBottom="s">
                                                         <Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.categoryLabel")}</Text>
                                                         {loadingCategories ? <Skeleton width="60%" height={20} /> : (
                                                             <Box flexDirection="row" gap="s" flexWrap="wrap">
-                                                                {filteredCategories.map((c) => (
-                                                                    <TouchableOpacity key={c.id} style={[choiceButtonStyle(theme), categoryId === c.id && activeChoiceStyle(theme)]} onPress={() => setCategoryId(c.id)}>
-                                                                        <Text color={categoryId === c.id ? 'primary' : 'textSecondary'}>{c.name}</Text>
-                                                                    </TouchableOpacity>
-                                                                ))}
+                                                                {filteredCategories.map((c) => (<TouchableOpacity key={c.id} style={[choiceButtonStyle(theme), categoryId === c.id && activeChoiceStyle(theme)]} onPress={() => setCategoryId(c.id)}><Text color={categoryId === c.id ? 'primary' : 'textSecondary'}>{c.name}</Text></TouchableOpacity>))}
                                                             </Box>
                                                         )}
                                                     </Box>
                                                 </MotiView>
                                             )}
-
                                             {showRecurrence && (
                                                 <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 200 }} style={{ marginBottom: scale(8) }}>
                                                     <Box borderTopWidth={focusedSection === 'recurrence' ? 0 : 1} borderColor="inputBorder" paddingTop={focusedSection === 'recurrence' ? 'none' : 's'}>
                                                         {focusedSection !== 'recurrence' && (
                                                             <>
                                                                 <Text variant="body" fontWeight="600" marginBottom="xs">Transação recorrente?</Text>
-                                                                <TouchableOpacity style={[choiceButtonStyle(theme), isRecurring && activeChoiceStyle(theme)]} onPress={() => setIsRecurring(!isRecurring)}>
-                                                                    <Text color={isRecurring ? 'primary' : 'textSecondary'}>{isRecurring ? 'Sim' : 'Não'}</Text>
-                                                                </TouchableOpacity>
+                                                                <TouchableOpacity style={[choiceButtonStyle(theme), isRecurring && activeChoiceStyle(theme)]} onPress={() => setIsRecurring(!isRecurring)}><Text color={isRecurring ? 'primary' : 'textSecondary'}>{isRecurring ? 'Sim' : 'Não'}</Text></TouchableOpacity>
                                                             </>
                                                         )}
-                                                        
                                                         {(isRecurring || focusedSection === 'recurrence') && (
                                                             <Box marginTop={focusedSection === 'recurrence' ? 'none' : 's'} padding="s" backgroundColor="inputBackground" borderRadius="s">
-                                                                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: scale(8), marginBottom: scale(8) }}>
-                                                                    {(['daily', 'weekly', 'monthly', 'yearly'] as const).map((f) => (
-                                                                        <TouchableOpacity key={f} style={[choiceButtonStyle(theme), frequency === f && activeChoiceStyle(theme)]} onPress={() => setFrequency(f)}>
-                                                                            <Text variant="caption" color={frequency === f ? 'primary' : 'textSecondary'}>
-                                                                                {f === 'daily' ? 'Diário' : f === 'weekly' ? 'Semanal' : f === 'monthly' ? 'Mensal' : 'Anual'}
-                                                                            </Text>
-                                                                        </TouchableOpacity>
-                                                                    ))}
-                                                                </ScrollView>
+                                                                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: scale(8), marginBottom: scale(8) }}>{(['daily', 'weekly', 'monthly', 'yearly'] as const).map((f) => (<TouchableOpacity key={f} style={[choiceButtonStyle(theme), frequency === f && activeChoiceStyle(theme)]} onPress={() => setFrequency(f)}><Text variant="caption" color={frequency === f ? 'primary' : 'textSecondary'}>{f === 'daily' ? 'Diário' : f === 'weekly' ? 'Semanal' : f === 'monthly' ? 'Mensal' : 'Anual'}</Text></TouchableOpacity>))}</ScrollView>
                                                                 <TextInput style={[inputStyle(theme), { marginBottom: scale(8) }]} placeholder="A cada quantos períodos? (ex: 1)" placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" value={interval} onChangeText={setInterval} onFocus={() => setFocusedSection('recurrence')} />
                                                                 <TextInput style={inputStyle(theme)} placeholder="Data final (DD/MM/AAAA)" placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" maxLength={10} value={endDate} onChangeText={(t) => setEndDate(applyDateMask(t, i18n.language))} onFocus={() => setFocusedSection('recurrence')} />
                                                             </Box>
@@ -296,16 +240,8 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
                                                     </Box>
                                                 </MotiView>
                                             )}
-
-                                            {error ? (
-                                                <Box marginBottom="s" marginTop="s">
-                                                    <Text color="danger" variant="caption">{error}</Text>
-                                                </Box>
-                                            ) : null}
-
-                                            <TouchableOpacity style={saveButtonStyle(theme)} onPress={handleSave} disabled={loading}>
-                                                <Text color="textInverse" fontWeight="600">{loading ? t("common.loading") : t("transactions.add")}</Text>
-                                            </TouchableOpacity>
+                                            {error ? <Box marginBottom="s" marginTop="s"><Text color="danger" variant="caption">{error}</Text></Box> : null}
+                                            <TouchableOpacity style={saveButtonStyle(theme)} onPress={handleSave} disabled={loading}><Text color="textInverse" fontWeight="600">{loading ? t("common.loading") : t("transactions.add")}</Text></TouchableOpacity>
                                         </ScrollView>
                                     </Box>
                                 </MotiView>
