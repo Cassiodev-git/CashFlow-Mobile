@@ -11,7 +11,8 @@ class NotificationService {
         
         const result = await notificationRepo.createNotification(validatedData);
         
-        const dbId = (result as any).lastInsertRowId || (result as any).id;
+        const notification = Array.isArray(result) ? result[0] : result;
+        const dbId = notification.id;
 
         const triggerDate = new Date(validatedData.trigger_date);
         const now = new Date();
@@ -36,7 +37,7 @@ class NotificationService {
         await notificationRepo.updateNotification(String(dbId), { expo_id: expoNotificationId });
 
         logger.log(`Notificação agendada: ${expoNotificationId}`);
-        return result;
+        return notification;
     }
 
     async updateNotification(id: string, data: UpdateNotificationInput) {
@@ -50,6 +51,10 @@ class NotificationService {
 
     async listUnread() {
         return await notificationRepo.listUnreadNotifications();
+    }
+
+    async listNotifications() {
+        return await notificationRepo.listNotifications();
     }
 
     async linkNotificationToTransaction(transactionId: string, expoId: string) {
@@ -72,6 +77,20 @@ class NotificationService {
         }
 
         return await notificationRepo.deleteNotification(id);
+    }
+
+    async deleteByTransactionId(transactionId: string) {
+        const notificationId = await notificationRepo.getExpoIdByTransactionId(transactionId);
+
+        if (notificationId) {
+            try {
+                await Notifications.cancelScheduledNotificationAsync(notificationId);
+            } catch (error) {
+                logger.error("Erro ao cancelar agendamento da transação:", error);
+            }
+        }
+
+        return await notificationRepo.deleteByTransactionId(transactionId);
     }
 
     async deleteAllNotifications() {

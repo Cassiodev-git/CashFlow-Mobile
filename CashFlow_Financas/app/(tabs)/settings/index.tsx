@@ -1,14 +1,17 @@
-import { ScrollView } from 'react-native';
+import { ScrollView, TouchableOpacity } from 'react-native';
 import { MotiView } from 'moti';
+import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '@shopify/restyle';
 
 import { SettingsItem } from '@/components/SettingsItem/SettingsItem';
-import { Box, Text, scale, verticalScale } from '@/theme/unistyles';
+import { Box, Text, scale, verticalScale, type Theme } from '@/theme/unistyles';
 
 export default function SettingsScreen() {
     const router = useRouter();
     const { t } = useTranslation();
+    const theme = useTheme<Theme>();
 
     const SectionTitle = ({ title }: { title: string }) => (
         <Text variant="body" fontWeight="700" color="primary" marginTop="m" marginBottom="s">
@@ -30,13 +33,34 @@ export default function SettingsScreen() {
                     animate={{ opacity: 1, translateY: 0 }}
                     transition={{ type: 'timing', duration: 150 }}
                 >
-                    <Box paddingTop="xxl" marginBottom="m">
-                        <Text variant="titleLarge" color="textPrimary" fontWeight="700">
-                            {t("settings.title")}
-                        </Text>
-                        <Text variant="body" color="textSecondary" marginTop="xs">
-                            {t("settings.subtitle")}
-                        </Text>
+                    <Box paddingTop="xxl" marginBottom="m" flexDirection="row" alignItems="center" justifyContent="space-between">
+                        <Box flex={1} marginRight="m">
+                            <Text variant="titleLarge" color="textPrimary" fontWeight="700">
+                                {t("settings.title")}
+                            </Text>
+                            <Text variant="body" color="textSecondary" marginTop="xs">
+                                {t("settings.subtitle")}
+                            </Text>
+                        </Box>
+
+                        <TouchableOpacity
+                            activeOpacity={0.75}
+                            accessibilityRole="button"
+                            accessibilityLabel={t("notifications.openList")}
+                            onPress={() => router.push("/(tabs)/settings/notification-list")}
+                            style={{
+                                width: scale(42),
+                                height: scale(42),
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: scale(12),
+                                backgroundColor: theme.colors.surface,
+                                borderWidth: 1,
+                                borderColor: theme.colors.border,
+                            }}
+                        >
+                            <Feather name="bell" size={scale(20)} color={theme.colors.textPrimary} />
+                        </TouchableOpacity>
                     </Box>
 
                     <SectionTitle title={t("settings.account")} />
@@ -64,7 +88,7 @@ export default function SettingsScreen() {
                         icon="repeat" 
                         title={t("settings.recurringTransactions")} 
                         subtitle={t("settings.recurringTransactionsSubtitle")} 
-                        onPress={() => {}} 
+                        onPress={() => router.push("/(tabs)/settings/recurring")}
                     />
                     <SettingsItem 
                         icon="dollar-sign" 

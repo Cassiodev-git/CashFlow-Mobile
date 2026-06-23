@@ -25,6 +25,8 @@ import { Skeleton } from '@/components/Skeleton/Skeleton';
 
 interface ButtonBarProps {
     onTransactionCreated?: () => void | Promise<void>;
+    onPress?: () => void;
+    useExternalAction?: boolean;
 }
 
 type Category = typeof categories.$inferSelect;
@@ -50,7 +52,7 @@ const formatToBackendDate = (dateStr: string, lang: string): string => {
     return dateStr;
 };
 
-export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
+export function ButtonBar({ onTransactionCreated, onPress, useExternalAction = false }: ButtonBarProps) {
     const { t, i18n } = useTranslation();
     const theme = useTheme<Theme>();
     const { height } = useWindowDimensions();
@@ -91,7 +93,13 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
         if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
     };
 
-    const handleOpen = () => setIsOpen(true);
+    const handleOpen = () => {
+        if (useExternalAction) {
+            onPress?.();
+            return;
+        }
+        setIsOpen(true);
+    };
     const handleClose = () => {
         setIsOpen(false);
         setTimeout(() => resetForm(), 300);
@@ -226,15 +234,15 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
                                                     <Box borderTopWidth={focusedSection === 'recurrence' ? 0 : 1} borderColor="inputBorder" paddingTop={focusedSection === 'recurrence' ? 'none' : 's'}>
                                                         {focusedSection !== 'recurrence' && (
                                                             <>
-                                                                <Text variant="body" fontWeight="600" marginBottom="xs">Transação recorrente?</Text>
-                                                                <TouchableOpacity style={[choiceButtonStyle(theme), isRecurring && activeChoiceStyle(theme)]} onPress={() => setIsRecurring(!isRecurring)}><Text color={isRecurring ? 'primary' : 'textSecondary'}>{isRecurring ? 'Sim' : 'Não'}</Text></TouchableOpacity>
+                                                                <Text variant="body" fontWeight="600" marginBottom="xs">{t("recurrence.form.isRecurring")}</Text>
+                                                                <TouchableOpacity style={[choiceButtonStyle(theme), isRecurring && activeChoiceStyle(theme)]} onPress={() => setIsRecurring(!isRecurring)}><Text color={isRecurring ? 'primary' : 'textSecondary'}>{isRecurring ? t("common.yes") : t("common.no")}</Text></TouchableOpacity>
                                                             </>
                                                         )}
                                                         {(isRecurring || focusedSection === 'recurrence') && (
                                                             <Box marginTop={focusedSection === 'recurrence' ? 'none' : 's'} padding="s" backgroundColor="inputBackground" borderRadius="s">
-                                                                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: scale(8), marginBottom: scale(8) }}>{(['daily', 'weekly', 'monthly', 'yearly'] as const).map((f) => (<TouchableOpacity key={f} style={[choiceButtonStyle(theme), frequency === f && activeChoiceStyle(theme)]} onPress={() => setFrequency(f)}><Text variant="caption" color={frequency === f ? 'primary' : 'textSecondary'}>{f === 'daily' ? 'Diário' : f === 'weekly' ? 'Semanal' : f === 'monthly' ? 'Mensal' : 'Anual'}</Text></TouchableOpacity>))}</ScrollView>
-                                                                <TextInput style={[inputStyle(theme), { marginBottom: scale(8) }]} placeholder="A cada quantos períodos? (ex: 1)" placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" value={interval} onChangeText={setInterval} onFocus={() => setFocusedSection('recurrence')} />
-                                                                <TextInput style={inputStyle(theme)} placeholder="Data final (DD/MM/AAAA)" placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" maxLength={10} value={endDate} onChangeText={(t) => setEndDate(applyDateMask(t, i18n.language))} onFocus={() => setFocusedSection('recurrence')} />
+                                                                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: scale(8), marginBottom: scale(8) }}>{(['daily', 'weekly', 'monthly', 'yearly'] as const).map((f) => (<TouchableOpacity key={f} style={[choiceButtonStyle(theme), frequency === f && activeChoiceStyle(theme)]} onPress={() => setFrequency(f)}><Text variant="caption" color={frequency === f ? 'primary' : 'textSecondary'}>{t(`recurrence.frequency.${f}`)}</Text></TouchableOpacity>))}</ScrollView>
+                                                                <TextInput style={[inputStyle(theme), { marginBottom: scale(8) }]} placeholder={t("recurrence.form.intervalPlaceholder")} placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" value={interval} onChangeText={setInterval} onFocus={() => setFocusedSection('recurrence')} />
+                                                                <TextInput style={inputStyle(theme)} placeholder={i18n.language.startsWith('en') ? t("recurrence.form.endDatePlaceholder") : t("recurrence.form.endDatePlaceholderLocal")} placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" maxLength={10} value={endDate} onChangeText={(t) => setEndDate(applyDateMask(t, i18n.language))} onFocus={() => setFocusedSection('recurrence')} />
                                                             </Box>
                                                         )}
                                                     </Box>

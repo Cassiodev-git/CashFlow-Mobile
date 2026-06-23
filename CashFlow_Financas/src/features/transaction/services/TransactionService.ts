@@ -19,70 +19,52 @@ class TransactionService {
     async createTransaction(data: CreateTransactionDTO) {
         const userId = await getLocalUserId();
         
-        let recurrenceId: string | null = null;
+        const result = await transacRepo.createTransaction(userId, data);
+        const transaction = Array.isArray(result) ? result[0] : result;
 
         if (data.is_recurring && data.frequency) {
             const transactionDate = data.date || new Date().toISOString().split('T')[0];
             
-            const recurrenceResult = await recurrenceService.createRecurrence({
+            await recurrenceService.createRecurrence({
                 frequency: data.frequency,
-                interval: data.interval || 1,
-                last_generated_date: transactionDate,
+                interval: data.interval,
+                date: transactionDate,
                 end_date: data.end_date
-            });
-            
-            const recurrence = Array.isArray(recurrenceResult) ? recurrenceResult[0] : recurrenceResult;
-            recurrenceId = recurrence?.id || null;
+            }, transaction.id, userId);
         }
         
-        const result = await transacRepo.createTransaction(userId, {
-            ...data,
-            recurrence_id: recurrenceId
-        });
-        const transaction = Array.isArray(result) ? result[0] : result;
-
         await scheduleDueNotification(transaction.id, data);
         return transaction;
     }
 
     async updateTransaction(id: string, data: UpdateTransactionDTO) {
-        const currentTransaction = await transacRepo.findById(id);
-        let recurrenceId = currentTransaction?.recurrence_id || null;
-
         if (data.is_recurring) {
             const transactionDate = data.date || new Date().toISOString().split('T')[0];
+            const existingRecurrence = await recurrenceService.findByTransactionId(id);
 
-            if (recurrenceId) {
-                await recurrenceService.updateRecurrence(recurrenceId, {
+            if (existingRecurrence) {
+                await recurrenceService.updateRecurrence(existingRecurrence.id, {
                     frequency: data.frequency,
                     interval: data.interval,
-                    last_generated_date: transactionDate,
+                    date: transactionDate,
                     end_date: data.end_date
                 });
             } else {
-                const newRecurrenceResult = await recurrenceService.createRecurrence({
+                const userId = await getLocalUserId();
+                await recurrenceService.createRecurrence({
                     frequency: data.frequency!,
-                    interval: data.interval || 1,
-                    last_generated_date: transactionDate,
+                    interval: data.interval,
+                    date: transactionDate,
                     end_date: data.end_date
-                });
-                
-                const newRecurrence = Array.isArray(newRecurrenceResult) ? newRecurrenceResult[0] : newRecurrenceResult;
-                recurrenceId = newRecurrence?.id || null;
+                }, id, userId);
             }
         } else {
-            if (recurrenceId) {
-                await recurrenceService.deleteRecurrence(recurrenceId);
-                recurrenceId = null;
-            }
+            await recurrenceService.deleteByTransactionId(id);
         }
 
-        const result = await transacRepo.updateTransaction(id, {
-            ...data,
-            recurrence_id: recurrenceId
-        });
+        const result = await transacRepo.updateTransaction(id, data);
 
-        await notificationService.deleteNotification(id);
+        await notificationService.deleteByTransactionId(id);
         await scheduleDueNotification(id, data);
         
         return result;
@@ -93,37 +75,32 @@ class TransactionService {
     }
 
     async deleteTransaction(id: string) {
-        const transaction = await transacRepo.findById(id);
-        if (transaction?.recurrence_id) {
-            await recurrenceService.deleteRecurrence(transaction.recurrence_id);
-        }
-        await notificationService.deleteNotification(id);
+        await recurrenceService.deleteByTransactionId(id);
+        await notificationService.deleteByTransactionId(id);
         return await transacRepo.deleteTransaction(id);
     }
 
     async deleteManyTransactions(ids: string[]) {
         for (const id of ids) {
-            const transaction = await transacRepo.findById(id);
-            if (transaction?.recurrence_id) {
-                await recurrenceService.deleteRecurrence(transaction.recurrence_id);
-            }
-            await notificationService.deleteNotification(id);
+            await recurrenceService.deleteByTransactionId(id);
+            await notificationService.deleteByTransactionId(id);
         }
         return await transacRepo.deleteManyTransactions(ids);
     }
 
     async listTransactions(options?: { limit?: number; offset?: number }) {
         const userId = await getLocalUserId();
+        await recurrenceService.processRecurrences(userId);
         return await transacRepo.listTransactions(userId, options);
     }
 
     async sendTestNotification() {
         await notificationService.createNotification({
             type: 'due_date',
-            title: "Teste de Notificação",
-            body: "Isso é um teste do sistema de notificações!",
+            title: i18n.t("notifications.testTitle"),
+            body: i18n.t("notifications.testBody"),
             trigger_date: new Date().toISOString(),
-            transaction_id: 'test-id',
+            transaction_id: null,
             is_active: true,
             is_read: false
         });

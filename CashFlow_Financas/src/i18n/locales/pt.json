@@ -61,7 +61,19 @@
         "transaction": {
             "titleTooShort": "Título muito curto",
             "titleTooLong": "Título muito longo",
-            "descriptionTooLong": "Descrição muito longa"
+            "descriptionTooLong": "Descrição muito longa",
+            "intervalTooSmall": "O intervalo deve ser maior ou igual a 1"
+        },
+        "category": {
+            "nameRequired": "O nome da categoria é obrigatório"
+        },
+        "notification": {
+            "invalidId": "Formato de ID inválido",
+            "titleRequired": "O título é obrigatório",
+            "bodyRequired": "O corpo da mensagem é obrigatório",
+            "titleTooLong": "O título deve ter no máximo 100 caracteres",
+            "bodyTooLong": "O corpo da mensagem deve ter no máximo 255 caracteres",
+            "invalidDate": "Data inválida"
         }
     },
     "user": {
@@ -149,6 +161,24 @@
         "entertainment": "Lazer",
         "createCategory": "Crie sua categoria"
     },
+    "notifications": {
+        "enable": "Ativar notificações",
+        "reminders": "Lembretes de vencimento",
+        "reports": "Relatórios mensais",
+        "clearHistory": "Limpar histórico",
+        "historyTitle": "Lista de notificações",
+        "openList": "Abrir lista de notificações",
+        "empty": "Nenhuma notificação registrada",
+        "loadError": "Não foi possível carregar as notificações.",
+        "read": "Lida",
+        "unread": "Nova",
+        "dueDateTitle": "Atenção ao vencimento",
+        "dueDateBody": "Sua conta '{{title}}' está com vencimento próximo.",
+        "monthlyReportTitle": "Relatório mensal",
+        "monthlyReportBody": "O relatório do mês de {{month}} está pronto!",
+        "testTitle": "Teste de notificação",
+        "testBody": "Isso é um teste do sistema de notificações."
+    },
     "settings": {
         "title": "Configurações",
         "subtitle": "Gerencie suas preferências",
@@ -170,6 +200,8 @@
         "about": "Sobre",
         "defaultCategory": "Categoria padrão",
         "manageCategories": "Gerenciar categorias",
+        "recurringTransactions": "Transações recorrentes",
+        "recurringTransactionsSubtitle": "Gerencie contas e receitas fixas",
         "exportData": "Exportar dados",
         "exportDataSubtitle": "Exporte seus dados financeiros",
         "backup": "Backup",
@@ -263,6 +295,40 @@
         "lockedSubtitle": "Confirme sua identidade para liberar suas informações financeiras.",
         "unlockAction": "Desbloquear",
         "authenticating": "Autenticando..."
+    },
+    "recurrence": {
+        "title": "Transações recorrentes",
+        "usage": "{{count}} de {{limit}} recorrências utilizadas",
+        "syncing": "Sincronizando recorrências...",
+        "empty": "Nenhuma recorrência cadastrada",
+        "interval": "a cada {{count}} período",
+        "interval_plural": "a cada {{count}} períodos",
+        "nextDate": "Próximo: {{date}}",
+        "deleteTitle": "Excluir recorrência",
+        "deleteDescription": "Tem certeza que deseja excluir esta recorrência? As transações já geradas serão mantidas.",
+        "frequency": {
+            "daily": "Diário",
+            "weekly": "Semanal",
+            "monthly": "Mensal",
+            "yearly": "Anual"
+        },
+        "form": {
+            "isRecurring": "Transação recorrente?",
+            "intervalPlaceholder": "A cada quantos períodos? Ex: 1",
+            "endDatePlaceholder": "Data final (YYYY-MM-DD)",
+            "endDatePlaceholderLocal": "Data final (DD/MM/AAAA)"
+        },
+        "help": {
+            "open": "Abrir ajuda de recorrências",
+            "title": "Como funcionam as recorrências",
+            "description": "Com as transações recorrentes, você não precisa cadastrar mensalmente suas contas fixas. Basta definir a frequência e o app organiza tudo automaticamente.",
+            "limitTitle": "Por que o limite de 15?",
+            "limitDescription": "Para manter o app rápido e organizado, o uso é limitado a 15 recorrências ativas ao mesmo tempo. Para adicionar uma nova conta, remova ou edite uma recorrência que você não usa mais."
+        },
+        "errors": {
+            "limitReached": "Limite de 15 recorrências atingido.",
+            "unexpected": "Não foi possível processar as recorrências."
+        }
     },
     "alerts": {
         "permissionRequiredTitle": "Permissão necessária",

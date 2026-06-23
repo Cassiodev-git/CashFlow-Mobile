@@ -61,7 +61,19 @@
         "transaction": {
             "titleTooShort": "Title is too short",
             "titleTooLong": "Title is too long",
-            "descriptionTooLong": "Description is too long"
+            "descriptionTooLong": "Description is too long",
+            "intervalTooSmall": "Interval must be greater than or equal to 1"
+        },
+        "category": {
+            "nameRequired": "Category name is required"
+        },
+        "notification": {
+            "invalidId": "Invalid ID format",
+            "titleRequired": "Title is required",
+            "bodyRequired": "Message body is required",
+            "titleTooLong": "Title must be at most 100 characters",
+            "bodyTooLong": "Message body must be at most 255 characters",
+            "invalidDate": "Invalid date"
         }
     },
     "user": {
@@ -149,6 +161,24 @@
         "entertainment": "Entertainment",
         "createCategory": "Create your category"
     },
+    "notifications": {
+        "enable": "Enable notifications",
+        "reminders": "Due date reminders",
+        "reports": "Monthly reports",
+        "clearHistory": "Clear history",
+        "historyTitle": "Notification list",
+        "openList": "Open notification list",
+        "empty": "No notifications registered",
+        "loadError": "The notifications could not be loaded.",
+        "read": "Read",
+        "unread": "New",
+        "dueDateTitle": "Due date reminder",
+        "dueDateBody": "Your bill '{{title}}' is due soon.",
+        "monthlyReportTitle": "Monthly report",
+        "monthlyReportBody": "The report for {{month}} is ready!",
+        "testTitle": "Test notification",
+        "testBody": "This is a test from the notification system."
+    },
     "settings": {
         "title": "Settings",
         "subtitle": "Manage your preferences",
@@ -170,6 +200,8 @@
         "about": "About",
         "defaultCategory": "Default category",
         "manageCategories": "Manage categories",
+        "recurringTransactions": "Recurring transactions",
+        "recurringTransactionsSubtitle": "Manage fixed bills and income",
         "exportData": "Export data",
         "exportDataSubtitle": "Export your financial data",
         "backup": "Backup",
@@ -264,6 +296,40 @@
         "lockedSubtitle": "Confirm your identity to unlock your financial information.",
         "unlockAction": "Unlock",
         "authenticating": "Authenticating..."
+    },
+    "recurrence": {
+        "title": "Recurring transactions",
+        "usage": "{{count}} of {{limit}} recurrences used",
+        "syncing": "Syncing recurrences...",
+        "empty": "No recurrences registered",
+        "interval": "every {{count}} period",
+        "interval_plural": "every {{count}} periods",
+        "nextDate": "Next: {{date}}",
+        "deleteTitle": "Delete recurrence",
+        "deleteDescription": "Are you sure you want to delete this recurrence? Already generated transactions will be kept.",
+        "frequency": {
+            "daily": "Daily",
+            "weekly": "Weekly",
+            "monthly": "Monthly",
+            "yearly": "Yearly"
+        },
+        "form": {
+            "isRecurring": "Recurring transaction?",
+            "intervalPlaceholder": "Every how many periods? Ex: 1",
+            "endDatePlaceholder": "End date (YYYY-MM-DD)",
+            "endDatePlaceholderLocal": "End date (DD/MM/YYYY)"
+        },
+        "help": {
+            "open": "Open recurrence help",
+            "title": "How recurrences work",
+            "description": "With recurring transactions, you do not need to register fixed bills every month. Define the frequency and the app organizes everything automatically.",
+            "limitTitle": "Why the limit of 15?",
+            "limitDescription": "To keep the app fast and organized, usage is limited to 15 active recurrences at the same time. To add a new bill, remove or edit a recurrence you no longer use."
+        },
+        "errors": {
+            "limitReached": "Limit of 15 recurrences reached.",
+            "unexpected": "The recurrences could not be processed."
+        }
     },
     "alerts": {
         "success": "Success",

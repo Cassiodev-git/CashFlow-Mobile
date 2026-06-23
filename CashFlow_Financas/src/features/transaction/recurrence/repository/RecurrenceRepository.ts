@@ -2,28 +2,55 @@ import { db } from "@/db";
 import { v4 as uuid } from "uuid";
 import { eq } from "drizzle-orm";
 import { recurrenceRules, transactions } from "@/db/schema";
-import type { CreateRecurrenceDTO, UpdateRecurrenceDTO } from "../validation";
+
+export interface RecurrencePayload {
+    frequency?: "daily" | "weekly" | "monthly" | "yearly" | string | null;
+    interval?: number | null;
+    date?: string | null;
+    end_date?: string | null;
+}
 
 export class RecurrenceRepository {
-    async createRecurrence(data: CreateRecurrenceDTO) {
-        const result = await db.insert(recurrenceRules).values({
-            ...data,
+    async createRecurrence(data: RecurrencePayload, transactionId: string) {
+        const values = {
             id: uuid(),
-        }).returning();
+            transaction_id: transactionId,
+            frequency: data.frequency as 'daily' | 'weekly' | 'monthly' | 'yearly',
+            interval: data.interval ?? 1,
+            last_generated_date: data.date ?? new Date().toISOString(),
+            end_date: data.end_date ?? null,
+        };
 
-        return result;
+        return await db.insert(recurrenceRules).values(values).returning();
     }
 
-    async updateRecurrence(id: string, data: UpdateRecurrenceDTO) {
-        const result = await db.update(recurrenceRules).set({
-            ...data
-        }).where(eq(recurrenceRules.id, id));
+    async updateRecurrence(id: string, data: RecurrencePayload) {
+        const values: Record<string, any> = {};
+        if (data.frequency) values.frequency = data.frequency;
+        if (data.interval) values.interval = data.interval;
+        if (data.end_date !== undefined) values.end_date = data.end_date;
+        if (data.date) values.last_generated_date = data.date;
 
-        return result;
+        return await db.update(recurrenceRules)
+            .set(values)
+            .where(eq(recurrenceRules.id, id));
+    }
+
+    async updateLastGeneratedDate(id: string, lastGeneratedDate: string) {
+        return await db.update(recurrenceRules)
+            .set({ last_generated_date: lastGeneratedDate })
+            .where(eq(recurrenceRules.id, id));
     }
 
     async deleteRecurrence(id: string) {
-        const result = await db.delete(recurrenceRules).where(eq(recurrenceRules.id, id));
+        return await db.delete(recurrenceRules).where(eq(recurrenceRules.id, id));
+    }
+
+    async findById(id: string) {
+        const [result] = await db
+            .select()
+            .from(recurrenceRules)
+            .where(eq(recurrenceRules.id, id));
         return result;
     }
 
@@ -43,9 +70,9 @@ export class RecurrenceRepository {
             .select()
             .from(recurrenceRules)
             .where(eq(recurrenceRules.transaction_id, transactionId));
-
         return result;
     }
+
     async deleteByTransactionId(transactionId: string) {
         return await db.delete(recurrenceRules)
             .where(eq(recurrenceRules.transaction_id, transactionId));

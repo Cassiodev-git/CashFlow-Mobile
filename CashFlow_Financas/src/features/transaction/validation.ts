@@ -16,7 +16,7 @@ export const createTransactionSchema = z.object({
     category_id: z.string().optional(),
     is_recurring: z.boolean().default(false),
     frequency: z.enum(["daily", "weekly", "monthly", "yearly"]).optional(),
-    interval: z.number().int().min(1).default(1).optional(),
+    interval: z.number().int().min(1, i18n.t("validation.transaction.intervalTooSmall")).default(1).optional(),
     end_date: z.string().optional(),
     recurrence_id: z.string().nullable().optional(),
 })
@@ -37,7 +37,7 @@ export const updateTransactionSchema = z.object({
     category_id: z.string().optional(),
     is_recurring: z.boolean().optional(),
     frequency: z.enum(["daily", "weekly", "monthly", "yearly"]).optional(),
-    interval: z.number().int().min(1).optional(),
+    interval: z.number().int().min(1, i18n.t("validation.transaction.intervalTooSmall")).optional(),
     end_date: z.string().optional(),
     recurrence_id: z.string().nullable().optional(),
 })

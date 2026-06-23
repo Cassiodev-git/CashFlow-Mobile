@@ -2,6 +2,7 @@ import { SettingsService } from '../services/settingsService';
 import { NotificationManager } from '../managers/scheduleManager';
 import type { CreateTransactionDTO, UpdateTransactionDTO } from '@/features/transaction/validation';
 import * as Notifications from 'expo-notifications';
+import i18n from '@/i18n';
 
 export const scheduleDueNotification = async (
     transactionId: string, 
@@ -29,18 +30,23 @@ export const scheduleDueNotification = async (
 
     let triggerDate = new Date();
     triggerDate.setHours(9, 0, 0, 0); 
+    if (triggerDate <= now) {
+        triggerDate = new Date(now.getTime() + 1000);
+    }
 
     await NotificationManager.scheduleDueDate(transactionId, title, triggerDate);
 };
 
 export const scheduleMonthlyReportNotification = async () => {
     const isEnabled = await SettingsService.areReportsEnabled();
-    if (!isEnabled) return;
+    if (!isEnabled) return null;
 
-    await Notifications.scheduleNotificationAsync({
+    return await Notifications.scheduleNotificationAsync({
         content: {
-            title: "Relatório Mensal",
-            body: `O relatório do mês de ${new Date().toLocaleString('pt-BR', { month: 'long' })} está pronto!`,
+            title: i18n.t("notifications.monthlyReportTitle"),
+            body: i18n.t("notifications.monthlyReportBody", {
+                month: new Date().toLocaleString(i18n.language, { month: 'long' }),
+            }),
             data: { type: 'monthly_report' },
         },
         trigger: {

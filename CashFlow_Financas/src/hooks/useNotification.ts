@@ -7,6 +7,7 @@ import { scheduleMonthlyReportNotification } from '@/features/notification/utils
 const KEY_GENERAL = '@cashflow_notifications_enabled';
 const KEY_REMINDERS = '@cashflow_reminders_enabled';
 const KEY_REPORTS = '@cashflow_reports_enabled';
+const KEY_REPORT_NOTIFICATION = '@cashflow_monthly_report_notification_id';
 
 export const useNotification = () => {
     const [isEnabled, setIsEnabled] = useState(false);
@@ -38,6 +39,7 @@ export const useNotification = () => {
             setIsReportsEnabled(false);
             await AsyncStorage.setItem(KEY_REMINDERS, 'false');
             await AsyncStorage.setItem(KEY_REPORTS, 'false');
+            await AsyncStorage.removeItem(KEY_REPORT_NOTIFICATION);
             await Notifications.cancelAllScheduledNotificationsAsync();
         } else {
             const { status } = await Notifications.requestPermissionsAsync();
@@ -60,9 +62,21 @@ export const useNotification = () => {
         await AsyncStorage.setItem(KEY_REPORTS, value.toString());
 
         if (value) {
-            await scheduleMonthlyReportNotification();
+            const currentReportId = await AsyncStorage.getItem(KEY_REPORT_NOTIFICATION);
+            if (currentReportId) {
+                await Notifications.cancelScheduledNotificationAsync(currentReportId);
+            }
+
+            const reportId = await scheduleMonthlyReportNotification();
+            if (reportId) {
+                await AsyncStorage.setItem(KEY_REPORT_NOTIFICATION, reportId);
+            }
         } else {
-            await Notifications.cancelAllScheduledNotificationsAsync();
+            const currentReportId = await AsyncStorage.getItem(KEY_REPORT_NOTIFICATION);
+            if (currentReportId) {
+                await Notifications.cancelScheduledNotificationAsync(currentReportId);
+                await AsyncStorage.removeItem(KEY_REPORT_NOTIFICATION);
+            }
         }
     };
 

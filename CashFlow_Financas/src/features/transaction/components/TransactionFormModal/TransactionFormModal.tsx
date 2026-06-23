@@ -26,6 +26,8 @@ interface TransactionFormModalProps {
     isOpen: boolean;
     onClose: () => void;
     transaction?: any | null;
+    defaultIsRecurring?: boolean;
+    onSaved?: () => void | Promise<void>;
 }
 
 type Category = typeof categories.$inferSelect;
@@ -62,7 +64,7 @@ const formatFromBackendDate = (dateStr: string | null | undefined, lang: string)
     return `${day}/${month}/${year}`;
 };
 
-export function TransactionFormModal({ isOpen, onClose, transaction }: TransactionFormModalProps) {
+export function TransactionFormModal({ isOpen, onClose, transaction, defaultIsRecurring = false, onSaved }: TransactionFormModalProps) {
     const { t, i18n } = useTranslation();
     const theme = useTheme<Theme>();
     const { height } = useWindowDimensions();
@@ -76,7 +78,7 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
     const [date, setDate] = useState('');
     const [categoryId, setCategoryId] = useState('');
     const [type, setType] = useState<'income' | 'expense'>('expense');
-    const [status, setStatus] = useState<'paid' | 'pending' | 'canceled'>('pending');
+    const [status, setStatus] = useState<'paid' | 'pending' | 'canceled'>('paid');
     
     const [isRecurring, setIsRecurring] = useState(false);
     const [frequency, setFrequency] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
@@ -107,7 +109,7 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
                 setDate(formatFromBackendDate(fallbackDate, i18n.language));
                 setCategoryId(transaction.category_id || '');
                 setType(transaction.type as 'income' | 'expense');
-                setStatus(transaction.status as 'paid' | 'pending' | 'canceled');
+                setStatus(transaction.status ? transaction.status as 'paid' | 'pending' | 'canceled' : 'pending');
                 setIsRecurring(!!transaction.is_recurring);
                 setFrequency(transaction.frequency || 'monthly');
                 setInterval(transaction.interval ? String(transaction.interval) : '');
@@ -115,7 +117,7 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
                 setEndDate(rawEndDate ? formatFromBackendDate(rawEndDate, i18n.language) : '');
             } else {
                 setTitle(''); setDescription(''); setAmount(''); setDate(''); setCategoryId('');
-                setType('expense'); setStatus('pending'); setIsRecurring(false);
+                setType('expense'); setStatus('pending'); setIsRecurring(defaultIsRecurring);
                 setFrequency('monthly'); setInterval(''); setEndDate('');
             }
             setError('');
@@ -123,7 +125,7 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
         } else {
             if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
         }
-    }, [isOpen, transaction, i18n.language]);
+    }, [defaultIsRecurring, isOpen, transaction, i18n.language]);
 
     useEffect(() => {
         if (isOpen) {
@@ -186,9 +188,10 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
             }
 
             DeviceEventEmitter.emit("transaction_mutated");
+            await onSaved?.();
             onClose();
-        } catch {
-            triggerError(t("errors.unexpected"));
+        } catch (err) {
+            triggerError(err instanceof Error && err.message ? err.message : t("errors.unexpected"));
         } finally {
             setLoading(false);
         }
@@ -250,15 +253,15 @@ export function TransactionFormModal({ isOpen, onClose, transaction }: Transacti
                                                 <Box borderTopWidth={focusedSection === 'recurrence' ? 0 : 1} borderColor="inputBorder" paddingTop={focusedSection === 'recurrence' ? 'none' : 's'}>
                                                     {focusedSection !== 'recurrence' && (
                                                         <>
-                                                            <Text variant="body" fontWeight="600" marginBottom="xs">Transação recorrente?</Text>
-                                                            <TouchableOpacity style={[choiceButtonStyle(theme), isRecurring && activeChoiceStyle(theme)]} onPress={() => setIsRecurring(!isRecurring)}><Text color={isRecurring ? 'primary' : 'textSecondary'}>{isRecurring ? 'Sim' : 'Não'}</Text></TouchableOpacity>
+                                                            <Text variant="body" fontWeight="600" marginBottom="xs">{t("recurrence.form.isRecurring")}</Text>
+                                                            <TouchableOpacity style={[choiceButtonStyle(theme), isRecurring && activeChoiceStyle(theme)]} onPress={() => setIsRecurring(!isRecurring)}><Text color={isRecurring ? 'primary' : 'textSecondary'}>{isRecurring ? t("common.yes") : t("common.no")}</Text></TouchableOpacity>
                                                         </>
                                                     )}
                                                     {(isRecurring || focusedSection === 'recurrence') && (
                                                         <Box marginTop={focusedSection === 'recurrence' ? 'none' : 's'} padding="s" backgroundColor="inputBackground" borderRadius="s">
-                                                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: scale(8), marginBottom: scale(8) }}>{(['daily', 'weekly', 'monthly', 'yearly'] as const).map((f) => (<TouchableOpacity key={f} style={[choiceButtonStyle(theme), frequency === f && activeChoiceStyle(theme)]} onPress={() => setFrequency(f)}><Text variant="caption" color={frequency === f ? 'primary' : 'textSecondary'}>{f === 'daily' ? 'Diário' : f === 'weekly' ? 'Semanal' : f === 'monthly' ? 'Mensal' : 'Anual'}</Text></TouchableOpacity>))}</ScrollView>
-                                                            <TextInput style={[inputStyle(theme), { marginBottom: scale(8) }]} placeholder="A cada quantos períodos? (ex: 1)" placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" value={interval} onChangeText={setInterval} onFocus={() => setFocusedSection('recurrence')} />
-                                                            <TextInput style={inputStyle(theme)} placeholder="Data final (DD/MM/AAAA)" placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" maxLength={10} value={endDate} onChangeText={(t) => setEndDate(applyDateMask(t, i18n.language))} onFocus={() => setFocusedSection('recurrence')} />
+                                                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: scale(8), marginBottom: scale(8) }}>{(['daily', 'weekly', 'monthly', 'yearly'] as const).map((f) => (<TouchableOpacity key={f} style={[choiceButtonStyle(theme), frequency === f && activeChoiceStyle(theme)]} onPress={() => setFrequency(f)}><Text variant="caption" color={frequency === f ? 'primary' : 'textSecondary'}>{t(`recurrence.frequency.${f}`)}</Text></TouchableOpacity>))}</ScrollView>
+                                                            <TextInput style={[inputStyle(theme), { marginBottom: scale(8) }]} placeholder={t("recurrence.form.intervalPlaceholder")} placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" value={interval} onChangeText={setInterval} onFocus={() => setFocusedSection('recurrence')} />
+                                                            <TextInput style={inputStyle(theme)} placeholder={i18n.language.startsWith('en') ? t("recurrence.form.endDatePlaceholder") : t("recurrence.form.endDatePlaceholderLocal")} placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" maxLength={10} value={endDate} onChangeText={(t) => setEndDate(applyDateMask(t, i18n.language))} onFocus={() => setFocusedSection('recurrence')} />
                                                         </Box>
                                                     )}
                                                 </Box>

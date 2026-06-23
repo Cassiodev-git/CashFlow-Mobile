@@ -1,15 +1,16 @@
 import { db } from "@/db";
 import { v4 as uuid } from "uuid";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { notifications } from "../schema";
 import type { CreateNotificationInput, UpdateNotificationInput } from "../validation";
 
 export class NotificationRepository {
     async createNotification(data: CreateNotificationInput) {
+        const id = uuid();
         const result = await db.insert(notifications).values({
             ...data,
-            id: uuid(),
-        });
+            id,
+        }).returning();
 
         return result;
     }
@@ -64,9 +65,20 @@ export class NotificationRepository {
             .where(eq(notifications.is_read, false));
     }
 
+    async listNotifications() {
+        return await db
+            .select()
+            .from(notifications)
+            .orderBy(desc(notifications.created_at));
+    }
+
     async deleteNotification(id: string) {
         const result = await db.delete(notifications).where(eq(notifications.id, id));
         return result;
+    }
+
+    async deleteByTransactionId(transactionId: string) {
+        return await db.delete(notifications).where(eq(notifications.transaction_id, transactionId));
     }
 
     async deleteAll() {
