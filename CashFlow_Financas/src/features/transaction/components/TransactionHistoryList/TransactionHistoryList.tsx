@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Transactions as Transaction } from '../../types/Transactions';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { ConfirmationModal } from '@/components/ConfirmationModal/ConfirmationModal';
+import { useCurrency } from '@/features/settings/hooks/useCurrency';
 
 interface TransactionHistoryListProps {
     transactions: Transaction[]; 
@@ -27,6 +28,7 @@ export function TransactionHistoryList({
 }: TransactionHistoryListProps) {
     const theme = useTheme<Theme>();
     const { t, i18n } = useTranslation();
+    const { formatCurrency } = useCurrency();
     const insets = useSafeAreaInsets();
     
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -96,7 +98,6 @@ export function TransactionHistoryList({
             }));
     }, [transactions, loading, getDateKey, getSectionTitle, t]);
 
-    const formatCurrency = (value: number) => value.toLocaleString(i18n.language, { style: 'currency', currency: 'BRL' });
     const dynamicPaddingBottom = 95 + (insets.bottom > 0 ? insets.bottom : 4);
 
     const renderLoadingSkeleton = () => (

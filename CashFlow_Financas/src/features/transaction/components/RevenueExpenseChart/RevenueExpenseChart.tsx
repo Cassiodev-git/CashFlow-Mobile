@@ -7,6 +7,7 @@ import { useTheme } from '@shopify/restyle';
 import { MotiView } from 'moti';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { Box, Text, scale, type Theme } from '@/theme/unistyles';
+import { useCurrency } from '@/features/settings/hooks/useCurrency';
 
 interface ChartItem {
     day: string;
@@ -22,6 +23,7 @@ interface RevenueExpenseChartProps {
 export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
     const { t } = useTranslation();
     const theme = useTheme<Theme>();
+    const { formatCurrency } = useCurrency();
     const { state, isActive } = useChartPressState({
         x: "",
         y: { revenue: 0, expense: 0 },
@@ -50,15 +52,9 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
         };
     }, [isActive, showTooltip]);
 
-    const formatCurrency = (val: number) => {
-        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
-    };
-
-    const formatYLabel = (val: number): string => {
-        if (val >= 1_000_000) return `R$${(val / 1_000_000).toFixed(1)}M`;
-        if (val >= 500) return `R$${(val / 1_000).toFixed(1)}k`;
-        return `R$${Math.round(val)}`;
-    };
+    const formatYLabel = React.useCallback((val: number): string => {
+        return formatCurrency(Math.round(val));
+    }, [formatCurrency]);
 
     const TICK_COUNT = 5;
     const CHART_PADDING_TOP = 5;
@@ -78,7 +74,7 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
             const val = paddedMax - (i * (paddedMax - paddedMin) / (TICK_COUNT - 1));
             return formatYLabel(val);
         });
-    }, [data]);
+    }, [data, formatYLabel]);
 
     const xKey: "day" = "day";
     const yKeys: ["revenue", "expense"] = ["revenue", "expense"];

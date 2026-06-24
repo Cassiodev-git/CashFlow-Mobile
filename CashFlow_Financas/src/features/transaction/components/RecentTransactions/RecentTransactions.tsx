@@ -13,6 +13,7 @@ import { FlashList } from '@shopify/flash-list';
 import { Transactions as Transaction } from '../../types/Transactions';
 import { ConfirmationModal } from '@/components/ConfirmationModal/ConfirmationModal'; 
 import { Skeleton } from '@/components/Skeleton/Skeleton'; 
+import { useCurrency } from '@/features/settings/hooks/useCurrency';
 import { Box, Text, scale, verticalScale, moderateScale} from '@/theme/unistyles';
 
 const OtimizedList = FlashList as React.ComponentType<any>;
@@ -53,6 +54,7 @@ function TransactionDetailsModal({
     onDelete
 }: TransactionDetailsModalProps) {
     const { t } = useTranslation();
+    const { formatCurrency } = useCurrency();
     const [isConfirmOpen, setIsConfirmOpen] = useState(false); 
 
     if (!transaction) return null;
@@ -61,10 +63,7 @@ function TransactionDetailsModal({
     const statusColor = isExpense ? "#FF4747" : "#289653";
     const iconName = categoryIcons[transaction.title] || (isExpense ? 'arrow-down-left' : 'arrow-up-right');
 
-    const formattedAmount = transaction.amount.toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL',
-    });
+    const formattedAmount = formatCurrency(transaction.amount);
 
     const handleConfirmDelete = () => {
         setIsConfirmOpen(false);
@@ -258,6 +257,7 @@ export function RecentTransactions({
     onTransactionCreated
 }: RecentTransactionsProps) {
     const { t } = useTranslation();
+    const { formatCurrency: formatCurrencyValue } = useCurrency();
     const [showAll, setShowAll] = useState(false);
     const [inputQuery, setInputQuery] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
@@ -282,12 +282,9 @@ export function RecentTransactions({
     }, []);
 
     const formatCurrency = useCallback((value: number, isExpense: boolean) => {
-        const formatted = value.toLocaleString('pt-BR', {
-            style: 'currency',
-            currency: 'BRL',
-        });
+        const formatted = formatCurrencyValue(value);
         return isExpense ? `-${formatted}` : formatted;
-    }, []);
+    }, [formatCurrencyValue]);
 
     const processedTransactions = useMemo(() => {
         let result = transactions;

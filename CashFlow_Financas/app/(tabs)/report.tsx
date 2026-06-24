@@ -14,6 +14,7 @@ import { useTransactionFilter } from '@/hooks/useTransactionFilter';
 import { useHomeData } from '@/hooks/useHomeData';
 import { Transactions } from '@/features/transaction/types/Transactions';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
+import { useCurrency } from '@/features/settings/hooks/useCurrency';
 
 export default function ReportsScreen() {
     const { t, i18n } = useTranslation();
@@ -21,6 +22,7 @@ export default function ReportsScreen() {
     const { transactions, loading: loadingTransactions, deleteMultipleTransactions } = useTransactions();
     const { filters, updateFilter, resetFilters, filteredTransactions } = useTransactionFilter(transactions);
     const { deleteTransaction } = useHomeData();
+    const { formatCurrency } = useCurrency();
 
     const [selectedTransaction, setSelectedTransaction] = useState<Transactions | null>(null);
     const [transactionToEdit, setTransactionToEdit] = useState<Transactions | null>(null);
@@ -39,9 +41,6 @@ export default function ReportsScreen() {
             updated_at: tx.updated_at ?? now,
         })) as Transactions[];
     }, [filteredTransactions]);
-
-    const formatCurrency = (value: number) => 
-        value.toLocaleString(i18n.language, { style: 'currency', currency: 'BRL' });
 
     const monthName = new Date(date.year, date.month - 1).toLocaleString(i18n.language, { month: 'long' });
     const capitalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);

@@ -6,6 +6,7 @@ import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { MotiView, AnimatePresence } from 'moti';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
+import { useCurrency } from '@/features/settings/hooks/useCurrency';
 import { Box, Text, verticalScale } from '@/theme/unistyles';
 
 interface BalanceCardProps {
@@ -24,13 +25,7 @@ export function BalanceCard({
     onToggleVisibility
 }: BalanceCardProps) {
     const { t } = useTranslation();
-
-    const formatCurrency = (value: number) => {
-        return value.toLocaleString('pt-BR', {
-            style: 'currency',
-            currency: 'BRL',
-        });
-    };
+    const { formatCurrency } = useCurrency();
 
     const isPositive = status === "positive";
     const isNegative = status === "negative";

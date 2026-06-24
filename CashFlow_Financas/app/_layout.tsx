@@ -17,6 +17,7 @@ import "@/i18n";
 import { logger } from '@/utils/logger';
 import { Box, Text, lightTheme, scale } from '@/theme/unistyles';
 import { LoadingScreen } from '@/components/LoadingScreen/LoadingScreen';
+import notificationService from '@/features/notification/services/notificationService';
 
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 
@@ -47,6 +48,17 @@ export default function RootLayout() {
   const { findFirstUser } = useUser();
   const router = useRouter();
   const { t } = useTranslation();
+
+  const registerOpenedNotification = useCallback(async (response: Notifications.NotificationResponse | null) => {
+    const dbId = response?.notification.request.content.data?.db_id;
+    if (typeof dbId !== 'string') return;
+
+    try {
+      await notificationService.markAsOpened(dbId);
+    } catch (error) {
+      logger.error("Error registering opened notification:", error);
+    }
+  }, []);
 
   const requestBiometricUnlock = useCallback(async () => {
     try {
@@ -97,6 +109,18 @@ export default function RootLayout() {
     }
     setup();
   }, [findFirstUser, requestBiometricUnlock]);
+
+  useEffect(() => {
+    const subscription = Notifications.addNotificationResponseReceivedListener(registerOpenedNotification);
+
+    Notifications.getLastNotificationResponseAsync()
+      .then(registerOpenedNotification)
+      .catch((error) => logger.error("Error reading last notification response:", error));
+
+    return () => {
+      subscription.remove();
+    };
+  }, [registerOpenedNotification]);
 
   useEffect(() => {
     if (dbStart) {

@@ -191,7 +191,7 @@
         "notificationsSubtitle": "Manage your alerts",
         "preferences": "Preferences",
         "currency": "Currency",
-        "currencySubtitle": "Brazilian real (R$)",
+        "currencySubtitle": "Brazilian real",
         "theme": "Theme",
         "lightMode": "Light mode",
         "language": "Language",
@@ -249,7 +249,7 @@
             "endDate": "End",
             "invalidFormat": "Invalid format",
             "amountRange": "Amount Range",
-            "amountPlaceholder": "R$ 0.00",
+            "amountPlaceholder": "0.00",
             "min": "Min",
             "max": "Max",
             "categories": "Categories",
@@ -296,6 +296,18 @@
         "lockedSubtitle": "Confirm your identity to unlock your financial information.",
         "unlockAction": "Unlock",
         "authenticating": "Authenticating..."
+    },
+    "currencies": {
+        "BRL": "Brazilian real",
+        "USD": "US dollar",
+        "EUR": "Euro",
+        "GBP": "British pound",
+        "JPY": "Japanese yen",
+        "AUD": "Australian dollar",
+        "CHF": "Swiss franc",
+        "CAD": "Canadian dollar",
+        "CNY": "Chinese yuan",
+        "ARS": "Argentine peso"
     },
     "recurrence": {
         "title": "Recurring transactions",

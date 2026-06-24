@@ -69,6 +69,7 @@ export class NotificationRepository {
         return await db
             .select()
             .from(notifications)
+            .where(eq(notifications.is_active, true))
             .orderBy(desc(notifications.created_at));
     }
 

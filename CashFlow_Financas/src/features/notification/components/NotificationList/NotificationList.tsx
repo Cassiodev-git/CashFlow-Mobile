@@ -75,9 +75,8 @@ export function NotificationList() {
                 ) : null}
 
                 {!loading && notifications.length === 0 ? (
-                    <Box backgroundColor="surface" padding="m" borderRadius="m" borderWidth={1} borderColor="border" alignItems="center" marginTop="xxl">
-                        <Feather name="bell-off" size={scale(24)} color={theme.colors.textSecondary} />
-                        <Text color="textSecondary" marginTop="s">{t("notifications.empty")}</Text>
+                    <Box alignItems="center" marginTop="xxl">
+                        <Text color="textSecondary">{t("notifications.empty")}</Text>
                     </Box>
                 ) : null}
 

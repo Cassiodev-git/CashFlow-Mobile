@@ -30,8 +30,9 @@ export const scheduleDueNotification = async (
 
     let triggerDate = new Date();
     triggerDate.setHours(9, 0, 0, 0); 
+
     if (triggerDate <= now) {
-        triggerDate = new Date(now.getTime() + 1000);
+        triggerDate.setDate(triggerDate.getDate() + 1);
     }
 
     await NotificationManager.scheduleDueDate(transactionId, title, triggerDate);

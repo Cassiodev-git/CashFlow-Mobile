@@ -9,7 +9,11 @@ class NotificationService {
     async createNotification(data: CreateNotificationInput) {
         const validatedData = createNotificationSchema.parse(data);
         
-        const result = await notificationRepo.createNotification(validatedData);
+        const result = await notificationRepo.createNotification({
+            ...validatedData,
+            is_active: false,
+            is_read: false,
+        });
         
         const notification = Array.isArray(result) ? result[0] : result;
         const dbId = notification.id;
@@ -47,6 +51,10 @@ class NotificationService {
 
     async markAsRead(id: string) {
         return await notificationRepo.updateNotification(id, { is_read: true });
+    }
+
+    async markAsOpened(id: string) {
+        return await notificationRepo.updateNotification(id, { is_active: true });
     }
 
     async listUnread() {

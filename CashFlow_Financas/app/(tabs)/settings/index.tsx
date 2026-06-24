@@ -1,17 +1,27 @@
-import { ScrollView, TouchableOpacity } from 'react-native';
+import { Modal, ScrollView, StyleSheet, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import { MotiView } from 'moti';
 import { Feather } from '@expo/vector-icons';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@shopify/restyle';
 
 import { SettingsItem } from '@/components/SettingsItem/SettingsItem';
+import { availableCurrencies } from '@/features/settings/utils/currency';
+import { useCurrency } from '@/features/settings/hooks/useCurrency';
 import { Box, Text, scale, verticalScale, type Theme } from '@/theme/unistyles';
 
 export default function SettingsScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const theme = useTheme<Theme>();
+    const { currency, saveCurrency } = useCurrency();
+    const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
+
+    const currentCurrencyLabel = useMemo(() => {
+        const selectedCurrency = availableCurrencies.find((item) => item.code === currency);
+        return selectedCurrency?.label ?? currency;
+    }, [currency]);
 
     const SectionTitle = ({ title }: { title: string }) => (
         <Text variant="body" fontWeight="700" color="primary" marginTop="m" marginBottom="s">
@@ -53,10 +63,6 @@ export default function SettingsScreen() {
                                 height: scale(42),
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                borderRadius: scale(12),
-                                backgroundColor: theme.colors.surface,
-                                borderWidth: 1,
-                                borderColor: theme.colors.border,
                             }}
                         >
                             <Feather name="bell" size={scale(20)} color={theme.colors.textPrimary} />
@@ -93,8 +99,8 @@ export default function SettingsScreen() {
                     <SettingsItem 
                         icon="dollar-sign" 
                         title={t("settings.currency")} 
-                        subtitle={t("settings.currencySubtitle")} 
-                        onPress={() => {}} 
+                        subtitle={currentCurrencyLabel}
+                        onPress={() => setIsCurrencyModalVisible(true)}
                     />
                     <SettingsItem 
                         icon="sun" 
@@ -138,6 +144,83 @@ export default function SettingsScreen() {
                     />
                 </MotiView>
             </ScrollView>
+
+            <Modal
+                visible={isCurrencyModalVisible}
+                transparent
+                animationType="none"
+                statusBarTranslucent
+                onRequestClose={() => setIsCurrencyModalVisible(false)}
+            >
+                <Box flex={1} justifyContent="flex-end">
+                    <TouchableWithoutFeedback onPress={() => setIsCurrencyModalVisible(false)}>
+                        <MotiView
+                            from={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ type: 'timing', duration: 160 }}
+                            style={styles.overlay}
+                        />
+                    </TouchableWithoutFeedback>
+
+                    <MotiView
+                        from={{ translateY: 360 }}
+                        animate={{ translateY: 0 }}
+                        transition={{ type: 'timing', duration: 220 }}
+                    >
+                        <Box
+                            backgroundColor="card"
+                            borderTopLeftRadius="xl"
+                            borderTopRightRadius="xl"
+                            paddingHorizontal="m"
+                            paddingTop="s"
+                            style={{ paddingBottom: verticalScale(28) }}
+                        >
+                            <Box width={38} height={5} backgroundColor="inputBorder" borderRadius="m" alignSelf="center" marginBottom="m" />
+
+                            <Box flexDirection="row" justifyContent="space-between" alignItems="center" marginBottom="s">
+                                <Text variant="titleMedium" fontWeight="700">{t("settings.currency")}</Text>
+                                <TouchableOpacity onPress={() => setIsCurrencyModalVisible(false)} style={{ padding: scale(4) }}>
+                                    <Feather name="x" size={20} color={theme.colors.textSecondary} />
+                                </TouchableOpacity>
+                            </Box>
+
+                            {availableCurrencies.map((item) => {
+                                const isSelected = item.code === currency;
+
+                                return (
+                                    <TouchableOpacity
+                                        key={item.code}
+                                        activeOpacity={0.75}
+                                        onPress={() => {
+                                            saveCurrency(item.code).catch(() => undefined);
+                                            setIsCurrencyModalVisible(false);
+                                        }}
+                                        style={{ paddingVertical: scale(13), borderBottomWidth: 1, borderColor: theme.colors.divider }}
+                                    >
+                                        <Box flexDirection="row" alignItems="center" justifyContent="space-between">
+                                            <Box>
+                                                <Text variant="body" fontWeight="600">{item.code}</Text>
+                                                <Text variant="caption" color="textSecondary">{item.label}</Text>
+                                            </Box>
+                                            {isSelected && (
+                                                <Feather name="check" size={20} color={theme.colors.primary} />
+                                            )}
+                                        </Box>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </Box>
+                    </MotiView>
+                </Box>
+            </Modal>
         </Box>
     );
 }
+
+const styles = StyleSheet.create({
+    overlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    },
+});

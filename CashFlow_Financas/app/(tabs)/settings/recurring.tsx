@@ -11,6 +11,7 @@ import { HelpModal } from '@/features/transaction/recurrence/components/helpModa
 import { ButtonBar } from '@/features/transaction/components/ButtonBar/ButtonBar';
 import { TransactionFormModal } from '@/features/transaction/components/TransactionFormModal/TransactionFormModal';
 import { useRecurrence, type RecurringTransaction } from '@/features/transaction/recurrence/hooks/useRecurrence';
+import { useCurrency } from '@/features/settings/hooks/useCurrency';
 
 type Frequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
 
@@ -29,6 +30,7 @@ const calculateNextDate = (date: string, frequency: Frequency, interval: number)
 export default function RecurringTransactionsScreen() {
     const theme = useTheme<Theme>();
     const { t, i18n } = useTranslation();
+    const { formatCurrency } = useCurrency();
     const {
         recurringTransactions,
         loading,
@@ -59,10 +61,6 @@ export default function RecurringTransactionsScreen() {
         () => t("recurrence.usage", { count: recurringTransactions.length, limit: 15 }),
         [recurringTransactions.length, t]
     );
-
-    const formatCurrency = useCallback((value: number) => (
-        value.toLocaleString(i18n.language, { style: 'currency', currency: 'BRL' })
-    ), [i18n.language]);
 
     const formatDate = useCallback((date: Date) => (
         date.toLocaleDateString(i18n.language)
