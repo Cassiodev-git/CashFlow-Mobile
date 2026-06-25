@@ -7,7 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
-import { ThemeProvider } from '@shopify/restyle';
+import { useTheme } from '@shopify/restyle';
 import { StatusBar } from 'expo-status-bar';
 import { TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -15,13 +15,12 @@ import { Feather } from '@expo/vector-icons';
 import "react-native-get-random-values";
 import "@/i18n";
 import { logger } from '@/utils/logger';
-import { Box, Text, lightTheme, scale } from '@/theme/unistyles';
+import { Box, Text, scale, Theme } from '@/theme/unistyles';
 import { LoadingScreen } from '@/components/LoadingScreen/LoadingScreen';
 import notificationService from '@/features/notification/services/notificationService';
-
+import { AppThemeProvider, useAppTheme } from '@/features/settings/context/ThemeContext';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 
-// Configuração Global de Notificações
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -39,7 +38,7 @@ configureReanimatedLogger({
 
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
+function RootLayoutContent() {
   const [dbStart, setDbStart] = useState(false);
   const [hasUser, setHasUser] = useState(false);
   const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
@@ -48,6 +47,9 @@ export default function RootLayout() {
   const { findFirstUser } = useUser();
   const router = useRouter();
   const { t } = useTranslation();
+  
+  const { isDark } = useAppTheme();
+  const theme = useTheme<Theme>();
 
   const registerOpenedNotification = useCallback(async (response: Notifications.NotificationResponse | null) => {
     const dbId = response?.notification.request.content.data?.db_id;
@@ -133,16 +135,13 @@ export default function RootLayout() {
   }, [dbStart, hasUser, isAuthUnlocked, router]);
 
   if (!dbStart) {
-    return (
-      <ThemeProvider theme={lightTheme}>
-        <LoadingScreen />
-      </ThemeProvider>
-    );
+    return <LoadingScreen />;
   }
 
   return (
-    <ThemeProvider theme={lightTheme}>
-      <StatusBar style="dark" />
+    <>
+      <StatusBar style={isDark ? "light" : "dark"} />
+      
       <SafeAreaProvider>
         {isBiometricEnabled && !isAuthUnlocked ? (
           <Box flex={1} backgroundColor="background" justifyContent="center" alignItems="center" paddingHorizontal="l">
@@ -155,7 +154,7 @@ export default function RootLayout() {
               alignItems="center"
               marginBottom="l"
             >
-              <Feather name="lock" size={scale(32)} color={lightTheme.colors.primaryDark} />
+              <Feather name="lock" size={scale(32)} color={theme.colors.primaryDark} />
             </Box>
             <Text variant="titleMedium" color="textPrimary" fontWeight="700" style={{ textAlign: 'center' }}>
               {t("security.lockedTitle")}
@@ -178,6 +177,14 @@ export default function RootLayout() {
           </Stack>
         )}
       </SafeAreaProvider>
-    </ThemeProvider>
+    </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <AppThemeProvider>
+      <RootLayoutContent />
+    </AppThemeProvider>
   );
 }

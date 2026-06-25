@@ -12,8 +12,7 @@ export const transactions = sqliteTable('transactions', {
     user_id: text('user_id').notNull(),
     category_id: text('category_id'),
     is_recurring: integer('is_recurring', { mode: 'boolean' }).default(false).notNull(),
-    recurrence_id: text('recurrence_id'),
-    
+    recurrence_id: text('recurrence_id'), 
     created_at: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
     updated_at: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull()
 })

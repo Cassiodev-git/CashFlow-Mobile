@@ -92,7 +92,6 @@ export default function HomeScreen() {
                 }}
                 showsVerticalScrollIndicator={false}
             >
-                {/* Corrigido: Removido o Skeleton, tratando o loading apenas com a verificação de user */}
                 {!loadingUser && <TopBar user={user} />}
 
                 {hasError ? (

@@ -26,7 +26,6 @@ export function FinancialSummaryCard({
 }: FinancialSummaryCardProps) {
     const { t } = useTranslation();
     
-    // Normaliza o mês: pega a primeira palavra, minúscula e remove o 'ç' para casar com a chave 'marco'
     const mesNormalizado = periodo.split(' ')[0].toLowerCase().replace('ç', 'c');
     const ano = periodo.split(' ')[1];
     return (
@@ -43,7 +42,7 @@ export function FinancialSummaryCard({
             }}
         >
             <Box flexDirection="row" justifyContent="space-between" alignItems="center" marginBottom="m">
-                <Text variant="body" color="card" fontWeight="600">
+                <Text variant="body" color="textPrimary" fontWeight="600">
                     {t(`report.date.months.${mesNormalizado}`)} {ano}
                 </Text>
                 <Box flexDirection="row" alignItems="center">
@@ -58,18 +57,18 @@ export function FinancialSummaryCard({
 
             <Box flexDirection="row" justifyContent="space-between" alignItems="center">
                 <Box flex={1}>
-                    <Text variant="caption" color="card" opacity={0.8} marginBottom="xs">{t("graph.revenue")}</Text>
+                    <Text variant="caption" color="textPrimary" opacity={0.8} marginBottom="xs">{t("graph.revenue")}</Text>
                     {loading ? (
                         <Skeleton width="80%" height={16} borderRadius={4} />
                     ) : (
-                        <Text variant="body" color="incomeLight" fontWeight="700" numberOfLines={1} adjustsFontSizeToFit>{receitas}</Text>
+                        <Text variant="body" color="primaryLight" fontWeight="700" numberOfLines={1} adjustsFontSizeToFit>{receitas}</Text>
                     )}
                 </Box>
                 
                 <Box height={30} width={1} backgroundColor="card" opacity={0.3} marginHorizontal="s" />
 
                 <Box flex={1} alignItems="center">
-                    <Text variant="caption" color="card" opacity={0.8} marginBottom="xs">{t("graph.expense")}</Text>
+                    <Text variant="caption" color="textPrimary" opacity={0.8} marginBottom="xs">{t("graph.expense")}</Text>
                     {loading ? (
                         <Skeleton width="80%" height={16} borderRadius={4} />
                     ) : (
@@ -80,11 +79,11 @@ export function FinancialSummaryCard({
                 <Box height={30} width={1} backgroundColor="card" opacity={0.3} marginHorizontal="s" />
 
                 <Box flex={1} alignItems="flex-end">
-                    <Text variant="caption" color="card" opacity={0.8} marginBottom="xs">{t("report.balance")}</Text>
+                    <Text variant="caption" color="textPrimary" opacity={0.8} marginBottom="xs">{t("report.balance")}</Text>
                     {loading ? (
                         <Skeleton width="80%" height={16} borderRadius={4} />
                     ) : (
-                        <Text variant="body" color="card" fontWeight="700"  numberOfLines={1} adjustsFontSizeToFit>{saldo}</Text>
+                        <Text variant="body" color="textPrimary" fontWeight="700"  numberOfLines={1} adjustsFontSizeToFit>{saldo}</Text>
                     )}
                 </Box>
             </Box>
