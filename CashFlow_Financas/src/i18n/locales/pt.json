@@ -336,8 +336,8 @@
             "open": "Abrir ajuda de recorrências",
             "title": "Como funcionam as recorrências",
             "description": "Com as transações recorrentes, você não precisa cadastrar mensalmente suas contas fixas. Basta definir a frequência e o app organiza tudo automaticamente.",
-            "limitTitle": "Por que o limite de 15?",
-            "limitDescription": "Para manter o app rápido e organizado, o uso é limitado a 15 recorrências ativas ao mesmo tempo. Para adicionar uma nova conta, remova ou edite uma recorrência que você não usa mais."
+            "limitTitle": "Por que o limite de 30?",
+            "limitDescription": "Para manter o app rápido e organizado, o uso é limitado a 30 recorrências ativas ao mesmo tempo. Para adicionar uma nova conta, remova ou edite uma recorrência que você não usa mais."
         },
         "errors": {
             "limitReached": "Limite de 15 recorrências atingido.",

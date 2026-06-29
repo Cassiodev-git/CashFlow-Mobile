@@ -337,8 +337,8 @@
             "open": "Open recurrence help",
             "title": "How recurrences work",
             "description": "With recurring transactions, you do not need to register fixed bills every month. Define the frequency and the app organizes everything automatically.",
-            "limitTitle": "Why the limit of 15?",
-            "limitDescription": "To keep the app fast and organized, usage is limited to 15 active recurrences at the same time. To add a new bill, remove or edit a recurrence you no longer use."
+            "limitTitle": "Why the limit of 30?",
+            "limitDescription": "To keep the app fast and organized, usage is limited to 30 active recurrences at the same time. To add a new bill, remove or edit a recurrence you no longer use."
         },
         "errors": {
             "limitReached": "Limit of 15 recurrences reached.",

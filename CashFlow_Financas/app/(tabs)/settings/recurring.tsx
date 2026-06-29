@@ -58,7 +58,7 @@ export default function RecurringTransactionsScreen() {
     );
 
     const usageLabel = useMemo(
-        () => t("recurrence.usage", { count: recurringTransactions.length, limit: 15 }),
+        () => t("recurrence.usage", { count: recurringTransactions.length, limit: 30 }),
         [recurringTransactions.length, t]
     );
 

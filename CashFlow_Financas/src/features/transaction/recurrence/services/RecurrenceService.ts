@@ -11,7 +11,7 @@ type RecurrenceFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
 class RecurrenceService {
     async createRecurrence(data: RecurrencePayload, transactionId: string, userId: string) {
         const currentList = await this.listRecurringTransactions(userId);
-        if (currentList.length >= 15) {
+        if (currentList.length >= 30) {
             throw new Error(i18n.t("recurrence.errors.limitReached"));
         }
         return await recurrenceRepo.createRecurrence(data, transactionId);
