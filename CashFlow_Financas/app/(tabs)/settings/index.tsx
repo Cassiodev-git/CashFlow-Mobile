@@ -14,13 +14,14 @@ import { useAppTheme } from '@/features/settings/context/ThemeContext';
 
 export default function SettingsScreen() {
     const router = useRouter();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const theme = useTheme<Theme>();
     const { currency, saveCurrency } = useCurrency();
     const { themeMode, changeTheme } = useAppTheme();
     
     const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
     const [isThemeModalVisible, setIsThemeModalVisible] = useState(false);
+    const [isLanguageModalVisible, setIsLanguageModalVisible] = useState(false);
 
     const currentCurrencyLabel = useMemo(() => {
         const selectedCurrency = availableCurrencies.find((item) => item.code === currency);
@@ -33,11 +34,20 @@ export default function SettingsScreen() {
         return t("settings.systemMode");
     }, [themeMode, t]);
 
+    const currentLanguageLabel = useMemo(() => {
+        return i18n.language.startsWith('en') ? 'English' : 'Português';
+    }, [i18n.language]);
+
     const themeOptions = useMemo(() => [
         { code: 'light' as const, label: t("settings.lightMode") },
         { code: 'dark' as const, label: t("settings.darkMode") },
         { code: 'system' as const, label: t("settings.systemMode") }
     ], [t]);
+
+    const languageOptions = useMemo(() => [
+        { code: 'pt-BR', label: 'Português' },
+        { code: 'en', label: 'English' }
+    ], []);
 
     const SectionTitle = ({ title }: { title: string }) => (
         <Text variant="body" fontWeight="700" color="primary" marginTop="m" marginBottom="s">
@@ -127,8 +137,8 @@ export default function SettingsScreen() {
                     <SettingsItem 
                         icon="globe" 
                         title={t("settings.language")} 
-                        subtitle={t("settings.languageSubtitle")} 
-                        onPress={() => {}} 
+                        subtitle={currentLanguageLabel} 
+                        onPress={() => setIsLanguageModalVisible(true)} 
                     />
                     <SettingsItem 
                         icon="list" 
@@ -281,6 +291,75 @@ export default function SettingsScreen() {
                                         onPress={() => {
                                             changeTheme(item.code).catch(() => undefined);
                                             setIsThemeModalVisible(false);
+                                        }}
+                                        style={{ paddingVertical: scale(13), borderBottomWidth: 1, borderColor: theme.colors.divider }}
+                                    >
+                                        <Box flexDirection="row" alignItems="center" justifyContent="space-between">
+                                            <Box>
+                                                <Text variant="body" fontWeight="600">{item.label}</Text>
+                                            </Box>
+                                            {isSelected && (
+                                                <Feather name="check" size={20} color={theme.colors.primary} />
+                                            )}
+                                        </Box>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </Box>
+                    </MotiView>
+                </Box>
+            </Modal>
+
+            <Modal
+                visible={isLanguageModalVisible}
+                transparent
+                animationType="none"
+                statusBarTranslucent
+                onRequestClose={() => setIsLanguageModalVisible(false)}
+            >
+                <Box flex={1} justifyContent="flex-end">
+                    <TouchableWithoutFeedback onPress={() => setIsLanguageModalVisible(false)}>
+                        <MotiView
+                            from={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ type: 'timing', duration: 160 }}
+                            style={styles.overlay}
+                        />
+                    </TouchableWithoutFeedback>
+
+                    <MotiView
+                        from={{ translateY: 360 }}
+                        animate={{ translateY: 0 }}
+                        transition={{ type: 'timing', duration: 220 }}
+                    >
+                        <Box
+                            backgroundColor="card"
+                            borderTopLeftRadius="xl"
+                            borderTopRightRadius="xl"
+                            paddingHorizontal="m"
+                            paddingTop="s"
+                            style={{ paddingBottom: verticalScale(28) }}
+                        >
+                            <Box width={38} height={5} backgroundColor="inputBorder" borderRadius="m" alignSelf="center" marginBottom="m" />
+
+                            <Box flexDirection="row" justifyContent="space-between" alignItems="center" marginBottom="s">
+                                <Text variant="titleMedium" fontWeight="700">{t("settings.language")}</Text>
+                                <TouchableOpacity onPress={() => setIsLanguageModalVisible(false)} style={{ padding: scale(4) }}>
+                                    <Feather name="x" size={20} color={theme.colors.textSecondary} />
+                                </TouchableOpacity>
+                            </Box>
+
+                            {languageOptions.map((item) => {
+                                const isSelected = (item.code === 'en' && i18n.language.startsWith('en')) || (item.code === 'pt-BR' && !i18n.language.startsWith('en'));
+
+                                return (
+                                    <TouchableOpacity
+                                        key={item.code}
+                                        activeOpacity={0.75}
+                                        onPress={() => {
+                                            i18n.changeLanguage(item.code);
+                                            setIsLanguageModalVisible(false);
                                         }}
                                         style={{ paddingVertical: scale(13), borderBottomWidth: 1, borderColor: theme.colors.divider }}
                                     >

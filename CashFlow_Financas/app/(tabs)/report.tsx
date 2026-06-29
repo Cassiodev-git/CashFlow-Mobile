@@ -42,7 +42,7 @@ export default function ReportsScreen() {
         })) as Transactions[];
     }, [filteredTransactions]);
 
-    const monthName = new Date(date.year, date.month - 1).toLocaleString(i18n.language, { month: 'long' });
+    const monthName = new Date(date.year, date.month - 1).toLocaleString('pt-BR', { month: 'long' });;
     const capitalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
     const handleEditTransaction = useCallback((transaction: Transactions) => {
