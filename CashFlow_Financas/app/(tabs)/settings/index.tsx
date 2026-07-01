@@ -144,7 +144,7 @@ export default function SettingsScreen() {
                         icon="list" 
                         title={t("settings.defaultCategory")} 
                         subtitle={t("settings.manageCategories")} 
-                        onPress={() => {}} 
+                        onPress={() => router.push("/(tabs)/settings/categories")} 
                     />
 
                     <SectionTitle title={t("settings.data")} />

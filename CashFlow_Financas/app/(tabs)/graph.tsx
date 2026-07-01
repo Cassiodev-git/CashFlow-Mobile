@@ -43,7 +43,7 @@ export default function GraphScreen() {
                 contentContainerStyle={{ padding: scale(24) }}
                 showsVerticalScrollIndicator={false}
             >
-                <Box style={{ marginTop: scale(40), marginBottom: scale(15) }}>
+                <Box style={{ marginTop: scale(20), marginBottom: scale(15) }}>
                     <Text variant="titleLarge" color="textPrimary" fontWeight="700">{t("graph.title")}</Text>
                     <Text variant="body" color="textSecondary" style={{ marginTop: scale(4) }}>{t("graph.titleDescription")}</Text>
                 </Box>
