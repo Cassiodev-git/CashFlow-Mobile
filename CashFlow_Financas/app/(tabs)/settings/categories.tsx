@@ -1,48 +1,41 @@
-import React, { useState, ComponentProps } from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
+import React, { ComponentProps, useState } from 'react';
+import { ScrollView, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
 import { MotiView } from 'moti';
-import { Feather } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@shopify/restyle';
 import { Box, Text, scale, type Theme } from '@/theme/unistyles';
-
-interface StaticCategory {
-    id: string;
-    name: string;
-    type: 'income' | 'expense';
-    icon: string;
-}
-
-const MOCK_CATEGORIES: StaticCategory[] = [
-    { id: '1', name: 'Alimentação', type: 'expense', icon: 'coffee' },
-    { id: '2', name: 'Salário', type: 'income', icon: 'dollar-sign' },
-    { id: '3', name: 'Transporte', type: 'expense', icon: 'truck' },
-    { id: '4', name: 'Lazer', type: 'expense', icon: 'smile' },
-    { id: '5', name: 'Investimentos', type: 'income', icon: 'trending-up' },
-];
+import { useCategories } from '@/hooks/useCategories';
+import CategoryForm from '@/features/category/components/CategoryForm/CategoryForm'; 
 
 export default function CategoriesScreen() {
     const theme = useTheme<Theme>();
-    const [categories] = useState<StaticCategory[]>(MOCK_CATEGORIES);
+    const { categories, loading, deleteCategory, createCategory } = useCategories();
+    const [isFormOpen, setIsFormOpen] = useState(false);
+
+    const handleCreateCategory = async (data: { name: string; type: 'income' | 'expense'; icon: string }) => {
+        try {
+            await createCategory(data);
+            setIsFormOpen(false);
+        } catch (err) {
+            console.log(err);
+        }
+    };
 
     return (
         <Box flex={1} backgroundColor="background">
             <ScrollView
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ padding: scale(24), paddingBottom: scale(110) }}
+                contentContainerStyle={{ padding: scale(24), paddingBottom: scale(110), paddingTop: scale(60) }}
             >
-                <Box flexDirection="row" justifyContent="space-between" alignItems="center" paddingTop="xxl" marginBottom="m">
-                    <Text variant="titleMedium" fontWeight="700">Categorias</Text>
-                </Box>
-
-                <Box backgroundColor="surface" padding="s" borderRadius="m" marginBottom="m" borderWidth={1} borderColor="border" alignItems="center">
-                    <Text variant="caption" fontWeight="600" color="textSecondary">
-                        Usando {categories.length} de 50 categorias
-                    </Text>
-                </Box>
+                {loading && categories.length === 0 && (
+                    <Box justifyContent="center" alignItems="center" padding="m">
+                        <ActivityIndicator color={theme.colors.primary} />
+                    </Box>
+                )}
 
                 {categories.map((item, index) => {
                     const isIncome = item.type === 'income';
-                    const iconName = (item.icon as ComponentProps<typeof Feather>['name']) || 'tag';
+                    const iconName = (item.icon as ComponentProps<typeof MaterialCommunityIcons>['name']) || 'tag';
 
                     return (
                         <MotiView
@@ -63,9 +56,9 @@ export default function CategoriesScreen() {
                                             justifyContent="center"
                                             marginRight="m"
                                         >
-                                            <Feather 
+                                            <MaterialCommunityIcons 
                                                 name={iconName} 
-                                                size={20} 
+                                                size={22} 
                                                 color={isIncome ? theme.colors.success : theme.colors.danger} 
                                             />
                                         </Box>
@@ -79,10 +72,13 @@ export default function CategoriesScreen() {
 
                                     <Box flexDirection="row" style={{ gap: scale(14) }}>
                                         <TouchableOpacity activeOpacity={0.7}>
-                                            <Feather name="edit-2" size={18} color={theme.colors.textSecondary} />
+                                            <MaterialCommunityIcons name="pencil" size={18} color={theme.colors.textSecondary} />
                                         </TouchableOpacity>
-                                        <TouchableOpacity activeOpacity={0.7}>
-                                            <Feather name="trash-2" size={18} color={theme.colors.danger} />
+                                        <TouchableOpacity 
+                                            activeOpacity={0.7} 
+                                            onPress={() => deleteCategory(item.id)}
+                                        >
+                                            <MaterialCommunityIcons name="trash-can-outline" size={18} color={theme.colors.danger} />
                                         </TouchableOpacity>
                                     </Box>
                                 </Box>
@@ -95,6 +91,7 @@ export default function CategoriesScreen() {
             <Box position="absolute" bottom={24} left={0} right={0} alignItems="center">
                 <TouchableOpacity
                     activeOpacity={0.8}
+                    onPress={() => setIsFormOpen(true)}
                     style={{
                         backgroundColor: theme.colors.primary,
                         paddingVertical: scale(14),
@@ -112,6 +109,46 @@ export default function CategoriesScreen() {
                     </Text>
                 </TouchableOpacity>
             </Box>
+
+            <Modal
+                visible={isFormOpen}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => setIsFormOpen(false)}
+            >
+                <Box flex={1}  justifyContent="flex-end">
+                    <Box 
+                        backgroundColor="background" 
+                        borderTopLeftRadius="xl" 
+                        borderTopRightRadius="xl" 
+                        borderTopWidth={1}
+                        borderColor="border"
+                        height="85%"
+                    >
+                        <Box 
+                            width={scale(38)} 
+                            height={scale(4)} 
+                            backgroundColor="border" 
+                            borderRadius="s" 
+                            alignSelf="center" 
+                            marginTop="s" 
+                            marginBottom="s" 
+                        />
+
+                        <Box flexDirection="row" justifyContent="space-between" alignItems="center" paddingHorizontal="m" marginBottom="s" marginTop="xs">
+                            <Text variant="titleMedium" fontWeight="700">Nova Categoria</Text>
+                            <TouchableOpacity onPress={() => setIsFormOpen(false)} activeOpacity={0.7}>
+                                <MaterialCommunityIcons name="close" size={24} color={theme.colors.textSecondary} />
+                            </TouchableOpacity>
+                        </Box>
+                        
+                        <CategoryForm 
+                            onSubmit={handleCreateCategory} 
+                            loading={loading} 
+                        />
+                    </Box>
+                </Box>
+            </Modal>
         </Box>
     );
 }
