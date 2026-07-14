@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { ScrollView, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
 import { MotiView } from 'moti';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@shopify/restyle';
@@ -12,6 +12,7 @@ export default function BackupScreen() {
     const { exportData, importData, isExporting, isImporting } = useBackup();
     const [modalFormat, setModalFormat] = useState<ExportFormat | null>(null);
     const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+    const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
 
     const handleOpenExportConfig = (format: ExportFormat) => {
         setModalFormat(format);
@@ -39,6 +40,19 @@ export default function BackupScreen() {
                     transition={{ type: 'timing', duration: 220 }}
                 >
                     <Box paddingTop="xxl" />
+
+                    <Box flexDirection="row" justifyContent="space-between" alignItems="center" marginBottom="s">
+                        <Text variant="body" fontWeight="700" color="textPrimary">
+                            Backup e Relatórios
+                        </Text>
+                        <TouchableOpacity activeOpacity={0.7} onPress={() => setIsInfoModalOpen(true)}>
+                            <MaterialCommunityIcons name="help-circle-outline" size={24} color={theme.colors.primary} />
+                        </TouchableOpacity>
+                    </Box>
+
+                    <Text variant="caption" color="textSecondary" marginBottom="xl">
+                        Gerencie suas exportações e backups no Finno de forma segura e offline.
+                    </Text>
 
                     <Text variant="body" fontWeight="700" color="textPrimary" marginBottom="m">
                         Exportar Dados
@@ -156,6 +170,62 @@ export default function BackupScreen() {
                 onClose={() => setIsConfigModalOpen(false)}
                 onConfirm={handleExecuteExport}
             />
+
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={isInfoModalOpen}
+                onRequestClose={() => setIsInfoModalOpen(false)}
+            >
+                <Box 
+                    flex={1} 
+                    backgroundColor="modalOverlay" 
+                    justifyContent="center" 
+                    alignItems="center" 
+                    paddingHorizontal="l"
+                >
+                    <Box 
+                        backgroundColor="background" 
+                        borderRadius="l" 
+                        padding="l" 
+                        width="100%" 
+                        borderWidth={1} 
+                        borderColor="border"
+                    >
+                        <Box flexDirection="row" justifyContent="space-between" alignItems="center" marginBottom="m">
+                            <Text variant="body" fontWeight="700" color="textPrimary">
+                                Por que backups manuais?
+                            </Text>
+                            <TouchableOpacity activeOpacity={0.7} onPress={() => setIsInfoModalOpen(false)}>
+                                <MaterialCommunityIcons name="close" size={24} color={theme.colors.textPrimary} />
+                            </TouchableOpacity>
+                        </Box>
+
+                        <Text variant="body" color="textSecondary" marginBottom="m" style={{ lineHeight: 22 }}>
+                            O Finno opera de forma totalmente local-first. Suas transações e dados financeiros ficam salvos apenas no armazenamento interno do seu próprio dispositivo, garantindo privacidade absoluta.
+                        </Text>
+
+                        <Text variant="body" color="textSecondary" marginBottom="m" style={{ lineHeight: 22 }}>
+                            Por não enviarmos suas informações para servidores externos, não há rotinas de backup automático em nuvem de terceiros.
+                        </Text>
+
+                        <Text variant="body" color="textSecondary" marginBottom="l" style={{ lineHeight: 22 }}>
+                            Recomendamos gerar o arquivo de backup (.json) periodicamente e salvá-lo em uma pasta segura de sua preferência (Google Drive, iCloud ou e-mail pessoal).
+                        </Text>
+
+                        <TouchableOpacity activeOpacity={0.85} onPress={() => setIsInfoModalOpen(false)}>
+                            <Box 
+                                backgroundColor="primary" 
+                                borderRadius="s" 
+                                paddingVertical="m" 
+                                alignItems="center"
+                            >
+                                <Text color="textInverse" fontWeight="600">Entendi</Text>
+                            </Box>
+                        </TouchableOpacity>
+                    </Box>
+                </Box>
+            </Modal>
         </Box>
     );
 }

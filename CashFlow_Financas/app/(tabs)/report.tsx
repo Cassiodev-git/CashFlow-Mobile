@@ -15,12 +15,13 @@ import { useHomeData } from '@/hooks/useHomeData';
 import { Transactions } from '@/features/transaction/types/Transactions';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { useCurrency } from '@/features/settings/hooks/useCurrency';
-
+import { useCategories } from '@/hooks/useCategories';
 export default function ReportsScreen() {
     const { t, i18n } = useTranslation();
     const { date, data, handleNext, handlePrev, loading: loadingSummary } = useMonthlySummary();
     const { transactions, loading: loadingTransactions, deleteMultipleTransactions } = useTransactions();
     const { filters, updateFilter, resetFilters, filteredTransactions } = useTransactionFilter(transactions);
+    const {categories} = useCategories()
     const { deleteTransaction } = useHomeData();
     const { formatCurrency } = useCurrency();
 
@@ -108,6 +109,7 @@ export default function ReportsScreen() {
             <TransactionHistoryList 
                 transactions={sanitizedTransactions} 
                 ListHeaderComponent={renderHeader()}
+                categories={categories}
                 loading={loadingTransactions}
                 onTransactionPress={setSelectedTransaction}
                 onDeleteMultiple={handleDeleteMultiple}

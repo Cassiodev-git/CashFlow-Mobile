@@ -11,8 +11,15 @@ import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { ConfirmationModal } from '@/components/ConfirmationModal/ConfirmationModal';
 import { useCurrency } from '@/features/settings/hooks/useCurrency';
 
+interface Category {
+    id: string;
+    name: string;
+    [key: string]: any;
+}
+
 interface TransactionHistoryListProps {
     transactions: Transaction[]; 
+    categories?: Category[];
     ListHeaderComponent?: React.ReactElement;
     loading?: boolean;
     onTransactionPress?: (transaction: Transaction) => void;
@@ -21,6 +28,7 @@ interface TransactionHistoryListProps {
 
 export function TransactionHistoryList({ 
     transactions, 
+    categories,
     ListHeaderComponent, 
     loading = false,
     onTransactionPress,
@@ -35,6 +43,11 @@ export function TransactionHistoryList({
     const [isModalVisible, setIsModalVisible] = useState(false);
     
     const isSelectionMode = selectedIds.size > 0;
+
+    const categoryMap = useMemo(() => {
+        if (!categories) return new Map<string, string>();
+        return new Map(categories.map(c => [c.id, c.name]));
+    }, [categories]);
 
     const toggleSelection = (id: string) => {
         const newSet = new Set(selectedIds);
@@ -185,6 +198,12 @@ export function TransactionHistoryList({
                     const statusOpacity = item.status === 'paid' ? 1 : item.status === 'pending' ? 0.6 : 0.4;
                     const finalOpacity = isSelected ? 0.5 : statusOpacity;
 
+                    const categoryName = 
+                        (item as any).category?.name || 
+                        (item as any).category_name || 
+                        (item.category_id ? categoryMap.get(item.category_id) : null) || 
+                        item.category_id;
+
                     return (
                         <TouchableOpacity 
                             activeOpacity={0.7} 
@@ -213,7 +232,7 @@ export function TransactionHistoryList({
                                         </Box>
                                         <Box marginLeft="m" flex={1}>
                                             <Text variant="body" color="textPrimary" fontWeight="500" style={{ fontSize: scale(15) }}>{item.title}</Text>
-                                            <Text variant="caption" color="textSecondary" style={{ fontSize: scale(12) }}>{typeLabel} {item.category_id ? `• ${item.category_id}` : ''}</Text>
+                                            <Text variant="caption" color="textSecondary" style={{ fontSize: scale(12) }}>{typeLabel} {categoryName ? `• ${categoryName}` : ''}</Text>
                                         </Box>
                                     </Box>
                                     <Box alignItems="flex-end">

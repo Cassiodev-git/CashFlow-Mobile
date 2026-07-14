@@ -20,7 +20,7 @@ import { LoadingScreen } from '@/components/LoadingScreen/LoadingScreen';
 import notificationService from '@/features/notification/services/notificationService';
 import { AppThemeProvider, useAppTheme } from '@/features/settings/context/ThemeContext';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
-
+import Toast from 'react-native-toast-message';
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -177,6 +177,7 @@ function RootLayoutContent() {
           </Stack>
         )}
       </SafeAreaProvider>
+      <Toast />
     </>
   );
 }
