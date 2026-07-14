@@ -148,17 +148,12 @@ export default function SettingsScreen() {
                     />
 
                     <SectionTitle title={t("settings.data")} />
-                    <SettingsItem 
-                        icon="download" 
-                        title={t("settings.exportData")} 
-                        subtitle={t("settings.exportDataSubtitle")} 
-                        onPress={() => {}} 
-                    />
+
                     <SettingsItem 
                         icon="database" 
                         title={t("settings.backup")} 
                         subtitle={t("settings.backupSubtitle")} 
-                        onPress={() => {}} 
+                        onPress={() => router.push("/(tabs)/settings/backup")} 
                     />
 
                     <SectionTitle title={t("settings.about")} />
