@@ -3,6 +3,7 @@ import AppTransactionsService from '@/services/AppTransactionsService';
 import AppCategoryService from '@/services/AppCategoryService';
 import { Transactions as Transaction } from "@/features/transaction/types/Transactions";
 import { useTranslation } from 'react-i18next';
+import { DeviceEventEmitter } from 'react-native';
 import { logger } from '@/utils/logger';
 
 export type ReportPeriod = 'week' | 'month' | 'year';
@@ -25,7 +26,6 @@ export function useReports(selectedTab: ReportPeriod) {
     const [lineChartData, setLineChartData] = useState<any[]>([]);
     const [pieChartData, setPieChartData] = useState<any[]>([]);
     const [insights, setInsights] = useState<GraphInsights | null>(null);
-    const [balanceEvolutionData, setBalanceEvolutionData] = useState<Array<{ day: string; balance: number }>>([]);
 
     const loadChartData = useCallback(async (isPullToRefresh = false) => {
         try {
@@ -49,7 +49,6 @@ export function useReports(selectedTab: ReportPeriod) {
             setLineChartData(formattedLineData);
             setPieChartData(formattedPieData);
             setInsights(buildInsights(transactions, selectedTab, categoryNames, t));
-            setBalanceEvolutionData(buildBalanceEvolution(transactions, selectedTab));
         } catch (err) {
             logger.error("Erro ao carregar os dados dos gráficos:", err);
             setError(true); 
@@ -61,6 +60,13 @@ export function useReports(selectedTab: ReportPeriod) {
 
     useEffect(() => {
         loadChartData();
+    }, [loadChartData]);
+
+    useEffect(() => {
+        const subscription = DeviceEventEmitter.addListener('transaction_mutated', () => {
+            loadChartData(true);
+        });
+        return () => subscription.remove();
     }, [loadChartData]);
 
     const refresh = useCallback(() => {
@@ -77,7 +83,6 @@ export function useReports(selectedTab: ReportPeriod) {
         error, 
         lineChartData, 
         pieChartData,
-        balanceEvolutionData,
         insights,
         refresh, 
         onRefresh 
@@ -120,22 +125,6 @@ function buildInsights(transactions: Transaction[], period: ReportPeriod, catego
         return total + (transaction.type === 'income' ? Number(transaction.amount) : -Number(transaction.amount));
     }, 0);
     return { balance, expenseAverage: expenses.length ? expenses.reduce((total, { transaction }) => total + Number(transaction.amount), 0) / expenses.length : 0, topCategories, status, busiestDay, recurringBalance, balanceChange: balance - previousBalance, totalExpenses: expenses.reduce((total, { transaction }) => total + Number(transaction.amount), 0) };
-}
-
-function buildBalanceEvolution(transactions: Transaction[], period: ReportPeriod) {
-    const items = transactions.map((transaction) => ({ transaction, date: getSafeDate(transaction) }))
-        .filter((item): item is { transaction: Transaction; date: Date } => item.date !== null && checkPeriodMatch(item.date, period) && item.transaction.status !== 'canceled')
-        .sort((a, b) => a.date.getTime() - b.date.getTime());
-    let balance = 0;
-    const result: Array<{ day: string; balance: number }> = [];
-    items.forEach(({ transaction, date }) => {
-        balance += transaction.type === 'income' ? Number(transaction.amount) || 0 : -(Number(transaction.amount) || 0);
-        const day = getXKeyLabel(date, period);
-        const previous = result[result.length - 1];
-        if (previous?.day === day) previous.balance = balance;
-        else result.push({ day, balance });
-    });
-    return result;
 }
 
 function getPreviousPeriod(period: ReportPeriod, now: Date) {

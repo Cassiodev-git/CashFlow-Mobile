@@ -24,9 +24,12 @@ export function FinancialSummaryCard({
     onNext,
     loading = false
 }: FinancialSummaryCardProps) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     
     const mesNormalizado = periodo.split(' ')[0].toLowerCase().replace('ç', 'c');
+    const monthKey = i18n.language.startsWith('en')
+        ? mesNormalizado
+        : mesNormalizado;
     const ano = periodo.split(' ')[1];
     return (
         <Box 
@@ -43,7 +46,7 @@ export function FinancialSummaryCard({
         >
             <Box flexDirection="row" justifyContent="space-between" alignItems="center" marginBottom="m">
                 <Text variant="body" color="textPrimary" fontWeight="600">
-                    {t(`report.date.months.${mesNormalizado}`)} {ano}
+                    {t(`report.date.months.${monthKey}`)} {ano}
                 </Text>
                 <Box flexDirection="row" alignItems="center">
                     <TouchableOpacity onPress={onPrev} style={{ padding: scale(4) }}>

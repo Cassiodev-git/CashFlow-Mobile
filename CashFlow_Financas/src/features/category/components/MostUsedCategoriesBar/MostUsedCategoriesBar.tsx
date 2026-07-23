@@ -50,6 +50,7 @@ export function MostUsedCategoriesBar({ selectedCategoryId, transactionType, onS
                     );
                 })}
             </ScrollView>
+            <Box height={1} backgroundColor="divider" marginTop="s" marginBottom="s" />
         </Box>
     );
 }

@@ -1,5 +1,6 @@
 import { logger } from "../utils/logger";
 import { useState, useEffect } from 'react';
+import { DeviceEventEmitter } from 'react-native';
 import AppUserService from "@/services/AppUserService";
 import i18n from "@/i18n";
 
@@ -28,6 +29,7 @@ export const useProfile = () => {
         try {
             await AppUserService.updateUser(id, data);
             setUser((prev: any) => ({ ...prev, ...data }));
+            DeviceEventEmitter.emit('profile_mutated');
         } catch (error) {
             logger.error("Error updating profile:", error);
             throw error;
@@ -41,6 +43,7 @@ export const useProfile = () => {
         try {
             await AppUserService.deleteUser(id);
             setUser(null);
+            DeviceEventEmitter.emit('profile_mutated');
             return true;
         } catch (error) {
             logger.error("Error deleting account:", error);

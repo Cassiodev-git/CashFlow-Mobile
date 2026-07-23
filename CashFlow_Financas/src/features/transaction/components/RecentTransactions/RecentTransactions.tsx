@@ -1,8 +1,7 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
     StyleSheet,
     TouchableOpacity,
-    TextInput,
     Modal,
     TouchableWithoutFeedback,
 } from 'react-native';
@@ -259,17 +258,8 @@ export function RecentTransactions({
     const { t } = useTranslation();
     const { formatCurrency: formatCurrencyValue } = useCurrency();
     const [showAll, setShowAll] = useState(false);
-    const [inputQuery, setInputQuery] = useState('');
-    const [searchQuery, setSearchQuery] = useState('');
 
     const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
-
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setSearchQuery(inputQuery);
-        }, 180);
-        return () => clearTimeout(handler);
-    }, [inputQuery]);
 
     const formatDate = useCallback((dateString?: string | null, createdAtString?: string | null) => {
         const targetDate = dateString || createdAtString;
@@ -287,19 +277,11 @@ export function RecentTransactions({
     }, [formatCurrencyValue]);
 
     const processedTransactions = useMemo(() => {
-        let result = transactions;
-
-        if (searchQuery.trim() !== '') {
-            result = result.filter(item =>
-                item.title.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-        }
         if (!showAll) {
-            return result.slice(0, 5);
+            return transactions.slice(0, 5);
         }
-
-        return result;
-    }, [transactions, searchQuery, showAll]);
+        return transactions;
+    }, [transactions, showAll]);
 
     const renderItem = useCallback(({ item }: { item: Transaction; index: number }) => {
         const isExpense = String(item.type).toLowerCase() === 'expense';
@@ -379,7 +361,6 @@ export function RecentTransactions({
                                         activeOpacity={0.6}
                                         onPress={() => {
                                             setShowAll(true);
-                                            setInputQuery('');
                                         }}
                                     >
                                         <Text variant="body" fontWeight="600" color="income">
@@ -390,45 +371,19 @@ export function RecentTransactions({
                             </MotiView>
                         ) : (
                             <MotiView
-                                key="search-section"
+                                key="all-title-section"
                                 from={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 transition={{ type: 'timing', duration: 100 }}
+                                style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}
                             >
-                                <Box
-                                    flexDirection="row"
-                                    alignItems="center"
-                                    backgroundColor="inputBackground"
-                                    borderRadius="m"
-                                    paddingLeft="m"
-                                    borderWidth={scale(1)}
-                                    borderColor="inputBorder"
-                                    width="100%"
-                                    height="100%"
-                                >
-                                    <Feather name="search" size={18} color="#6F7583" style={{ marginRight: scale(8) }} />
-                                    <TextInput
-                                        style={{ flex: 1, height: '100%', fontSize: moderateScale(14), color: '#191D29' }}
-                                        placeholder={t('transactions.searchPlaceholder')}
-                                        placeholderTextColor="#A5ABB6"
-                                        value={inputQuery}
-                                        onChangeText={setInputQuery}
-                                        autoFocus={true}
-                                    />
-
-                                    <TouchableOpacity
-                                        style={{ height: '100%', justifyContent: 'center', paddingHorizontal: scale(14) }}
-                                        onPress={() => {
-                                            setShowAll(false);
-                                            setInputQuery('');
-                                        }}
-                                    >
-                                        <Text variant="body" fontWeight="600" color="textSecondary" style={{ fontSize: moderateScale(13) }}>
-                                            {t('transactions.seeLess')}
-                                        </Text>
-                                    </TouchableOpacity>
-                                </Box>
+                                <Text variant="body" fontWeight="700" color="textPrimary" style={{ fontSize: moderateScale(16), letterSpacing: -0.3 }}>
+                                    {t('transactions.recentTitle')}
+                                </Text>
+                                <TouchableOpacity activeOpacity={0.6} onPress={() => setShowAll(false)}>
+                                    <Text variant="body" fontWeight="600" color="income">{t('transactions.seeLess')}</Text>
+                                </TouchableOpacity>
                             </MotiView>
                         )}
                     </AnimatePresence>

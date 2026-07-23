@@ -44,8 +44,9 @@ export function useTransactionFilter(initialTransactions: Transaction[] = []) {
         const matchesType = filters.type === 'all' || transaction.type === filters.type;
         const matchesStatus = filters.status === 'all' || transaction.status === filters.status;
         const matchesCategory = filters.categoryId === 'all' || transaction.category_id === filters.categoryId;
-        const date = normalizeDate(transaction.date);
-        const matchesDate = date !== null && (!filters.startDate || date >= filters.startDate) && (!filters.endDate || date <= filters.endDate);
+        const date = normalizeDate(transaction.date) ?? normalizeDate(transaction.created_at);
+        const hasDateFilter = Boolean(filters.startDate || filters.endDate);
+        const matchesDate = !hasDateFilter || (date !== null && (!filters.startDate || date >= filters.startDate) && (!filters.endDate || date <= filters.endDate));
         const amount = Number(transaction.amount);
         const matchesAmount = Number.isFinite(amount) && (filters.minAmount == null || amount >= filters.minAmount) && (filters.maxAmount == null || amount <= filters.maxAmount);
 

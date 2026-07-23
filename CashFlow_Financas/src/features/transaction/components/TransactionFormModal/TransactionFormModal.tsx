@@ -19,6 +19,7 @@ import { BlurView } from 'expo-blur';
 import AppCategoryService from '@/services/AppCategoryService';
 import { useTransactions } from '@/hooks/useTransactions';
 import { Box, Text, scale, type Theme } from '@/theme/unistyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { MostUsedCategoriesBar } from '@/features/category/components/MostUsedCategoriesBar/MostUsedCategoriesBar';
 import type { categories } from '@/features/category/schema';
@@ -28,6 +29,7 @@ interface TransactionFormModalProps {
     onClose: () => void;
     transaction?: any | null;
     defaultIsRecurring?: boolean;
+    fullScreen?: boolean;
     onSaved?: () => void | Promise<void>;
 }
 
@@ -65,13 +67,25 @@ const formatFromBackendDate = (dateStr: string | null | undefined, lang: string)
     return `${day}/${month}/${year}`;
 };
 
-export function TransactionFormModal({ isOpen, onClose, transaction, defaultIsRecurring = false, onSaved }: TransactionFormModalProps) {
+export function TransactionFormModal({ isOpen, onClose, transaction, defaultIsRecurring = false, fullScreen = !defaultIsRecurring, onSaved }: TransactionFormModalProps) {
     const { t, i18n } = useTranslation();
     const theme = useTheme<Theme>();
     const { height } = useWindowDimensions();
+    const insets = useSafeAreaInsets();
     const { createTransaction, updateTransaction } = useTransactions();
     
     const isEditMode = !!transaction;
+    const bottomBarHeight = fullScreen ? scale(64) + insets.bottom : 0;
+
+    useEffect(() => {
+        if (defaultIsRecurring) return;
+        DeviceEventEmitter.emit('transaction_form_modal_state', { open: isOpen });
+        const closeSubscription = DeviceEventEmitter.addListener('transaction_form_close', onClose);
+        return () => {
+            closeSubscription.remove();
+            if (isOpen) DeviceEventEmitter.emit('transaction_form_modal_state', { open: false });
+        };
+    }, [defaultIsRecurring, isOpen, onClose]);
 
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -90,7 +104,6 @@ export function TransactionFormModal({ isOpen, onClose, transaction, defaultIsRe
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [loadingCategories, setLoadingCategories] = useState(false);
-    const [focusedSection, setFocusedSection] = useState<'basic' | 'recurrence' | null>(null);
 
     const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -122,7 +135,6 @@ export function TransactionFormModal({ isOpen, onClose, transaction, defaultIsRe
                 setFrequency('monthly'); setInterval(''); setEndDate('');
             }
             setError('');
-            setFocusedSection(null);
         } else {
             if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
         }
@@ -138,20 +150,14 @@ export function TransactionFormModal({ isOpen, onClose, transaction, defaultIsRe
     }, [isOpen]);
 
     useEffect(() => {
-        const hideSubscription = Keyboard.addListener('keyboardDidHide', () => setFocusedSection(null));
         return () => {
-            hideSubscription.remove();
             if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
         };
     }, []);
 
     const handleBackdropPress = () => {
-        if (focusedSection !== null) {
-            Keyboard.dismiss();
-            setFocusedSection(null);
-        } else {
-            onClose();
-        }
+        Keyboard.dismiss();
+        onClose();
     };
 
     const handleSave = async () => {
@@ -188,6 +194,7 @@ export function TransactionFormModal({ isOpen, onClose, transaction, defaultIsRe
                 await createTransaction(payload);
             }
 
+            if (!defaultIsRecurring) DeviceEventEmitter.emit('transaction_form_modal_state', { open: false, completed: true });
             DeviceEventEmitter.emit("transaction_mutated");
             await onSaved?.();
             onClose();
@@ -199,25 +206,28 @@ export function TransactionFormModal({ isOpen, onClose, transaction, defaultIsRe
     };
 
     const filteredCategories = categories.filter((category) => category.type === type);
-    const showBasic = focusedSection !== 'recurrence';
-    const showMiddle = focusedSection === null;
-    const showRecurrence = focusedSection !== 'basic';
+    // Keep the modal content mounted while the keyboard changes size. Toggling
+    // whole sections on focus was causing the modal to recalculate its height.
+    const showBasic = true;
+    const showMiddle = true;
+    const showRecurrence = true;
 
     return (
         <Modal visible={isOpen} transparent animationType="fade" statusBarTranslucent presentationStyle="overFullScreen" onRequestClose={onClose}>
-            <BlurView intensity={70} tint="dark" style={StyleSheet.absoluteFillObject}>
+            <Box flex={1}>
+            <BlurView intensity={70} tint="dark" style={[StyleSheet.absoluteFillObject, fullScreen && { bottom: bottomBarHeight }]}>
                 <Pressable style={StyleSheet.absoluteFillObject} onPress={handleBackdropPress} />
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1, justifyContent: 'center', paddingHorizontal: scale(16), paddingBottom: scale(24) }}>
+                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1, justifyContent: fullScreen ? 'flex-start' : 'center', paddingHorizontal: fullScreen ? 0 : scale(16), paddingTop: fullScreen ? insets.top + scale(8) : 0, paddingBottom: fullScreen ? 0 : scale(24) }}>
                     <AnimatePresence>
                         {isOpen && (
-                            <MotiView from={{ opacity: 0, scale: 0.9, translateY: 30 }} animate={{ opacity: 1, scale: 1, translateY: 0 }} exit={{ opacity: 0, scale: 0.9, translateY: 30 }} transition={{ type: 'timing', duration: 250 }} style={{ width: '100%', maxHeight: Math.min(height * 0.85, 640) }}>
-                                <Box backgroundColor="card" borderRadius="xl" borderWidth={scale(1)} borderColor="border" overflow="hidden">
+                            <MotiView from={{ opacity: 0, scale: fullScreen ? 1 : 0.9, translateY: fullScreen ? 0 : 30 }} animate={{ opacity: 1, scale: 1, translateY: 0 }} exit={{ opacity: 0, scale: fullScreen ? 1 : 0.9, translateY: fullScreen ? 0 : 30 }} transition={{ type: 'timing', duration: 250 }} style={{ width: '100%', flex: fullScreen ? 1 : undefined, maxHeight: fullScreen ? undefined : Math.min(height * 0.85, 640) }}>
+                                    <Box flex={fullScreen ? 1 : undefined} backgroundColor="card" borderRadius={fullScreen ? 'none' : 'xl'} borderWidth={fullScreen ? 0 : scale(1)} borderColor="border" overflow="hidden">
                                     <Box padding="m" borderBottomWidth={1} borderColor="inputBorder"><Text variant="titleMedium" fontWeight="700">{isEditMode ? t("transactions.editTitle") : t("transactions.newTransaction")}</Text></Box>
                                     <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: scale(16) }}>
                                         {showBasic && (
                                             <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 200 }}>
-                                                <Box width="100%" marginBottom="s"><Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.title")}</Text><TextInput style={inputStyle(theme)} placeholder={t("transactions.titlePlaceholder")} placeholderTextColor={theme.colors.textSecondary} value={title} onChangeText={setTitle} onFocus={() => setFocusedSection('basic')} /></Box>
-                                                <Box width="100%" marginBottom="s"><Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.descriptionLabel")}</Text><TextInput style={[inputStyle(theme), { height: scale(80) }]} multiline placeholder={t("transactions.descriptionPlaceholder")} placeholderTextColor={theme.colors.textSecondary} value={description} onChangeText={setDescription} onFocus={() => setFocusedSection('basic')} /></Box>
+                                                <Box width="100%" marginBottom="s"><Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.title")}</Text><TextInput style={inputStyle(theme)} placeholder={t("transactions.titlePlaceholder")} placeholderTextColor={theme.colors.textSecondary} value={title} onChangeText={setTitle} /></Box>
+                                                <Box width="100%" marginBottom="s"><Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.descriptionLabel")}</Text><TextInput style={[inputStyle(theme), { height: scale(80) }]} multiline placeholder={t("transactions.descriptionPlaceholder")} placeholderTextColor={theme.colors.textSecondary} value={description} onChangeText={setDescription} /></Box>
                                             </MotiView>
                                         )}
                                         {showMiddle && (
@@ -254,18 +264,16 @@ export function TransactionFormModal({ isOpen, onClose, transaction, defaultIsRe
                                         )}
                                         {showRecurrence && (
                                             <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 200 }} style={{ marginBottom: scale(8) }}>
-                                                <Box borderTopWidth={focusedSection === 'recurrence' ? 0 : 1} borderColor="inputBorder" paddingTop={focusedSection === 'recurrence' ? 'none' : 's'}>
-                                                    {focusedSection !== 'recurrence' && (
-                                                        <>
+                                                <Box borderTopWidth={1} borderColor="inputBorder" paddingTop="s">
+                                                    <>
                                                             <Text variant="body" fontWeight="600" marginBottom="xs">{t("recurrence.form.isRecurring")}</Text>
                                                             <TouchableOpacity style={[choiceButtonStyle(theme), isRecurring && activeChoiceStyle(theme)]} onPress={() => setIsRecurring(!isRecurring)}><Text color={isRecurring ? 'primary' : 'textSecondary'}>{isRecurring ? t("common.yes") : t("common.no")}</Text></TouchableOpacity>
-                                                        </>
-                                                    )}
-                                                    {(isRecurring || focusedSection === 'recurrence') && (
-                                                        <Box marginTop={focusedSection === 'recurrence' ? 'none' : 's'} padding="s" backgroundColor="inputBackground" borderRadius="s">
+                                                    </>
+                                                    {isRecurring && (
+                                                        <Box marginTop="s" padding="s" backgroundColor="inputBackground" borderRadius="s">
                                                             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: scale(8), marginBottom: scale(8) }}>{(['daily', 'weekly', 'monthly', 'yearly'] as const).map((f) => (<TouchableOpacity key={f} style={[choiceButtonStyle(theme), frequency === f && activeChoiceStyle(theme)]} onPress={() => setFrequency(f)}><Text variant="caption" color={frequency === f ? 'primary' : 'textSecondary'}>{t(`recurrence.frequency.${f}`)}</Text></TouchableOpacity>))}</ScrollView>
-                                                            <TextInput style={[inputStyle(theme), { marginBottom: scale(8) }]} placeholder={t("recurrence.form.intervalPlaceholder")} placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" value={interval} onChangeText={setInterval} onFocus={() => setFocusedSection('recurrence')} />
-                                                            <TextInput style={inputStyle(theme)} placeholder={i18n.language.startsWith('en') ? t("recurrence.form.endDatePlaceholder") : t("recurrence.form.endDatePlaceholderLocal")} placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" maxLength={10} value={endDate} onChangeText={(t) => setEndDate(applyDateMask(t, i18n.language))} onFocus={() => setFocusedSection('recurrence')} />
+                                                            <TextInput style={[inputStyle(theme), { marginBottom: scale(8) }]} placeholder={t("recurrence.form.intervalPlaceholder")} placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" value={interval} onChangeText={setInterval} />
+                                                            <TextInput style={inputStyle(theme)} placeholder={i18n.language.startsWith('en') ? t("recurrence.form.endDatePlaceholder") : t("recurrence.form.endDatePlaceholderLocal")} placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" maxLength={10} value={endDate} onChangeText={(t) => setEndDate(applyDateMask(t, i18n.language))} />
                                                         </Box>
                                                     )}
                                                 </Box>
@@ -280,6 +288,8 @@ export function TransactionFormModal({ isOpen, onClose, transaction, defaultIsRe
                     </AnimatePresence>
                 </KeyboardAvoidingView>
             </BlurView>
+            {fullScreen && <TouchableOpacity activeOpacity={1} onPress={onClose} accessibilityLabel={t("common.close")} style={{ position: 'absolute', alignSelf: 'center', bottom: 0, width: scale(64), height: bottomBarHeight }} />}
+            </Box>
         </Modal>
     );
 }
