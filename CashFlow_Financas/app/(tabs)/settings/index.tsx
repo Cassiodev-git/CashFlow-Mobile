@@ -161,7 +161,7 @@ export default function SettingsScreen() {
                         icon="info" 
                         title={t("settings.aboutApp")} 
                         subtitle={t("settings.appVersion", { version: "1.0.0" })} 
-                        onPress={() => {}} 
+                        onPress={() => router.push("/(tabs)/settings/about")}
                     />
                 </MotiView>
             </ScrollView>

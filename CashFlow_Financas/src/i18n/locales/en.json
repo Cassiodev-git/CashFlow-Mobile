@@ -51,7 +51,9 @@
         "userNotFoundForTransactionRead": "User not found to load transactions",
         "networkError": "Connection error",
         "databaseError": "Database error",
-        "permissionDenied": "Permission denied"
+        "permissionDenied": "Permission denied",
+        "categoryAlreadyExists": "A category with this name and type already exists",
+        "categoryNotFound": "Category not found"
     },
     "validation": {
         "user": {
@@ -159,7 +161,8 @@
         "salary": "Salary",
         "investment": "Investment",
         "entertainment": "Entertainment",
-        "createCategory": "Create your category"
+        "createCategory": "Create your category",
+        "mostUsed": "Most used"
     },
     "notifications": {
         "enable": "Enable notifications",
@@ -174,8 +177,16 @@
         "unread": "New",
         "dueDateTitle": "Due date reminder",
         "dueDateBody": "Your bill '{{title}}' is due soon.",
+        "overdueTitle": "Overdue transaction",
+        "overdueBody": "The transaction '{{title}}' is still pending and overdue.",
         "monthlyReportTitle": "Monthly report",
         "monthlyReportBody": "The report for {{month}} is ready!",
+        "recurringCreatedTitle": "Recurrence created",
+        "recurringCreatedBody": "The recurrence for '{{title}}' was created successfully.",
+        "weeklySummaryTitle": "Weekly summary",
+        "weeklySummaryBody": "Review your income, expenses, and balance from the previous week.",
+        "backupReminderTitle": "Preventive backup",
+        "backupReminderBody": "Export your JSON backup to keep your financial data safe.",
         "testTitle": "Test notification",
         "testBody": "This is a test from the notification system."
     },
@@ -208,7 +219,7 @@
         "exportDataSubtitle": "Export your financial data",
         "backup": "Backup",
         "backupSubtitle": "Manage your backups",
-        "aboutApp": "About Cashflow",
+        "aboutApp": "About Finno",
         "appVersion": "Version {{version}}"
     },
     "balance": {
@@ -222,9 +233,19 @@
         "others": "Others",
         "cardSubtitle": "Press and drag to inspect values.",
         "titleDescription": "Track your financial progress.",
+        "monthlyComparisonTitle": "Monthly comparison",
+        "monthlyComparisonDescription": "Compare income and expenses month by month.",
+        "balanceEvolutionTitle": "Balance evolution",
+        "balanceEvolutionDescription": "See how your accumulated balance changed over the period.",
+        "balanceEvolutionDescription": "See how your accumulated balance changed over the period.",
         "expense": "Expenses",
         "revenue": "Revenue",
-        "empty": "No data recorded"
+        "empty": "No data recorded",
+        "insights": {
+            "title": "Financial insights", "balanceEvolution": "Balance evolution", "periodComparison": "{{value}} {{direction}} compared to the previous period", "up": "above", "down": "below",
+            "expenseTrend": "Average spending", "topCategories": "Top categories", "status": "Transaction status", "statusSummary": "{{paid}} paid, {{pending}} pending, and {{canceled}} canceled out of {{total}} transactions.",
+            "financialCalendar": "Day with the highest spending", "recurringForecast": "Recurring balance forecast"
+        }
     },
     "auth": {
         "login": "Login",
@@ -249,7 +270,10 @@
             "period": "Period",
             "startDate": "Start",
             "endDate": "End",
-            "invalidFormat": "Invalid format",
+            "invalidFormat": "Invalid date format",
+            "invalidDateRange": "The start date must be before or equal to the end date.",
+            "invalidAmount": "Enter a valid amount.",
+            "invalidAmountRange": "The minimum amount cannot be greater than the maximum.",
             "amountRange": "Amount Range",
             "amountPlaceholder": "0.00",
             "min": "Min",
@@ -352,5 +376,69 @@
         "confirmDelete": "Do you really want to delete?",
         "permissionRequiredTitle": "Permission required",
         "permissionRequiredMessage": "Allow gallery access to select an avatar image."
+    },
+    "feedback": {
+        "success": { "title": "Success" },
+        "error": { "title": "Something went wrong" },
+        "validation": { "title": "Review the information" },
+        "file": {
+            "nativeUnavailable": "File storage is unavailable on this device.",
+            "sharingUnavailable": "File sharing is unavailable on this device."
+        }
+    },
+    "backup": {
+        "title": "Backup and reports",
+        "subtitle": "Export a copy of your financial data and restore it whenever needed. Everything stays on your device, without cloud sync.",
+        "processing": "Processing...",
+        "untitledTransaction": "Untitled",
+        "uncategorized": "Uncategorized",
+        "export": {
+            "title": "Export data",
+            "json": { "title": "JSON format (.json)", "description": "Create a complete copy of your transactions to safely restore Finno on another device" },
+            "csv": { "title": "CSV spreadsheet (.csv)", "description": "Open it in Excel, Sheets, or Numbers" },
+            "pdf": { "title": "PDF report (.pdf)", "description": "Ideal for printing or sharing" }
+        },
+        "import": { "title": "Restore backup", "action": "Import file", "description": "Select a Finno JSON or CSV file" },
+        "config": {
+            "jsonTitle": "Confirm full backup", "csvTitle": "Export to CSV", "pdfTitle": "Configure PDF report",
+            "fullBackupDescription": "Creates a file with your complete transaction history. Use it to restore data on another device.",
+            "selectPeriod": "Select the data period:", "generate": "Generate", "export": "Export"
+        },
+        "period": { "currentMonth": "This month", "threeMonths": "Last 3 months", "currentYear": "This year", "all": "All history" },
+        "share": { "title": "Share export" },
+        "feedback": {
+            "noTransactions": "You do not have transactions to export.", "minimumPdfTransactions": "Add at least 5 transactions to generate the PDF.",
+            "exportSuccess": "Export completed.", "exportError": "Your data could not be exported. Please try again.",
+            "importSuccess": "{{count}} transactions imported successfully.", "importError": "The file could not be imported. Check its contents and try again.",
+            "invalidFile": "Select a valid Finno JSON or CSV file."
+        },
+        "pdf": { "title": "Transactions report - Finno", "generatedAt": "Generated on {{date}}", "date": "Date", "description": "Title / description", "category": "Category", "status": "Status", "amount": "Amount" },
+        "about": {
+            "open": "Open information about Finno", "title": "About Finno",
+            "localFirst": "Finno works 100% offline and local-first: your financial information stays on your device.",
+            "privacy": "You keep absolute privacy because no data is sent for external analysis or synchronization.",
+            "noServers": "We do not use third-party servers or automatic cloud backups. Export a JSON backup periodically and keep it somewhere safe."
+        }
+    },
+    "categoryManagement": {
+        "create": "Create category", "newTitle": "New category", "editTitle": "Edit category", "mostUsed": "Most used categories",
+        "form": { "name": "Category name", "namePlaceholder": "E.g. Groceries", "type": "Type", "icon": "Select an icon", "save": "Save category", "saving": "Saving..." },
+        "deleteOne": { "title": "Delete category", "description": "Are you sure you want to delete this category?" },
+        "deleteMany": { "title": "Delete categories", "description": "You selected {{count}} categories. Do you want to delete them?" },
+        "feedback": { "loadError": "Categories could not be loaded.", "saveError": "Category could not be saved.", "deleteError": "Category could not be deleted." }
+    },
+    "aboutFinno": {
+        "name": "Finno",
+        "introduction": "Your personal finance manager, made to keep your information under your control.",
+        "items": {
+            "offline": { "title": "100% offline", "description": "Use Finno even without an internet connection." },
+            "privacy": { "title": "Absolute privacy", "description": "Your financial data is never sent to third-party servers." },
+            "localFirst": { "title": "Data on your device", "description": "Finno is local-first: you choose when and where to create a backup." }
+        },
+        "footer": "Made for a clearer financial life."
+    },
+    "defaultCategories": {
+        "food": "Food", "transport": "Transport", "home": "Home", "health": "Health", "education": "Education",
+        "entertainment": "Leisure", "shopping": "Shopping", "bills": "Bills", "salary": "Salary", "investment": "Investments"
     }
 }

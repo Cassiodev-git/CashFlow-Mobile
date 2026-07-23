@@ -88,9 +88,8 @@ class NotificationService {
     }
 
     async deleteByTransactionId(transactionId: string) {
-        const notificationId = await notificationRepo.getExpoIdByTransactionId(transactionId);
-
-        if (notificationId) {
+        const notificationIds = await notificationRepo.getExpoIdsByTransactionId(transactionId);
+        for (const notificationId of notificationIds) {
             try {
                 await Notifications.cancelScheduledNotificationAsync(notificationId);
             } catch (error) {

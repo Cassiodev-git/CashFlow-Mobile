@@ -44,10 +44,9 @@ export function ExpensesDistributionChart({ data }: ExpensesDistributionChartPro
                     {data.map((item, index) => (
                         <Box key={index} flexDirection="row" alignItems="center" style={{ paddingVertical: scale(6), paddingHorizontal: scale(10), borderRadius: scale(20) }}>
                             <Box width={scale(8)} height={scale(8)} style={{ borderRadius: scale(4), marginRight: scale(6), backgroundColor: item.color }} />
-                            <Text variant="caption" color="textSecondary" numberOfLines={1} style={{ marginRight: scale(4) }}>
+                            <Text variant="caption" color="textSecondary" numberOfLines={1}>
                                 {item.label}
                             </Text>
-                            <Text variant="caption" color="textPrimary" fontWeight="700">{item.value}%</Text>
                         </Box>
                     ))}
                 </Box>

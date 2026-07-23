@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { DeviceEventEmitter } from 'react-native';
 import AppCategoryService from '../services/AppCategoryService';
 import type { CreateCategoryDTO, UpdateCategoryDTO } from '../features/category/validation';
 
 export function useCategories() {
+    const { t } = useTranslation();
     const [categories, setCategories] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
@@ -13,8 +16,8 @@ export function useCategories() {
         try {
             const data = await AppCategoryService.listCategories();
             setCategories(data);
-        } catch (err: any) {
-            setError(err.message || 'Erro ao carregar categorias.');
+        } catch (err: unknown) {
+            setError(err instanceof Error && err.message ? err.message : t('categoryManagement.feedback.loadError'));
         } finally {
             setLoading(false);
         }
@@ -26,8 +29,9 @@ export function useCategories() {
         try {
             await AppCategoryService.createCategory(data);
             await fetchCategories();
-        } catch (err: any) {
-            setError(err.message);
+            DeviceEventEmitter.emit('category_mutated');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : t('categoryManagement.feedback.saveError'));
             throw err;
         } finally {
             setLoading(false);
@@ -40,8 +44,9 @@ export function useCategories() {
         try {
             await AppCategoryService.updateCategory(id, data);
             await fetchCategories();
-        } catch (err: any) {
-            setError(err.message);
+            DeviceEventEmitter.emit('category_mutated');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : t('categoryManagement.feedback.saveError'));
             throw err;
         } finally {
             setLoading(false);
@@ -54,8 +59,9 @@ export function useCategories() {
         try {
             await AppCategoryService.deleteCategory(id);
             await fetchCategories();
-        } catch (err: any) {
-            setError(err.message);
+            DeviceEventEmitter.emit('category_mutated');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : t('categoryManagement.feedback.deleteError'));
             throw err;
         } finally {
             setLoading(false);
@@ -68,8 +74,9 @@ export function useCategories() {
         try {
             await AppCategoryService.deleteManyCategories(ids);
             await fetchCategories();
-        } catch (err: any) {
-            setError(err.message);
+            DeviceEventEmitter.emit('category_mutated');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : t('categoryManagement.feedback.deleteError'));
             throw err;
         } finally {
             setLoading(false);
@@ -80,8 +87,8 @@ export function useCategories() {
         setError(null);
         try {
             return await AppCategoryService.findById(id);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : t('categoryManagement.feedback.loadError'));
             throw err;
         }
     }, []);

@@ -11,7 +11,10 @@ export const notificationSchema = z.object({
         'goal_reached', 
         'goal_warning', 
         'monthly_summary',
-        'report' 
+        'report',
+        'recurring_created',
+        'weekly_summary',
+        'backup_reminder'
     ]),
     title: z.string()
         .min(1, i18n.t("validation.notification.titleRequired"))

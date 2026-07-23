@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { TextInput, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@shopify/restyle';
+import { useTranslation } from 'react-i18next';
+import Toast from 'react-native-toast-message';
 import { Box, Text, scale, type Theme } from '@/theme/unistyles';
 import { AVAILABLE_ICONS } from '@/utils/categoryIcons'; 
 
 interface CategoryFormProps {
-    onSubmit: (data: { name: string; type: 'income' | 'expense'; icon: string }) => void;
+    onSubmit: (data: { name: string; type: 'income' | 'expense'; icon: string }) => Promise<void> | void;
     initialData?: { name: string; type: 'income' | 'expense'; icon: string };
     loading?: boolean;
 }
@@ -21,14 +23,18 @@ const ITEM_SIZE = (AVAILABLE_WIDTH - (GRID_GAP * (NUM_COLUMNS - 1))) / NUM_COLUM
 
 export default function CategoryForm({ onSubmit, initialData, loading }: CategoryFormProps) {
     const theme = useTheme<Theme>();
+    const { t } = useTranslation();
     
     const [name, setName] = useState(initialData?.name || '');
     const [type, setType] = useState<'income' | 'expense'>(initialData?.type || 'expense');
     const [icon, setIcon] = useState(initialData?.icon || 'dots-horizontal');
 
-    const handleSave = () => {
-        if (!name.trim()) return;
-        onSubmit({ name, type, icon });
+    const handleSave = async () => {
+        if (!name.trim()) {
+            Toast.show({ type: 'error', text1: t('feedback.validation.title'), text2: t('validation.category.nameRequired') });
+            return;
+        }
+        await onSubmit({ name: name.trim(), type, icon });
     };
 
     return (
@@ -37,7 +43,7 @@ export default function CategoryForm({ onSubmit, initialData, loading }: Categor
                 
                 <Box marginBottom="m">
                     <Text variant="body" fontWeight="600" marginBottom="xs" color="textPrimary">
-                        Nome da Categoria
+                        {t('categoryManagement.form.name')}
                     </Text>
                     <Box 
                         backgroundColor="surface" 
@@ -51,7 +57,7 @@ export default function CategoryForm({ onSubmit, initialData, loading }: Categor
                         <TextInput
                             value={name}
                             onChangeText={setName}
-                            placeholder="Ex: Supermercado"
+                            placeholder={t('categoryManagement.form.namePlaceholder')}
                             placeholderTextColor={theme.colors.textSecondary}
                             style={{
                                 color: theme.colors.textPrimary,
@@ -63,7 +69,7 @@ export default function CategoryForm({ onSubmit, initialData, loading }: Categor
 
                 <Box marginBottom="m">
                     <Text variant="body" fontWeight="600" marginBottom="xs" color="textPrimary">
-                        Tipo
+                        {t('categoryManagement.form.type')}
                     </Text>
                     <Box flexDirection="row" style={{ gap: scale(10) }}>
                         <TouchableOpacity
@@ -85,7 +91,7 @@ export default function CategoryForm({ onSubmit, initialData, loading }: Categor
                                 fontWeight="600" 
                                 color={type === 'income' ? 'success' : 'textSecondary'}
                             >
-                                Receita
+                                {t('transactions.income')}
                             </Text>
                         </TouchableOpacity>
 
@@ -108,7 +114,7 @@ export default function CategoryForm({ onSubmit, initialData, loading }: Categor
                                 fontWeight="600" 
                                 color={type === 'expense' ? 'danger' : 'textSecondary'}
                             >
-                                Despesa
+                                {t('transactions.expense')}
                             </Text>
                         </TouchableOpacity>
                     </Box>
@@ -116,7 +122,7 @@ export default function CategoryForm({ onSubmit, initialData, loading }: Categor
 
                 <Box marginBottom="m">
                     <Text variant="body" fontWeight="600" marginBottom="s" color="textPrimary">
-                        Selecione um Ícone
+                        {t('categoryManagement.form.icon')}
                     </Text>
                     <Box 
                         flexDirection="row" 
@@ -172,7 +178,7 @@ export default function CategoryForm({ onSubmit, initialData, loading }: Categor
                     }}
                 >
                     <Text variant="body" fontWeight="700" color="background">
-                        {loading ? 'Salvando...' : 'Salvar Categoria'}
+                        {loading ? t('categoryManagement.form.saving') : t('categoryManagement.form.save')}
                     </Text>
                 </TouchableOpacity>
             </Box>

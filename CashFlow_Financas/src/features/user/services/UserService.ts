@@ -2,6 +2,7 @@ import { UserRepository } from "../repository/UserRepository";
 import type { CreateUserDTO, UpdateUserDTO} from "../validation";
 import { createUserSchema, updateUserSchema } from "../validation";
 import i18n from "@/i18n";
+import AppCategoryService from '@/services/AppCategoryService';
 
 const userRepo = new UserRepository()
 
@@ -19,7 +20,9 @@ export class UserService {
             throw new Error(i18n.t("errors.userAlreadyExists"))
         }
 
-        return await userRepo.createUser(validatedData)
+        const user = await userRepo.createUser(validatedData);
+        await AppCategoryService.seedDefaultCategories();
+        return user;
     }
     async updateUser(id: string, data: UpdateUserDTO ){
         const validatedData = updateUserSchema.parse(data)

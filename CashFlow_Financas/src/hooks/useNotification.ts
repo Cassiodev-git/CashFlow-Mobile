@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import notificationService from '@/features/notification/services/notificationService';
-import { scheduleMonthlyReportNotification } from '@/features/notification/utils/notificationsRules';
+import { scheduleMonthlyReportNotification, scheduleWeeklyReportNotification, scheduleBackupReminderNotification } from '@/features/notification/utils/notificationsRules';
 
 const KEY_GENERAL = '@cashflow_notifications_enabled';
 const KEY_REMINDERS = '@cashflow_reminders_enabled';
 const KEY_REPORTS = '@cashflow_reports_enabled';
 const KEY_REPORT_NOTIFICATION = '@cashflow_monthly_report_notification_id';
+const KEY_WEEKLY_NOTIFICATION = '@cashflow_weekly_summary_notification_id';
+const KEY_BACKUP_NOTIFICATION = '@cashflow_backup_reminder_notification_id';
 
 export const useNotification = () => {
     const [isEnabled, setIsEnabled] = useState(false);
@@ -40,6 +42,8 @@ export const useNotification = () => {
             await AsyncStorage.setItem(KEY_REMINDERS, 'false');
             await AsyncStorage.setItem(KEY_REPORTS, 'false');
             await AsyncStorage.removeItem(KEY_REPORT_NOTIFICATION);
+            await AsyncStorage.removeItem(KEY_WEEKLY_NOTIFICATION);
+            await AsyncStorage.removeItem(KEY_BACKUP_NOTIFICATION);
             await Notifications.cancelAllScheduledNotificationsAsync();
         } else {
             const { status } = await Notifications.requestPermissionsAsync();
@@ -71,11 +75,15 @@ export const useNotification = () => {
             if (reportId) {
                 await AsyncStorage.setItem(KEY_REPORT_NOTIFICATION, reportId);
             }
+            const weeklyId = await scheduleWeeklyReportNotification();
+            const backupId = await scheduleBackupReminderNotification();
+            if (weeklyId) await AsyncStorage.setItem(KEY_WEEKLY_NOTIFICATION, weeklyId);
+            if (backupId) await AsyncStorage.setItem(KEY_BACKUP_NOTIFICATION, backupId);
         } else {
-            const currentReportId = await AsyncStorage.getItem(KEY_REPORT_NOTIFICATION);
-            if (currentReportId) {
-                await Notifications.cancelScheduledNotificationAsync(currentReportId);
-                await AsyncStorage.removeItem(KEY_REPORT_NOTIFICATION);
+            for (const key of [KEY_REPORT_NOTIFICATION, KEY_WEEKLY_NOTIFICATION, KEY_BACKUP_NOTIFICATION]) {
+                const scheduledId = await AsyncStorage.getItem(key);
+                if (scheduledId) await Notifications.cancelScheduledNotificationAsync(scheduledId);
+                await AsyncStorage.removeItem(key);
             }
         }
     };

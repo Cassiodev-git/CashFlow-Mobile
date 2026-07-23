@@ -22,6 +22,12 @@ class AppCategoryService {
     async findById(id: string){
         return categoryFeatureService.findbyId(id)
     }
+    async listMostUsedCategories(limit = 10) {
+        return categoryFeatureService.listMostUsedCategories(limit)
+    }
+    async seedDefaultCategories() {
+        return categoryFeatureService.seedDefaultCategories()
+    }
 
 }
 

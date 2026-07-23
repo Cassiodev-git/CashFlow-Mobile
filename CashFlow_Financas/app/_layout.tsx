@@ -18,6 +18,7 @@ import { logger } from '@/utils/logger';
 import { Box, Text, scale, Theme } from '@/theme/unistyles';
 import { LoadingScreen } from '@/components/LoadingScreen/LoadingScreen';
 import notificationService from '@/features/notification/services/notificationService';
+import AppCategoryService from '@/services/AppCategoryService';
 import { AppThemeProvider, useAppTheme } from '@/features/settings/context/ThemeContext';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
@@ -91,6 +92,7 @@ function RootLayoutContent() {
         const registeredUser = await findFirstUser();
         if (registeredUser) {
           setHasUser(true);
+          await AppCategoryService.seedDefaultCategories();
         }
 
         const biometricEnabled = await SecureStore.getItemAsync('isBiometricEnabled');

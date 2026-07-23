@@ -3,6 +3,7 @@ import { NotificationManager } from '../managers/scheduleManager';
 import type { CreateTransactionDTO, UpdateTransactionDTO } from '@/features/transaction/validation';
 import * as Notifications from 'expo-notifications';
 import i18n from '@/i18n';
+import notificationService from '@/features/notification/services/notificationService';
 
 export const scheduleDueNotification = async (
     transactionId: string, 
@@ -26,16 +27,7 @@ export const scheduleDueNotification = async (
     const diffTime = compareDate.getTime() - compareNow.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays !== 2 && diffDays !== 1 && diffDays !== -1) return;
-
-    let triggerDate = new Date();
-    triggerDate.setHours(9, 0, 0, 0); 
-
-    if (triggerDate <= now) {
-        triggerDate.setDate(triggerDate.getDate() + 1);
-    }
-
-    await NotificationManager.scheduleDueDate(transactionId, title, triggerDate);
+    await NotificationManager.scheduleDueDate(transactionId, title, compareDate, diffDays);
 };
 
 export const scheduleMonthlyReportNotification = async () => {
@@ -56,5 +48,34 @@ export const scheduleMonthlyReportNotification = async () => {
             hour: 8,
             minute: 0,
         },
+    });
+};
+
+export const scheduleWeeklyReportNotification = async () => {
+    if (!(await SettingsService.areReportsEnabled())) return null;
+    return Notifications.scheduleNotificationAsync({
+        content: { title: i18n.t('notifications.weeklySummaryTitle'), body: i18n.t('notifications.weeklySummaryBody'), data: { type: 'weekly_summary' } },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.WEEKLY, weekday: 2, hour: 8, minute: 0 },
+    });
+};
+
+export const scheduleBackupReminderNotification = async () => {
+    if (!(await SettingsService.areReportsEnabled())) return null;
+    return Notifications.scheduleNotificationAsync({
+        content: { title: i18n.t('notifications.backupReminderTitle'), body: i18n.t('notifications.backupReminderBody'), data: { type: 'backup_reminder' } },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.MONTHLY, day: 15, hour: 9, minute: 0 },
+    });
+};
+
+export const scheduleRecurringCreatedNotification = async (transactionId: string, title: string) => {
+    if (!(await SettingsService.areRemindersEnabled())) return;
+    await notificationService.createNotification({
+        transaction_id: transactionId,
+        type: 'recurring_created',
+        title: i18n.t('notifications.recurringCreatedTitle'),
+        body: i18n.t('notifications.recurringCreatedBody', { title }),
+        trigger_date: new Date().toISOString(),
+        is_active: true,
+        is_read: false,
     });
 };

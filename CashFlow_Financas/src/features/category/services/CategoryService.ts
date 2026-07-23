@@ -3,6 +3,7 @@ import { CategoryRepository } from "../repository/CategoryRepository";
 import type { CreateCategoryDTO, UpdateCategoryDTO  } from "../validation";
 import { createCategorySchema, updateCategorySchema } from "../validation";
 import i18n from "@/i18n";
+import { getDefaultCategories } from '../defaultCategories';
 
 const categoryRepo = new CategoryRepository()
 const userRepo = new UserRepository()
@@ -42,6 +43,14 @@ export class CategoryService {
 
     async listCategory(){
         return await categoryRepo.listCategory()
+    }
+
+    async seedDefaultCategories() {
+        return categoryRepo.seedDefaultCategories(getDefaultCategories((key) => i18n.t(key)));
+    }
+
+    async listMostUsedCategories(limit = 10) {
+        return categoryRepo.findMostUsed(limit)
     }
 
     async findbyId(id: string){

@@ -6,245 +6,152 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as Crypto from 'expo-crypto';
 import Papa from 'papaparse';
 import Toast from 'react-native-toast-message';
-import { and, gte, lte, desc } from 'drizzle-orm';
-import { startOfMonth, endOfMonth, subDays, format } from 'date-fns';
+import { DeviceEventEmitter } from 'react-native';
+import { and, desc, gte, lte } from 'drizzle-orm';
+import { endOfMonth, format, startOfMonth, subDays } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import { db } from '@/db';
-import { transactions } from '@/db/schema';
+import { categories, transactions } from '@/db/schema';
 import type { ExportFormat, ExportPeriod } from '@/components/ExportConfigModal/ExportConfigModal';
 
+type TransactionStatus = 'paid' | 'pending' | 'canceled';
+
+interface BackupTransaction {
+    id: string;
+    title: string;
+    description: string | null;
+    amount: number;
+    type: 'income' | 'expense';
+    date: string;
+    user_id: string;
+    category_id: string | null;
+    status: TransactionStatus | null;
+    is_recurring: boolean;
+    recurrence_id: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+const escapeHtml = (value: string) => value.replace(/[&<>'"]/g, (character) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
+}[character] ?? character));
+
+const toDate = (value: string, locale: string) => {
+    const date = new Date(`${value}T00:00:00`);
+    return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat(locale).format(date);
+};
+
 export function useBackup() {
+    const { t, i18n } = useTranslation();
     const [isExporting, setIsExporting] = useState(false);
     const [isImporting, setIsImporting] = useState(false);
+    const locale = i18n.language.startsWith('en') ? 'en-US' : 'pt-BR';
 
-    const fetchTransactions = async (period: ExportPeriod) => {
+    const showError = (message: string) => Toast.show({ type: 'error', text1: t('feedback.error.title'), text2: message });
+
+    const fetchTransactions = async (period: ExportPeriod): Promise<BackupTransaction[]> => {
         const now = new Date();
-        let whereConditions = [];
-        const periodStr = period as string;
-
-        if (periodStr === 'current_month') {
-            const start = format(startOfMonth(now), 'yyyy-MM-dd');
-            const end = format(endOfMonth(now), 'yyyy-MM-dd');
-            whereConditions.push(
-                gte(transactions.date, start),
-                lte(transactions.date, end)
-            );
-        } else if (periodStr === 'three_months') {
-            const start = format(subDays(now, 90), 'yyyy-MM-dd');
-            whereConditions.push(gte(transactions.date, start));
-        } else if (periodStr === 'current_year') {
-            const start = `${now.getFullYear()}-01-01`;
-            const end = `${now.getFullYear()}-12-31`;
-            whereConditions.push(
-                gte(transactions.date, start),
-                lte(transactions.date, end)
-            );
+        const conditions = [];
+        if (period === 'current_month') {
+            conditions.push(gte(transactions.date, format(startOfMonth(now), 'yyyy-MM-dd')), lte(transactions.date, format(endOfMonth(now), 'yyyy-MM-dd')));
+        } else if (period === 'three_months') {
+            conditions.push(gte(transactions.date, format(subDays(now, 90), 'yyyy-MM-dd')));
+        } else if (period === 'current_year') {
+            conditions.push(gte(transactions.date, `${now.getFullYear()}-01-01`), lte(transactions.date, `${now.getFullYear()}-12-31`));
         }
 
-        const dbResults = await db
-            .select()
-            .from(transactions)
-            .where(and(...whereConditions))
-            .orderBy(desc(transactions.date));
+        const query = db.select().from(transactions).orderBy(desc(transactions.date));
+        const rows = conditions.length > 0 ? await query.where(and(...conditions)) : await query;
 
-        return dbResults.map(item => {
-            const fallbackDate = item.updated_at 
-                ? format(new Date(item.updated_at), 'yyyy-MM-dd') 
-                : format(new Date(), 'yyyy-MM-dd');
-
-            return {
-                id: item.id,
-                title: item.title,
-                description: item.description,
-                amount: Number(item.amount),
-                type: item.type as 'income' | 'expense',
-                date: item.date || fallbackDate,
-                user_id: item.user_id,
-                category_id: item.category_id,
-                status: item.status,
-                is_recurring: !!item.is_recurring,
-                recurrence_id: item.recurrence_id,
-                created_at: item.created_at,
-                updated_at: item.updated_at
-            };
-        });
+        return rows.map((item) => ({
+            id: item.id,
+            title: item.title,
+            description: item.description,
+            amount: Number(item.amount),
+            type: item.type === 'expense' ? 'expense' : 'income',
+            date: item.date || format(new Date(item.updated_at), 'yyyy-MM-dd'),
+            user_id: item.user_id,
+            category_id: item.category_id,
+            status: item.status as TransactionStatus | null,
+            is_recurring: item.is_recurring,
+            recurrence_id: item.recurrence_id,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+        }));
     };
 
-    const runDiagnostics = () => {
+    const ensureShareAvailable = async () => {
         if (!FileSystem.documentDirectory && !FileSystem.cacheDirectory) {
-            Toast.show({
-                type: 'error',
-                text1: 'Falha de conexão nativa',
-                text2: 'Módulo de arquivos não pôde ser carregado.'
-            });
+            showError(t('feedback.file.nativeUnavailable'));
+            return false;
+        }
+        if (!(await Sharing.isAvailableAsync())) {
+            showError(t('feedback.file.sharingUnavailable'));
             return false;
         }
         return true;
     };
 
-    const sanitizeTransaction = (item: any) => {
-        const fallbackDate = item.updated_at 
-            ? format(new Date(item.updated_at), 'yyyy-MM-dd') 
-            : format(new Date(), 'yyyy-MM-dd');
-
+    const sanitizeTransaction = (item: Record<string, unknown>): BackupTransaction => {
+        const now = new Date().toISOString();
+        const updatedAt = typeof item.updated_at === 'string' ? item.updated_at : now;
+        const candidateStatus = item.status;
+        const status: TransactionStatus = candidateStatus === 'paid' || candidateStatus === 'canceled' || candidateStatus === 'pending' ? candidateStatus : 'pending';
         return {
-            id: item.id || Crypto.randomUUID(),
-            title: item.title || item.description || 'Sem título',
-            description: item.description || null,
+            id: typeof item.id === 'string' ? item.id : Crypto.randomUUID(),
+            title: typeof item.title === 'string' && item.title.trim() ? item.title : (typeof item.description === 'string' ? item.description : t('backup.untitledTransaction')),
+            description: typeof item.description === 'string' ? item.description : null,
             amount: Number(item.amount) || 0,
-            type: (item.type === 'expense' ? 'expense' : 'income') as 'income' | 'expense',
-            date: item.date || fallbackDate,
-            user_id: item.user_id || 'default_user',
-            category_id: item.category_id || (item.category !== 'Geral' ? item.category : null),
-            status: (item.status === 'paid' || item.status === 'canceled' || item.status === 'pending') ? (item.status as 'paid' | 'canceled' | 'pending') : 'pending',
-            is_recurring: item.is_recurring === 1 || item.is_recurring === '1' || item.is_recurring === true || item.is_recurring === 'true',
-            recurrence_id: item.recurrence_id || null,
-            created_at: item.created_at || new Date().toISOString(),
-            updated_at: item.updated_at || new Date().toISOString()
+            type: item.type === 'expense' ? 'expense' : 'income',
+            date: typeof item.date === 'string' ? item.date : format(new Date(updatedAt), 'yyyy-MM-dd'),
+            user_id: typeof item.user_id === 'string' ? item.user_id : 'default_user',
+            category_id: typeof item.category_id === 'string' ? item.category_id : null,
+            status,
+            is_recurring: item.is_recurring === true || item.is_recurring === 1 || item.is_recurring === '1' || item.is_recurring === 'true',
+            recurrence_id: typeof item.recurrence_id === 'string' ? item.recurrence_id : null,
+            created_at: typeof item.created_at === 'string' ? item.created_at : now,
+            updated_at: updatedAt,
         };
     };
 
+    const buildPdf = async (data: BackupTransaction[]) => {
+        const categoryRows = await db.select({ id: categories.id, name: categories.name }).from(categories);
+        const categoryNames = new Map(categoryRows.map((category) => [category.id, category.name]));
+        const formatter = new Intl.NumberFormat(locale, { style: 'currency', currency: locale === 'pt-BR' ? 'BRL' : 'USD' });
+        const statusColor: Record<TransactionStatus, { background: string; foreground: string }> = {
+            paid: { background: '#e8f5e9', foreground: '#2e7d32' }, pending: { background: '#fff3e0', foreground: '#ef6c00' }, canceled: { background: '#ffebee', foreground: '#c62828' },
+        };
+        const rows = data.map((item) => {
+            const status = item.status ?? 'pending';
+            const colors = statusColor[status];
+            return `<tr><td>${escapeHtml(toDate(item.date, locale))}</td><td><strong>${escapeHtml(item.title)}</strong>${item.description ? `<br /><span class="description">${escapeHtml(item.description)}</span>` : ''}</td><td>${escapeHtml(categoryNames.get(item.category_id ?? '') ?? t('backup.uncategorized'))}</td><td><span class="status" style="background:${colors.background};color:${colors.foreground}">${escapeHtml(t(`transactions.status.${status}`))}</span></td><td class="amount ${item.type}">${item.type === 'income' ? '+' : '-'} ${formatter.format(item.amount)}</td></tr>`;
+        }).join('');
+        return `<!doctype html><html><head><meta charset="utf-8" /><style>body{font-family:Arial,sans-serif;padding:24px;color:#191d29}h1{text-align:center;margin:0}.subtitle{text-align:center;color:#6f7583;font-size:12px;margin:8px 0 20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #e5e7eb;padding:9px;text-align:left;font-size:11px}th{background:#f7f8fa}.description{font-size:10px;color:#6f7583}.status{border-radius:4px;padding:3px 6px;font-size:10px;font-weight:bold}.amount{text-align:right;font-weight:bold}.income{color:#2e7d32}.expense{color:#c62828}</style></head><body><h1>${escapeHtml(t('backup.pdf.title'))}</h1><p class="subtitle">${escapeHtml(t('backup.pdf.generatedAt', { date: new Intl.DateTimeFormat(locale).format(new Date()) }))}</p><table><thead><tr><th>${escapeHtml(t('backup.pdf.date'))}</th><th>${escapeHtml(t('backup.pdf.description'))}</th><th>${escapeHtml(t('backup.pdf.category'))}</th><th>${escapeHtml(t('backup.pdf.status'))}</th><th>${escapeHtml(t('backup.pdf.amount'))}</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
+    };
+
     const exportData = async (type: ExportFormat, period: ExportPeriod) => {
-        if (!runDiagnostics()) return;
-
-        const targetDir = FileSystem.documentDirectory || FileSystem.cacheDirectory;
-        if (!targetDir) return;
-
+        if (!(await ensureShareAvailable())) return;
+        const directory = FileSystem.documentDirectory || FileSystem.cacheDirectory;
+        if (!directory) return;
         setIsExporting(true);
         try {
             const data = await fetchTransactions(period);
-
-            if (data.length === 0) {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Ação não permitida',
-                    text2: 'Você não possui transações para exportar.'
-                });
-                setIsExporting(false);
-                return;
+            if (data.length === 0) return showError(t('backup.feedback.noTransactions'));
+            if (type === 'pdf' && data.length < 5) return showError(t('backup.feedback.minimumPdfTransactions'));
+            const filename = `Finno_${type}_${period}_${Date.now()}`;
+            let uri: string;
+            if (type === 'pdf') {
+                ({ uri } = await Print.printToFileAsync({ html: await buildPdf(data) }));
+            } else {
+                const content = type === 'json' ? JSON.stringify(data, null, 2) : Papa.unparse(data);
+                uri = `${directory}${filename}.${type}`;
+                await FileSystem.writeAsStringAsync(uri, content, { encoding: FileSystem.EncodingType.UTF8 });
             }
-
-            if (type === 'pdf' && data.length < 5) {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Exportação indisponível',
-                    text2: 'Adicione pelo menos 5 transações para gerar o PDF.'
-                });
-                setIsExporting(false);
-                return;
-            }
-
-            const fileName = `Backup_Finno_${period}_${Date.now()}`;
-
-            if (type === 'json') {
-                const jsonString = JSON.stringify(data, null, 2);
-                const fileUri = `${targetDir}${fileName}.json`;
-                
-                await FileSystem.writeAsStringAsync(fileUri, jsonString, { 
-                    encoding: FileSystem.EncodingType.UTF8 
-                });
-                await Sharing.shareAsync(fileUri);
-            } 
-            
-            else if (type === 'csv') {
-                const csvString = Papa.unparse(data);
-                const fileUri = `${targetDir}${fileName}.csv`;
-                
-                await FileSystem.writeAsStringAsync(fileUri, csvString, { 
-                    encoding: FileSystem.EncodingType.UTF8 
-                });
-                await Sharing.shareAsync(fileUri);
-            } 
-            
-            else if (type === 'pdf') {
-                const rowsHtml = data.map(item => {
-                    const statusColors: Record<string, { bg: string; text: string }> = {
-                        paid: { bg: '#e8f5e9', text: '#2e7d32' },
-                        pending: { bg: '#fff3e0', text: '#ef6c00' },
-                        canceled: { bg: '#ffebee', text: '#c62828' }
-                    };
-                    const currentStatus = item.status || 'pending';
-                    const colors = statusColors[currentStatus] || statusColors.pending;
-
-                    let formattedDate = '';
-                    if (item.date) {
-                        try {
-                            const [year, month, day] = item.date.split('-');
-                            formattedDate = `${day}/${month}/${year}`;
-                        } catch {
-                            formattedDate = item.date;
-                        }
-                    }
-
-                    return `
-                        <tr>
-                            <td>${formattedDate}</td>
-                            <td>
-                                <div style="font-weight: bold;">${item.title}</div>
-                                ${item.description ? `<div style="font-size: 10px; color: #666;">${item.description}</div>` : ''}
-                            </td>
-                            <td>${item.category_id || 'Geral'}</td>
-                            <td>
-                                <span style="padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; background-color: ${colors.bg}; color: ${colors.text};">
-                                    ${currentStatus.toUpperCase()}
-                                </span>
-                            </td>
-                            <td style="color: ${item.type === 'income' ? '#2e7d32' : '#c62828'}; font-weight: bold; text-align: right;">
-                                ${item.type === 'income' ? '+' : '-'} R$ ${item.amount.toFixed(2)}
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-
-                const htmlContent = `
-                    <html>
-                        <head>
-                            <style>
-                                body { font-family: sans-serif; padding: 20px; }
-                                h1 { text-align: center; color: #333; margin-bottom: 5px; }
-                                .subtitle { text-align: center; color: #666; font-size: 12px; margin-bottom: 20px; }
-                                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                                th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 11px; }
-                                th { background-color: #f5f5f5; }
-                            </style>
-                        </head>
-                        <body>
-                            <h1>Relatório de Transações - Finno</h1>
-                            <div class="subtitle">Gerado em ${new Date().toLocaleDateString('pt-BR')}</div>
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Data</th>
-                                        <th>Título / Descrição</th>
-                                        <th>Categoria</th>
-                                        <th>Status</th>
-                                        <th style="text-align: right;">Valor</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${rowsHtml}
-                                </tbody>
-                            </table>
-                        </body>
-                    </html>
-                `;
-
-                const { uri } = await Print.printToFileAsync({ html: htmlContent });
-                await Sharing.shareAsync(uri);
-            }
-
-            Toast.show({
-                type: 'success',
-                text1: 'Sucesso!',
-                text2: 'Exportação concluída com êxito.'
-            });
-
+            await Sharing.shareAsync(uri, { mimeType: type === 'pdf' ? 'application/pdf' : type === 'json' ? 'application/json' : 'text/csv', dialogTitle: t('backup.share.title') });
+            Toast.show({ type: 'success', text1: t('feedback.success.title'), text2: t('backup.feedback.exportSuccess') });
         } catch (error) {
-            console.error('Erro ao exportar dados:', error);
-            Toast.show({
-                type: 'error',
-                text1: 'Ocorreu um erro',
-                text2: 'Tente novamente mais tarde. Ok?'
-            });
+            console.error('Backup export failed', error);
+            showError(t('backup.feedback.exportError'));
         } finally {
             setIsExporting(false);
         }
@@ -253,62 +160,29 @@ export function useBackup() {
     const importData = async () => {
         setIsImporting(true);
         try {
-            const result = await DocumentPicker.getDocumentAsync({
-                type: ['*/*'],
-                copyToCacheDirectory: true
-            });
-
-            if (result.canceled) return;
-
-            const fileUri = result.assets[0].uri;
-            const fileName = result.assets[0].name.toLowerCase();
-            const fileContent = await FileSystem.readAsStringAsync(fileUri, { 
-                encoding: FileSystem.EncodingType.UTF8 
-            });
-
-            if (fileName.endsWith('.json')) {
-                const parsedData = JSON.parse(fileContent);
-                
-                if (Array.isArray(parsedData)) {
-                    const toInsert = parsedData.map(sanitizeTransaction);
-                    await db.insert(transactions).values(toInsert);
-                    Toast.show({
-                        type: 'success',
-                        text1: 'Sucesso!',
-                        text2: `${parsedData.length} transações importadas via JSON.`
-                    });
-                } else {
-                    throw new Error('Formato JSON inválido.');
-                }
-            } else if (fileName.endsWith('.csv')) {
-                const parsedCsv = Papa.parse(fileContent, { header: true, skipEmptyLines: true });
-                
-                if (parsedCsv.data && parsedCsv.data.length > 0) {
-                    const toInsert = parsedCsv.data.map(sanitizeTransaction);
-                    await db.insert(transactions).values(toInsert);
-                    Toast.show({
-                        type: 'success',
-                        text1: 'Sucesso!',
-                        text2: `${parsedCsv.data.length} transações importadas via CSV.`
-                    });
-                } else {
-                    throw new Error('Formato CSV vazio ou inválido.');
-                }
+            const result = await DocumentPicker.getDocumentAsync({ type: ['application/json', 'text/csv', 'text/comma-separated-values'], copyToCacheDirectory: true });
+            if (result.canceled || !result.assets[0]) return;
+            const asset = result.assets[0];
+            const content = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.UTF8 });
+            let source: Record<string, unknown>[];
+            if (asset.name.toLowerCase().endsWith('.json')) {
+                const parsed: unknown = JSON.parse(content);
+                if (!Array.isArray(parsed)) throw new Error('invalid-json');
+                source = parsed as Record<string, unknown>[];
+            } else if (asset.name.toLowerCase().endsWith('.csv')) {
+                const parsed = Papa.parse<Record<string, unknown>>(content, { header: true, skipEmptyLines: true });
+                if (parsed.errors.length > 0 || parsed.data.length === 0) throw new Error('invalid-csv');
+                source = parsed.data;
             } else {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Arquivo inválido',
-                    text2: 'Selecione apenas arquivos .json ou .csv gerados pelo Finno.'
-                });
+                showError(t('backup.feedback.invalidFile'));
+                return;
             }
-
+            await db.insert(transactions).values(source.map(sanitizeTransaction));
+            DeviceEventEmitter.emit('transaction_mutated');
+            Toast.show({ type: 'success', text1: t('feedback.success.title'), text2: t('backup.feedback.importSuccess', { count: source.length }) });
         } catch (error) {
-            console.error('Erro ao importar dados:', error);
-            Toast.show({
-                type: 'error',
-                text1: 'Ocorreu um erro',
-                text2: 'Tente novamente mais tarde. Ok?'
-            });
+            console.error('Backup import failed', error);
+            showError(t('backup.feedback.importError'));
         } finally {
             setIsImporting(false);
         }

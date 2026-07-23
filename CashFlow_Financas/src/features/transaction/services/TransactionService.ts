@@ -2,7 +2,7 @@ import { TransactionRepository } from "../repository/TransactionRepository";
 import type { CreateTransactionDTO, UpdateTransactionDTO } from "../validation";
 import { UserRepository } from "@/features/user/repository/UserRepository";
 import notificationService from "@/features/notification/services/notificationService";
-import { scheduleDueNotification } from "@/features/notification/utils/notificationsRules";
+import { scheduleDueNotification, scheduleRecurringCreatedNotification } from "@/features/notification/utils/notificationsRules";
 import i18n from "@/i18n";
 import recurrenceService from "@/features/transaction/recurrence/services/RecurrenceService";
 
@@ -31,6 +31,7 @@ class TransactionService {
                 date: transactionDate,
                 end_date: data.end_date
             }, transaction.id, userId);
+            await scheduleRecurringCreatedNotification(transaction.id, data.title);
         }
         
         await scheduleDueNotification(transaction.id, data);
@@ -91,7 +92,15 @@ class TransactionService {
     async listTransactions(options?: { limit?: number; offset?: number }) {
         const userId = await getLocalUserId();
         await recurrenceService.processRecurrences(userId);
-        return await transacRepo.listTransactions(userId, options);
+        const transactions = await transacRepo.listTransactions(userId, options);
+        await Promise.all(transactions
+            .filter((transaction) => transaction.status === 'pending')
+            .map((transaction) => scheduleDueNotification(transaction.id, {
+                title: transaction.title,
+                date: transaction.date ?? undefined,
+                status: transaction.status === 'paid' || transaction.status === 'canceled' ? transaction.status : 'pending',
+            })));
+        return transactions;
     }
 
     async sendTestNotification() {

@@ -44,6 +44,11 @@ export class NotificationRepository {
         return result[0]?.expo_id || null;
     }
 
+    async getExpoIdsByTransactionId(transactionId: string): Promise<string[]> {
+        const result = await db.select({ expo_id: notifications.expo_id }).from(notifications).where(eq(notifications.transaction_id, transactionId));
+        return result.flatMap(({ expo_id }) => expo_id ? [expo_id] : []);
+    }
+
     async clearTransactionNotificationLink(transactionId: string) {
         return await db
             .update(notifications)

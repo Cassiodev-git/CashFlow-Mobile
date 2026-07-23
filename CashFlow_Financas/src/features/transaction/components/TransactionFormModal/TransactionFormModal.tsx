@@ -20,6 +20,7 @@ import AppCategoryService from '@/services/AppCategoryService';
 import { useTransactions } from '@/hooks/useTransactions';
 import { Box, Text, scale, type Theme } from '@/theme/unistyles';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
+import { MostUsedCategoriesBar } from '@/features/category/components/MostUsedCategoriesBar/MostUsedCategoriesBar';
 import type { categories } from '@/features/category/schema';
 
 interface TransactionFormModalProps {
@@ -241,9 +242,12 @@ export function TransactionFormModal({ isOpen, onClose, transaction, defaultIsRe
                                                 <Box marginBottom="s">
                                                     <Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.categoryLabel")}</Text>
                                                     {loadingCategories ? <Skeleton width="60%" height={20} /> : (
-                                                        <Box flexDirection="row" gap="s" flexWrap="wrap">
-                                                            {filteredCategories.map((c) => (<TouchableOpacity key={c.id} style={[choiceButtonStyle(theme), categoryId === c.id && activeChoiceStyle(theme)]} onPress={() => setCategoryId(c.id)}><Text color={categoryId === c.id ? 'primary' : 'textSecondary'}>{c.name}</Text></TouchableOpacity>))}
-                                                        </Box>
+                                                        <>
+                                                            <MostUsedCategoriesBar selectedCategoryId={categoryId} transactionType={type} onSelect={setCategoryId} />
+                                                            <Box flexDirection="row" gap="s" flexWrap="wrap">
+                                                                {filteredCategories.map((c) => (<TouchableOpacity key={c.id} style={[choiceButtonStyle(theme), categoryId === c.id && activeChoiceStyle(theme)]} onPress={() => setCategoryId(c.id)}><Text color={categoryId === c.id ? 'primary' : 'textSecondary'}>{c.name}</Text></TouchableOpacity>))}
+                                                            </Box>
+                                                        </>
                                                     )}
                                                 </Box>
                                             </MotiView>

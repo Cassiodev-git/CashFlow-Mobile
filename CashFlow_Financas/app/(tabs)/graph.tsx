@@ -6,6 +6,9 @@ import { MotiView } from 'moti';
 
 import { RevenueExpenseChart, RevenueExpenseChartSkeleton } from '@/features/transaction/components/RevenueExpenseChart/RevenueExpenseChart';
 import { ExpensesDistributionChart, ExpensesDistributionChartSkeleton } from '@/features/category/components/ExpensesDistributionChart/ExpensesDistributionChart';
+import { GraphInsights } from '@/features/transaction/components/GraphInsights/GraphInsights';
+import { BalanceEvolutionChart } from '@/features/transaction/components/BalanceEvolutionChart/BalanceEvolutionChart';
+import { MonthlyComparisonChart } from '@/features/transaction/components/MonthlyComparisonChart/MonthlyComparisonChart';
 import { ErrorState } from '@/components/ErrorState/ErrorState'; 
 import { ReportPeriod, useReports } from '@/hooks/useReports'; 
 import { Box, Text, scale, type Theme } from '@/theme/unistyles';
@@ -15,7 +18,7 @@ export default function GraphScreen() {
     const theme = useTheme<Theme>();
     
     const [selectedTab, setSelectedTab] = useState<ReportPeriod>('month');
-    const { loading, error, lineChartData, pieChartData, refresh } = useReports(selectedTab);
+    const { loading, error, lineChartData, pieChartData, balanceEvolutionData, insights, refresh } = useReports(selectedTab);
 
     const tabs: { id: ReportPeriod; label: string }[] = [
         { id: 'week', label: t("common.week") },
@@ -79,6 +82,8 @@ export default function GraphScreen() {
                     </>
                 ) : (
                     <>
+                        <BalanceEvolutionChart data={balanceEvolutionData} />
+                        {selectedTab === 'year' && <MonthlyComparisonChart data={lineChartData} />}
                         {lineChartData.length > 0 ? (
                             <RevenueExpenseChart data={lineChartData} />
                         ) : (
@@ -94,6 +99,7 @@ export default function GraphScreen() {
                                 <Text variant="body" color="textSecondary" fontWeight="600" style={{ textAlign: 'center' }}>{t("graph.empty")}</Text>
                             </Box>
                         )}
+                        {insights && <GraphInsights data={insights} />}
                     </>
                 )}
             </ScrollView>

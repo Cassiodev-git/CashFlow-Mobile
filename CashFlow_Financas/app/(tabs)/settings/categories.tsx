@@ -3,6 +3,8 @@ import { ScrollView, TouchableOpacity, ActivityIndicator, Modal } from 'react-na
 import { MotiView } from 'moti';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@shopify/restyle';
+import { useTranslation } from 'react-i18next';
+import Toast from 'react-native-toast-message';
 import { Box, Text, scale, type Theme } from '@/theme/unistyles';
 import { useCategories } from '@/hooks/useCategories';
 import CategoryForm from '@/features/category/components/CategoryForm/CategoryForm'; 
@@ -17,12 +19,14 @@ interface CategoryItem {
 
 export default function CategoriesScreen() {
     const theme = useTheme<Theme>();
-    const { categories, loading, deleteCategory, createCategory, updateCategory } = useCategories();
+    const { t } = useTranslation();
+    const { categories, loading, deleteCategory, createCategory, updateCategory, deleteManyCategories } = useCategories();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState<CategoryItem | null>(null);
     
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
 
     const handleSaveCategory = async (data: { name: string; type: 'income' | 'expense'; icon: string }) => {
         try {
@@ -34,6 +38,7 @@ export default function CategoriesScreen() {
             handleCloseForm();
         } catch (err) {
             console.log(err);
+            Toast.show({ type: 'error', text1: t('feedback.error.title'), text2: t('categoryManagement.feedback.saveError') });
         }
     };
 
@@ -57,20 +62,28 @@ export default function CategoriesScreen() {
     };
 
     const handleDeletePress = () => {
-        if (selectedIds.length > 10) {
-            setIsConfirmModalOpen(true);
-        } else {
-            executeDelete();
-        }
+        if (selectedIds.length > 0) setIsConfirmModalOpen(true);
     };
 
     const executeDelete = async () => {
         try {
-            await Promise.all(selectedIds.map(id => deleteCategory(id)));
+            await deleteManyCategories(selectedIds);
             setSelectedIds([]);
             setIsConfirmModalOpen(false);
         } catch (err) {
             console.log(err);
+            Toast.show({ type: 'error', text1: t('feedback.error.title'), text2: t('categoryManagement.feedback.deleteError') });
+        }
+    };
+
+    const executeSingleDelete = async () => {
+        if (!categoryToDelete) return;
+        try {
+            await deleteCategory(categoryToDelete);
+            setCategoryToDelete(null);
+        } catch (err) {
+            console.log(err);
+            Toast.show({ type: 'error', text1: t('feedback.error.title'), text2: t('categoryManagement.feedback.deleteError') });
         }
     };
 
@@ -152,7 +165,7 @@ export default function CategoriesScreen() {
                                             <Box flex={1}>
                                                 <Text variant="body" fontWeight="700">{item.name}</Text>
                                                 <Text variant="caption" color="textSecondary">
-                                                    {isIncome ? 'Receita' : 'Despesa'}
+                                                    {isIncome ? t('transactions.income') : t('transactions.expense')}
                                                 </Text>
                                             </Box>
                                         </Box>
@@ -170,7 +183,7 @@ export default function CategoriesScreen() {
                                             </TouchableOpacity>
                                             <TouchableOpacity 
                                                 activeOpacity={0.7} 
-                                                onPress={() => deleteCategory(item.id)}
+                                                onPress={() => setCategoryToDelete(item.id)}
                                                 disabled={selectedIds.length > 0}
                                             >
                                                 <MaterialCommunityIcons name="trash-can-outline" size={18} color={theme.colors.danger} />
@@ -201,7 +214,7 @@ export default function CategoriesScreen() {
                     }}
                 >
                     <Text variant="body" fontWeight="700" color="textPrimary">
-                        Criar Categoria
+                        {t('categoryManagement.create')}
                     </Text>
                 </TouchableOpacity>
             </Box>
@@ -233,7 +246,7 @@ export default function CategoriesScreen() {
 
                         <Box flexDirection="row" justifyContent="space-between" alignItems="center" paddingHorizontal="m" marginBottom="s" marginTop="xs">
                             <Text variant="titleMedium" fontWeight="700">
-                                {editingCategory ? 'Editar Categoria' : 'Nova Categoria'}
+                                {editingCategory ? t('categoryManagement.editTitle') : t('categoryManagement.newTitle')}
                             </Text>
                             <TouchableOpacity onPress={handleCloseForm} activeOpacity={0.7}>
                                 <MaterialCommunityIcons name="close" size={24} color={theme.colors.textSecondary} />
@@ -251,13 +264,24 @@ export default function CategoriesScreen() {
 
             <ConfirmationModal 
                 visible={isConfirmModalOpen}
-                title="Excluir Categorias"
-                description={`Você selecionou ${selectedIds.length} categorias. Tem certeza que deseja deletar todas elas de uma vez?`}
-                confirmText="Deletar"
-                cancelText="Cancelar"
+                title={t('categoryManagement.deleteMany.title')}
+                description={t('categoryManagement.deleteMany.description', { count: selectedIds.length })}
+                confirmText={t('common.delete')}
+                cancelText={t('common.cancel')}
                 isDestructive={true}
                 onClose={() => setIsConfirmModalOpen(false)}
                 onConfirm={executeDelete}
+            />
+
+            <ConfirmationModal
+                visible={categoryToDelete !== null}
+                title={t('categoryManagement.deleteOne.title')}
+                description={t('categoryManagement.deleteOne.description')}
+                confirmText={t('common.delete')}
+                cancelText={t('common.cancel')}
+                isDestructive
+                onClose={() => setCategoryToDelete(null)}
+                onConfirm={executeSingleDelete}
             />
         </Box>
     );

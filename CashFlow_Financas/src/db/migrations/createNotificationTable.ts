@@ -12,7 +12,10 @@ export default async function createNotificationTable(db: SQlite.SQLiteDatabase)
                 'goal_reached', 
                 'goal_warning', 
                 'monthly_summary',
-                'report'
+                'report',
+                'recurring_created',
+                'weekly_summary',
+                'backup_reminder'
             )),
             title TEXT NOT NULL,
             body TEXT NOT NULL,
