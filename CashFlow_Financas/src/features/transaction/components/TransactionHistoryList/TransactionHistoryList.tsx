@@ -5,6 +5,7 @@ import { MotiView } from 'moti';
 import { Box, Text, scale, Theme } from '@/theme/unistyles'; 
 import { useTheme } from '@shopify/restyle';
 import { useTranslation } from 'react-i18next';
+import { getLocalDateString, parseDatabaseTimestamp } from '@/utils/date';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Transactions as Transaction } from '../../types/Transactions';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
@@ -73,8 +74,9 @@ export function TransactionHistoryList({
     };
 
     const getDateKey = useCallback((transaction: Transaction) => {
-        const dateRaw = transaction.date || transaction.created_at;
-        return dateRaw ? dateRaw.split(' ')[0].split('T')[0] : new Date().toISOString().split('T')[0];
+        if (transaction.date) return transaction.date.slice(0, 10);
+        const createdAt = parseDatabaseTimestamp(transaction.created_at);
+        return createdAt ? getLocalDateString(createdAt) : getLocalDateString();
     }, []);
 
     const getSectionTitle = useCallback((dateKey: string) => {

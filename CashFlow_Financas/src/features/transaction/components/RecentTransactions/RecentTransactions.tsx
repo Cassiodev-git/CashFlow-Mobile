@@ -14,6 +14,7 @@ import { ConfirmationModal } from '@/components/ConfirmationModal/ConfirmationMo
 import { Skeleton } from '@/components/Skeleton/Skeleton'; 
 import { useCurrency } from '@/features/settings/hooks/useCurrency';
 import { Box, Text, scale, verticalScale, moderateScale} from '@/theme/unistyles';
+import { parseDateOnly, parseDatabaseTimestamp } from '@/utils/date';
 
 const OtimizedList = FlashList as React.ComponentType<any>;
 
@@ -255,7 +256,7 @@ export function RecentTransactions({
     isLoadingMore = false,
     onTransactionCreated
 }: RecentTransactionsProps) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { formatCurrency: formatCurrencyValue } = useCurrency();
     const [showAll, setShowAll] = useState(false);
 
@@ -265,11 +266,11 @@ export function RecentTransactions({
         const targetDate = dateString || createdAtString;
         if (!targetDate) return '';
 
-        const date = new Date(targetDate);
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = date.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
-        return `${day} de ${month}`;
-    }, []);
+        const date = dateString ? parseDateOnly(dateString) : parseDatabaseTimestamp(createdAtString);
+        if (!date) return '';
+        const locale = i18n.language.startsWith('en') ? 'en-US' : 'pt-BR';
+        return new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short' }).format(date).replace('.', '');
+    }, [i18n.language]);
 
     const formatCurrency = useCallback((value: number, isExpense: boolean) => {
         const formatted = formatCurrencyValue(value);

@@ -23,6 +23,7 @@ import type { categories } from '@/features/category/schema';
 import { Box, Text, scale, type Theme } from '@/theme/unistyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
+import { getLocalDateString } from '@/utils/date';
 
 interface ButtonBarProps {
     onTransactionCreated?: () => void | Promise<void>;
@@ -117,7 +118,7 @@ export function ButtonBar({ onTransactionCreated, onPress, useExternalAction = f
     const handleSave = async () => {
         const normalizedTitle = title.trim();
         const normalizedAmount = Number(amount.replace(',', '.'));
-        const normalizedDate = date.trim() ? formatToBackendDate(date.trim(), i18n.language) : undefined;
+        const normalizedDate = date.trim() ? formatToBackendDate(date.trim(), i18n.language) : getLocalDateString();
 
         if (!normalizedTitle || Number.isNaN(normalizedAmount) || normalizedAmount <= 0) {
             triggerError(t("transactions.invalidCreateData"));

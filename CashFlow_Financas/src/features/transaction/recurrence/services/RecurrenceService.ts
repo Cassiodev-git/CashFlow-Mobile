@@ -1,6 +1,7 @@
 import { RecurrenceRepository, type RecurrencePayload } from "../repository/RecurrenceRepository";
 import { TransactionRepository } from "../../repository/TransactionRepository";
 import { addMonths, addWeeks, addDays, addYears, isAfter, startOfDay } from 'date-fns';
+import { getLocalDateString, parseDateOnly } from '@/utils/date';
 import i18n from "@/i18n";
 
 const recurrenceRepo = new RecurrenceRepository();
@@ -55,7 +56,7 @@ class RecurrenceService {
 
             if (!parentTransaction) continue;
 
-            let lastDate = new Date(rule.last_generated_date);
+            let lastDate = parseDateOnly(rule.last_generated_date) ?? new Date(rule.last_generated_date);
 
             while (true) {
                 const nextDate = this.calculateNextDate(lastDate, rule.frequency as RecurrenceFrequency, rule.interval ?? 1);
@@ -65,11 +66,12 @@ class RecurrenceService {
                     break;
                 }
 
-                if (rule.end_date && isAfter(nextDateStart, startOfDay(new Date(rule.end_date)))) {
+                const endDate = rule.end_date ? (parseDateOnly(rule.end_date) ?? new Date(rule.end_date)) : null;
+                if (endDate && isAfter(nextDateStart, startOfDay(endDate))) {
                     break;
                 }
 
-                const formattedNextDate = nextDate.toISOString().split('T')[0];
+                const formattedNextDate = getLocalDateString(nextDate);
 
                 await transacRepo.createTransaction(userId, {
                     title: parentTransaction.title,

@@ -5,6 +5,7 @@ import notificationService from "@/features/notification/services/notificationSe
 import { scheduleDueNotification, scheduleRecurringCreatedNotification } from "@/features/notification/utils/notificationsRules";
 import i18n from "@/i18n";
 import recurrenceService from "@/features/transaction/recurrence/services/RecurrenceService";
+import { getLocalDateString } from "@/utils/date";
 
 const transacRepo = new TransactionRepository();
 const userRepo = new UserRepository();
@@ -18,29 +19,33 @@ const getLocalUserId = async () => {
 class TransactionService {
     async createTransaction(data: CreateTransactionDTO) {
         const userId = await getLocalUserId();
+        const transactionData = {
+            ...data,
+            date: data.date || getLocalDateString(),
+        };
         
-        const result = await transacRepo.createTransaction(userId, data);
+        const result = await transacRepo.createTransaction(userId, transactionData);
         const transaction = Array.isArray(result) ? result[0] : result;
 
-        if (data.is_recurring && data.frequency) {
-            const transactionDate = data.date || new Date().toISOString().split('T')[0];
+        if (transactionData.is_recurring && transactionData.frequency) {
+            const transactionDate = transactionData.date;
             
             await recurrenceService.createRecurrence({
-                frequency: data.frequency,
-                interval: data.interval,
+                frequency: transactionData.frequency,
+                interval: transactionData.interval,
                 date: transactionDate,
-                end_date: data.end_date
+                end_date: transactionData.end_date
             }, transaction.id, userId);
-            await scheduleRecurringCreatedNotification(transaction.id, data.title);
+            await scheduleRecurringCreatedNotification(transaction.id, transactionData.title);
         }
         
-        await scheduleDueNotification(transaction.id, data);
+        await scheduleDueNotification(transaction.id, transactionData);
         return transaction;
     }
 
     async updateTransaction(id: string, data: UpdateTransactionDTO) {
         if (data.is_recurring) {
-            const transactionDate = data.date || new Date().toISOString().split('T')[0];
+            const transactionDate = data.date || getLocalDateString();
             const existingRecurrence = await recurrenceService.findByTransactionId(id);
 
             if (existingRecurrence) {

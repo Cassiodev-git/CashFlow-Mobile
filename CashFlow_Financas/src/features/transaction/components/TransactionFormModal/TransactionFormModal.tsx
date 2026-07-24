@@ -23,6 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { MostUsedCategoriesBar } from '@/features/category/components/MostUsedCategoriesBar/MostUsedCategoriesBar';
 import type { categories } from '@/features/category/schema';
+import { getLocalDateString, parseDateOnly, parseDatabaseTimestamp } from '@/utils/date';
 
 interface TransactionFormModalProps {
     isOpen: boolean;
@@ -58,8 +59,8 @@ const formatToBackendDate = (dateStr: string, lang: string): string => {
 
 const formatFromBackendDate = (dateStr: string | null | undefined, lang: string): string => {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return '';
+    const date = dateStr.length > 10 ? parseDatabaseTimestamp(dateStr) : parseDateOnly(dateStr);
+    if (!date) return '';
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -163,7 +164,7 @@ export function TransactionFormModal({ isOpen, onClose, transaction, defaultIsRe
     const handleSave = async () => {
         const normalizedTitle = title.trim();
         const normalizedAmount = Number(amount.replace(',', '.'));
-        const normalizedDate = date.trim() ? formatToBackendDate(date.trim(), i18n.language) : undefined;
+        const normalizedDate = date.trim() ? formatToBackendDate(date.trim(), i18n.language) : getLocalDateString();
 
         if (!normalizedTitle || Number.isNaN(normalizedAmount) || normalizedAmount <= 0) {
             triggerError(t("transactions.invalidCreateData"));
