@@ -11,8 +11,9 @@ import { and, desc, gte, lte } from 'drizzle-orm';
 import { endOfMonth, format, startOfMonth, subDays } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { db } from '@/db';
-import { categories, transactions } from '@/db/schema';
+import { categories, transactions, users } from '@/db/schema';
 import type { ExportFormat, ExportPeriod } from '@/components/ExportConfigModal/ExportConfigModal';
+import { getLocalDateString, parseDatabaseTimestamp } from '@/utils/date';
 
 type TransactionStatus = 'paid' | 'pending' | 'canceled';
 
@@ -69,7 +70,7 @@ export function useBackup() {
             description: item.description,
             amount: Number(item.amount),
             type: item.type === 'expense' ? 'expense' : 'income',
-            date: item.date || format(new Date(item.updated_at), 'yyyy-MM-dd'),
+            date: item.date || (parseDatabaseTimestamp(item.updated_at) ? getLocalDateString(parseDatabaseTimestamp(item.updated_at)!) : getLocalDateString()),
             user_id: item.user_id,
             category_id: item.category_id,
             status: item.status as TransactionStatus | null,
@@ -103,7 +104,7 @@ export function useBackup() {
             description: typeof item.description === 'string' ? item.description : null,
             amount: Number(item.amount) || 0,
             type: item.type === 'expense' ? 'expense' : 'income',
-            date: typeof item.date === 'string' ? item.date : format(new Date(updatedAt), 'yyyy-MM-dd'),
+            date: typeof item.date === 'string' ? item.date : (parseDatabaseTimestamp(updatedAt) ? getLocalDateString(parseDatabaseTimestamp(updatedAt)!) : getLocalDateString()),
             user_id: typeof item.user_id === 'string' ? item.user_id : 'default_user',
             category_id: typeof item.category_id === 'string' ? item.category_id : null,
             status,
@@ -177,7 +178,22 @@ export function useBackup() {
                 showError(t('backup.feedback.invalidFile'));
                 return;
             }
-            await db.insert(transactions).values(source.map(sanitizeTransaction));
+            const [currentUser] = await db.select({ id: users.id }).from(users).limit(1);
+            if (!currentUser) throw new Error('user-not-found');
+
+            const existingCategories = await db.select({ id: categories.id }).from(categories);
+            const categoryIds = new Set(existingCategories.map((category) => category.id));
+            const importedTransactions = source.map((item) => {
+                const sanitized = sanitizeTransaction(item);
+                return {
+                    ...sanitized,
+                    user_id: currentUser.id,
+                    category_id: sanitized.category_id && categoryIds.has(sanitized.category_id) ? sanitized.category_id : null,
+                    recurrence_id: null,
+                };
+            });
+
+            await db.insert(transactions).values(importedTransactions).onConflictDoNothing();
             DeviceEventEmitter.emit('transaction_mutated');
             Toast.show({ type: 'success', text1: t('feedback.success.title'), text2: t('backup.feedback.importSuccess', { count: source.length }) });
         } catch (error) {

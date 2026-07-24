@@ -6,6 +6,8 @@ import { logger } from '@/utils/logger';
 const notificationRepo = new NotificationRepository();
 
 class NotificationService {
+    private dueSyncPromises = new Map<string, Promise<void>>();
+
     async createNotification(data: CreateNotificationInput) {
         const validatedData = createNotificationSchema.parse(data);
         
@@ -49,6 +51,58 @@ class NotificationService {
         return await notificationRepo.updateNotification(id, validatedData);
     }
 
+    async syncDueDateNotifications(transactionId: string, desiredNotifications: CreateNotificationInput[]) {
+        const runningSync = this.dueSyncPromises.get(transactionId);
+        if (runningSync) return runningSync;
+
+        const syncPromise = this.syncDueDateNotificationsInternal(transactionId, desiredNotifications);
+        this.dueSyncPromises.set(transactionId, syncPromise);
+
+        try {
+            await syncPromise;
+        } finally {
+            if (this.dueSyncPromises.get(transactionId) === syncPromise) {
+                this.dueSyncPromises.delete(transactionId);
+            }
+        }
+    }
+
+    private async syncDueDateNotificationsInternal(transactionId: string, desiredNotifications: CreateNotificationInput[]) {
+        const existing = await notificationRepo.findByTransactionId(transactionId);
+        const existingDue = existing.filter((item) => item.type === 'due_date' || item.type === 'overdue');
+        const getKey = (item: { type: string; trigger_date: string; title: string; body: string }) => (
+            `${item.type}|${item.trigger_date}|${item.title}|${item.body}`
+        );
+        const desiredKeys = new Set(desiredNotifications.map(getKey));
+        const keptKeys = new Set<string>();
+
+        for (const item of existingDue) {
+            const key = getKey(item);
+            if (!desiredKeys.has(key) || keptKeys.has(key)) {
+                await this.deleteNotification(item.id);
+            } else {
+                keptKeys.add(key);
+            }
+        }
+
+        for (const desired of desiredNotifications) {
+            const key = getKey(desired);
+            if (!keptKeys.has(key)) {
+                await this.createNotification(desired);
+                keptKeys.add(key);
+            }
+        }
+    }
+
+    async deleteDueDateNotifications() {
+        const all = await notificationRepo.listAllNotifications();
+        const dueNotifications = all.filter((item) => item.type === 'due_date' || item.type === 'overdue');
+
+        for (const item of dueNotifications) {
+            await this.deleteNotification(item.id);
+        }
+    }
+
     async markAsRead(id: string) {
         return await notificationRepo.updateNotification(id, { is_read: true });
     }
@@ -78,8 +132,11 @@ class NotificationService {
     }
 
     async deleteNotification(id: string) {
+        const notification = await notificationRepo.findById(id);
         try {
-            await Notifications.cancelScheduledNotificationAsync(id);
+            if (notification?.expo_id) {
+                await Notifications.cancelScheduledNotificationAsync(notification.expo_id);
+            }
         } catch (error) {
             logger.error("Erro ao cancelar agendamento:", error);
         }

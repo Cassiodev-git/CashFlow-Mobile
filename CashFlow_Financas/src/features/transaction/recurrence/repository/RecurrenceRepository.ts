@@ -1,7 +1,8 @@
 import { db } from "@/db";
 import { v4 as uuid } from "uuid";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { recurrenceRules, transactions } from "@/db/schema";
+import { getLocalDateString } from "@/utils/date";
 
 export interface RecurrencePayload {
     frequency?: "daily" | "weekly" | "monthly" | "yearly" | string | null;
@@ -17,11 +18,24 @@ export class RecurrenceRepository {
             transaction_id: transactionId,
             frequency: data.frequency as 'daily' | 'weekly' | 'monthly' | 'yearly',
             interval: data.interval ?? 1,
-            last_generated_date: data.date ?? new Date().toISOString(),
+            last_generated_date: data.date ?? getLocalDateString(),
             end_date: data.end_date ?? null,
         };
 
         return await db.insert(recurrenceRules).values(values).returning();
+    }
+
+    async findGeneratedTransaction(recurrenceId: string, date: string) {
+        const [result] = await db
+            .select({ id: transactions.id })
+            .from(transactions)
+            .where(and(
+                eq(transactions.recurrence_id, recurrenceId),
+                eq(transactions.date, date),
+            ))
+            .limit(1);
+
+        return result ?? null;
     }
 
     async updateRecurrence(id: string, data: RecurrencePayload) {

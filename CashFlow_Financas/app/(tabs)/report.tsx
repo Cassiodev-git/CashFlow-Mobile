@@ -16,6 +16,7 @@ import { Transactions } from '@/features/transaction/types/Transactions';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { useCurrency } from '@/features/settings/hooks/useCurrency';
 import { useCategories } from '@/hooks/useCategories';
+import { getLocalDateString } from '@/utils/date';
 export default function ReportsScreen() {
     const { t, i18n } = useTranslation();
     const { date, data, handleNext, handlePrev, loading: loadingSummary } = useMonthlySummary();
@@ -30,7 +31,7 @@ export default function ReportsScreen() {
     const isReportLoading = loadingSummary || loadingTransactions;
 
     const sanitizedTransactions = useMemo<Transactions[]>(() => {
-        const now = new Date().toISOString();
+        const now = getLocalDateString();
 
         return filteredTransactions.map(tx => ({
             ...tx,

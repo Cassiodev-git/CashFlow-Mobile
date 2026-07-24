@@ -78,6 +78,23 @@ export class NotificationRepository {
             .orderBy(desc(notifications.created_at));
     }
 
+    async listAllNotifications() {
+        return await db
+            .select()
+            .from(notifications)
+            .orderBy(desc(notifications.created_at));
+    }
+
+    async findById(id: string) {
+        const [result] = await db
+            .select()
+            .from(notifications)
+            .where(eq(notifications.id, id))
+            .limit(1);
+
+        return result ?? null;
+    }
+
     async deleteNotification(id: string) {
         const result = await db.delete(notifications).where(eq(notifications.id, id));
         return result;

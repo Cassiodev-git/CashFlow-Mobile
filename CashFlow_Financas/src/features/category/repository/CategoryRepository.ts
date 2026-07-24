@@ -33,13 +33,32 @@ export class CategoryRepository {
         return await db.select().from(categories)
     }
 
-    async seedDefaultCategories(defaults: Array<{ id: string; name: string; icon: string; type: 'income' | 'expense' }>) {
+    async seedDefaultCategories(
+        defaults: Array<{ id: string; name: string; icon: string; type: 'income' | 'expense' }>,
+        knownDefaultNames: Record<string, string[]> = {},
+    ) {
         const excluded = await db.select({ id: defaultCategoryExclusions.category_id }).from(defaultCategoryExclusions);
         const excludedIds = new Set(excluded.map((item) => item.id));
-        const existing = await db.select({ id: categories.id }).from(categories);
+        const existing = await db.select({ id: categories.id, name: categories.name }).from(categories);
         const existingIds = new Set(existing.map((item) => item.id));
         const missing = defaults.filter((category) => !excludedIds.has(category.id) && !existingIds.has(category.id));
         if (missing.length > 0) await db.insert(categories).values(missing);
+
+        const existingById = new Map(existing.map((category) => [category.id, category]));
+        for (const category of defaults) {
+            const current = existingById.get(category.id);
+            const knownNames = knownDefaultNames[category.id] ?? [];
+            if (
+                current &&
+                !excludedIds.has(category.id) &&
+                current.name !== category.name &&
+                knownNames.includes(current.name)
+            ) {
+                await db.update(categories)
+                    .set({ name: category.name, updated_at: new Date().toISOString() })
+                    .where(eq(categories.id, category.id));
+            }
+        }
     }
 
     /**

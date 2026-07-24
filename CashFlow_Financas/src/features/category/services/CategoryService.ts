@@ -3,12 +3,22 @@ import { CategoryRepository } from "../repository/CategoryRepository";
 import type { CreateCategoryDTO, UpdateCategoryDTO  } from "../validation";
 import { createCategorySchema, updateCategorySchema } from "../validation";
 import i18n from "@/i18n";
-import { getDefaultCategories } from '../defaultCategories';
+import { DEFAULT_CATEGORIES, getDefaultCategories } from '../defaultCategories';
 
 const categoryRepo = new CategoryRepository()
 const userRepo = new UserRepository()
 
 export class CategoryService {
+    private getLocalizedDefaults() {
+        const defaults = getDefaultCategories((key) => i18n.t(key));
+        const knownDefaultNames = Object.fromEntries(DEFAULT_CATEGORIES.map((category) => [
+            category.id,
+            ['pt', 'en'].map((language) => i18n.getFixedT(language)(`defaultCategories.${category.translationKey}`)),
+        ]));
+
+        return { defaults, knownDefaultNames };
+    }
+
     async createCategory(data: CreateCategoryDTO){
         const validatedData = createCategorySchema.parse(data)
         
@@ -42,14 +52,19 @@ export class CategoryService {
     }
 
     async listCategory(){
+        const { defaults, knownDefaultNames } = this.getLocalizedDefaults();
+        await categoryRepo.seedDefaultCategories(defaults, knownDefaultNames);
         return await categoryRepo.listCategory()
     }
 
     async seedDefaultCategories() {
-        return categoryRepo.seedDefaultCategories(getDefaultCategories((key) => i18n.t(key)));
+        const { defaults, knownDefaultNames } = this.getLocalizedDefaults();
+        return categoryRepo.seedDefaultCategories(defaults, knownDefaultNames);
     }
 
     async listMostUsedCategories(limit = 10) {
+        const { defaults, knownDefaultNames } = this.getLocalizedDefaults();
+        await categoryRepo.seedDefaultCategories(defaults, knownDefaultNames);
         return categoryRepo.findMostUsed(limit)
     }
 

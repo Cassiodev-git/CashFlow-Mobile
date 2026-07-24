@@ -20,5 +20,6 @@ export async function initializeDatabase(){
         logger.log("Banco de dados iniciado")
     }catch(error){
         logger.error("Error initializing database:", error)
+        throw error;
     }
 }

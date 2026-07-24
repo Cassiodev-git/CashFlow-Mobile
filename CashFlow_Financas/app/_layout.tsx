@@ -17,6 +17,7 @@ import "@/i18n";
 import { logger } from '@/utils/logger';
 import { Box, Text, scale, Theme } from '@/theme/unistyles';
 import { LoadingScreen } from '@/components/LoadingScreen/LoadingScreen';
+import { ErrorState } from '@/components/ErrorState/ErrorState';
 import notificationService from '@/features/notification/services/notificationService';
 import AppCategoryService from '@/services/AppCategoryService';
 import { AppThemeProvider, useAppTheme } from '@/features/settings/context/ThemeContext';
@@ -41,6 +42,7 @@ SplashScreen.preventAutoHideAsync();
 
 function RootLayoutContent() {
   const [dbStart, setDbStart] = useState(false);
+  const [databaseError, setDatabaseError] = useState(false);
   const [hasUser, setHasUser] = useState(false);
   const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
   const [isAuthUnlocked, setIsAuthUnlocked] = useState(true);
@@ -84,8 +86,9 @@ function RootLayoutContent() {
     }
   }, [t]);
 
-  useEffect(() => {
-    async function setup() {
+  const initializeApp = useCallback(async () => {
+      setDbStart(false);
+      setDatabaseError(false);
       try {
         await initializeDatabase();
         
@@ -107,12 +110,15 @@ function RootLayoutContent() {
         }
       } catch (error) {
         logger.error("Critical error starting the app:", error);
+        setDatabaseError(true);
       } finally {
         setDbStart(true);
       }
-    }
-    setup();
   }, [findFirstUser, requestBiometricUnlock]);
+
+  useEffect(() => {
+    void initializeApp();
+  }, [initializeApp]);
 
   useEffect(() => {
     const subscription = Notifications.addNotificationResponseReceivedListener(registerOpenedNotification);
@@ -130,14 +136,22 @@ function RootLayoutContent() {
     if (dbStart) {
       SplashScreen.hideAsync();
 
-      if (hasUser && isAuthUnlocked) {
+      if (!databaseError && hasUser && isAuthUnlocked) {
         router.replace("/(tabs)/home"); 
       }
     }
-  }, [dbStart, hasUser, isAuthUnlocked, router]);
+  }, [databaseError, dbStart, hasUser, isAuthUnlocked, router]);
 
   if (!dbStart) {
     return <LoadingScreen />;
+  }
+
+  if (databaseError) {
+    return (
+      <SafeAreaProvider>
+        <ErrorState message={t("errors.databaseError")} onRetry={initializeApp} />
+      </SafeAreaProvider>
+    );
   }
 
   return (

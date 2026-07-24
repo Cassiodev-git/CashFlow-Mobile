@@ -5,6 +5,7 @@ import { Transactions as Transaction } from "@/features/transaction/types/Transa
 import { useTranslation } from 'react-i18next';
 import { DeviceEventEmitter } from 'react-native';
 import { logger } from '@/utils/logger';
+import { getLocalDateString, parseDateOnly, parseDatabaseTimestamp } from '@/utils/date';
 
 export type ReportPeriod = 'week' | 'month' | 'year';
 export interface GraphInsights {
@@ -19,7 +20,7 @@ export interface GraphInsights {
 }
 
 export function useReports(selectedTab: ReportPeriod) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false); 
     const [error, setError] = useState<boolean>(false);   
@@ -43,7 +44,7 @@ export function useReports(selectedTab: ReportPeriod) {
             ]);
             const categoryNames = new Map(categories.map((category) => [category.id, category.name]));
 
-            const formattedLineData = filterAndGroupTransactionsByDay(transactions, selectedTab);
+            const formattedLineData = filterAndGroupTransactionsByDay(transactions, selectedTab, i18n.language);
             const formattedPieData = groupTransactionsByCategory(transactions, selectedTab, categoryNames, t);
 
             setLineChartData(formattedLineData);
@@ -56,7 +57,7 @@ export function useReports(selectedTab: ReportPeriod) {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [selectedTab, t]);
+    }, [i18n.language, selectedTab, t]);
 
     useEffect(() => {
         loadChartData();
@@ -111,7 +112,7 @@ function buildInsights(transactions: Transaction[], period: ReportPeriod, catego
         if (transaction.type === 'expense') {
             const categoryId = transaction.category_id ?? 'uncategorized';
             categoryTotals.set(categoryId, (categoryTotals.get(categoryId) ?? 0) + amount);
-            const day = date.toISOString().slice(0, 10);
+            const day = getLocalDateString(date);
             days.set(day, (days.get(day) ?? 0) + amount);
         }
     });
@@ -155,9 +156,10 @@ function checkPeriodMatch(transactionDate: Date, period: ReportPeriod): boolean 
     return false;
 }
 
-function getXKeyLabel(transactionDate: Date, period: ReportPeriod): string {
+function getXKeyLabel(transactionDate: Date, period: ReportPeriod, language: string): string {
     if (period === 'year') {
-        return transactionDate.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
+        const locale = language.startsWith('en') ? 'en-US' : 'pt-BR';
+        return transactionDate.toLocaleDateString(locale, { month: 'short' }).replace('.', '');
     }
     if (period === 'week') {
         return `${transactionDate.getDate()}/${transactionDate.getMonth() + 1}`;
@@ -169,13 +171,10 @@ function getSafeDate(transaction: Transaction): Date | null {
     const rawDate = transaction.date || (transaction as any).created_at;
     if (!rawDate) return null;
 
-    const cleanDateStr = rawDate.slice(0, 10);
-    const parsedDate = new Date(`${cleanDateStr}T12:00:00`);
-    
-    return isNaN(parsedDate.getTime()) ? null : parsedDate;
+    return rawDate.length > 10 ? parseDatabaseTimestamp(rawDate) : parseDateOnly(rawDate);
 }
 
-function filterAndGroupTransactionsByDay(transactions: Transaction[], period: ReportPeriod) {
+function filterAndGroupTransactionsByDay(transactions: Transaction[], period: ReportPeriod, language: string) {
     const validTransactions = transactions
         .map(t => ({ transaction: t, tDate: getSafeDate(t) }))
         .filter(item => item.tDate !== null && checkPeriodMatch(item.tDate, period) && item.transaction.status !== 'canceled');
@@ -183,7 +182,7 @@ function filterAndGroupTransactionsByDay(transactions: Transaction[], period: Re
     const dailyMap: Record<string, { day: string; revenue: number; expense: number; sortIndex: number }> = {};
 
     validTransactions.forEach(({ transaction: t, tDate }) => {
-        const xAxisLabel = getXKeyLabel(tDate!, period);
+        const xAxisLabel = getXKeyLabel(tDate!, period, language);
 
         if (!dailyMap[xAxisLabel]) {
             dailyMap[xAxisLabel] = { 

@@ -1,7 +1,7 @@
 import { RecurrenceRepository, type RecurrencePayload } from "../repository/RecurrenceRepository";
 import { TransactionRepository } from "../../repository/TransactionRepository";
 import { addMonths, addWeeks, addDays, addYears, isAfter, startOfDay } from 'date-fns';
-import { getLocalDateString, parseDateOnly } from '@/utils/date';
+import { getLocalDateString, parseDateOnly, parseDatabaseTimestamp } from '@/utils/date';
 import i18n from "@/i18n";
 
 const recurrenceRepo = new RecurrenceRepository();
@@ -10,6 +10,8 @@ const transacRepo = new TransactionRepository();
 type RecurrenceFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
 
 class RecurrenceService {
+    private processingPromise: Promise<void> | null = null;
+
     async createRecurrence(data: RecurrencePayload, transactionId: string, userId: string) {
         const currentList = await this.listRecurringTransactions(userId);
         if (currentList.length >= 30) {
@@ -47,6 +49,21 @@ class RecurrenceService {
     }
 
     async processRecurrences(userId: string) {
+        if (this.processingPromise) return this.processingPromise;
+
+        const processingPromise = this.processRecurrencesInternal(userId);
+        this.processingPromise = processingPromise;
+
+        try {
+            await processingPromise;
+        } finally {
+            if (this.processingPromise === processingPromise) {
+                this.processingPromise = null;
+            }
+        }
+    }
+
+    private async processRecurrencesInternal(userId: string) {
         const list = await recurrenceRepo.listRecurringTransactions(userId);
         const today = startOfDay(new Date());
 
@@ -56,7 +73,8 @@ class RecurrenceService {
 
             if (!parentTransaction) continue;
 
-            let lastDate = parseDateOnly(rule.last_generated_date) ?? new Date(rule.last_generated_date);
+            let lastDate = parseDateOnly(rule.last_generated_date) ?? parseDatabaseTimestamp(rule.last_generated_date) ?? new Date(Number.NaN);
+            if (Number.isNaN(lastDate.getTime())) continue;
 
             while (true) {
                 const nextDate = this.calculateNextDate(lastDate, rule.frequency as RecurrenceFrequency, rule.interval ?? 1);
@@ -66,12 +84,19 @@ class RecurrenceService {
                     break;
                 }
 
-                const endDate = rule.end_date ? (parseDateOnly(rule.end_date) ?? new Date(rule.end_date)) : null;
+                const endDate = rule.end_date ? (parseDateOnly(rule.end_date) ?? parseDatabaseTimestamp(rule.end_date)) : null;
                 if (endDate && isAfter(nextDateStart, startOfDay(endDate))) {
                     break;
                 }
 
                 const formattedNextDate = getLocalDateString(nextDate);
+                const existingGeneratedTransaction = await recurrenceRepo.findGeneratedTransaction(rule.id, formattedNextDate);
+
+                if (existingGeneratedTransaction) {
+                    await recurrenceRepo.updateLastGeneratedDate(rule.id, formattedNextDate);
+                    lastDate = nextDate;
+                    continue;
+                }
 
                 await transacRepo.createTransaction(userId, {
                     title: parentTransaction.title,
@@ -82,6 +107,7 @@ class RecurrenceService {
                     status: "pending",
                     date: formattedNextDate,
                     is_recurring: false,
+                    recurrence_id: rule.id,
                 });
 
                 await recurrenceRepo.updateLastGeneratedDate(rule.id, formattedNextDate);

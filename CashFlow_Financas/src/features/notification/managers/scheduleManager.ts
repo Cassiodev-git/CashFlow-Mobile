@@ -1,13 +1,13 @@
 import { SettingsService } from '../services/settingsService';
 import notificationService from '../services/notificationService';
 import i18n from '@/i18n';
+import type { CreateNotificationInput } from '../validation';
 
 export const NotificationManager = {
     async scheduleDueDate(transactionId: string, title: string, dueDate: Date, diffDays: number) {
         const enabled = await SettingsService.areRemindersEnabled();
         if (!enabled) return;
 
-        await notificationService.deleteByTransactionId(transactionId);
         const now = new Date();
         const reminders = [3, 1, 0]
             .map((daysBefore) => {
@@ -25,7 +25,7 @@ export const NotificationManager = {
             reminders.push({ triggerDate: overdueDate, overdue: true });
         }
 
-        await Promise.all(reminders.map(({ triggerDate, overdue }) => notificationService.createNotification({
+        const desiredNotifications: CreateNotificationInput[] = reminders.map(({ triggerDate, overdue }) => ({
             transaction_id: transactionId,
             type: overdue ? 'overdue' : 'due_date',
             title: overdue ? i18n.t('notifications.overdueTitle') : i18n.t("notifications.dueDateTitle"),
@@ -33,7 +33,9 @@ export const NotificationManager = {
             trigger_date: triggerDate.toISOString(),
             is_active: true,
             is_read: false,
-        })));
+        }));
+
+        await notificationService.syncDueDateNotifications(transactionId, desiredNotifications);
     },
 
     async cancelSpecificNotification(transactionId: string) {

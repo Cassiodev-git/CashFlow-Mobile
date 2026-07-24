@@ -4,6 +4,7 @@ import type { CreateTransactionDTO, UpdateTransactionDTO } from '@/features/tran
 import * as Notifications from 'expo-notifications';
 import i18n from '@/i18n';
 import notificationService from '@/features/notification/services/notificationService';
+import { parseDateOnly } from '@/utils/date';
 
 export const scheduleDueNotification = async (
     transactionId: string, 
@@ -18,7 +19,8 @@ export const scheduleDueNotification = async (
     
     if (!canNotify || data.status !== 'pending') return;
 
-    const dueDate = new Date(date);
+    const dueDate = parseDateOnly(date);
+    if (!dueDate) return;
     const now = new Date();
     
     const compareDate = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());

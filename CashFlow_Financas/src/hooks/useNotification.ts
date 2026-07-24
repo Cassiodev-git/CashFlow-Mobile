@@ -58,6 +58,10 @@ export const useNotification = () => {
         if (!isEnabled) return;
         setIsRemindersEnabled(value);
         await AsyncStorage.setItem(KEY_REMINDERS, value.toString());
+
+        if (!value) {
+            await notificationService.deleteDueDateNotifications();
+        }
     };
 
     const toggleReports = async (value: boolean) => {

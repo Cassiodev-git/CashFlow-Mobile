@@ -12,11 +12,12 @@ import { ButtonBar } from '@/features/transaction/components/ButtonBar/ButtonBar
 import { TransactionFormModal } from '@/features/transaction/components/TransactionFormModal/TransactionFormModal';
 import { useRecurrence, type RecurringTransaction } from '@/features/transaction/recurrence/hooks/useRecurrence';
 import { useCurrency } from '@/features/settings/hooks/useCurrency';
+import { parseDateOnly, parseDatabaseTimestamp } from '@/utils/date';
 
 type Frequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
 
 const calculateNextDate = (date: string, frequency: Frequency, interval: number) => {
-    const nextDate = new Date(date);
+    const nextDate = parseDateOnly(date) ?? parseDatabaseTimestamp(date) ?? new Date(Number.NaN);
     const safeInterval = interval || 1;
 
     if (frequency === 'daily') nextDate.setDate(nextDate.getDate() + safeInterval);

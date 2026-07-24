@@ -1,6 +1,7 @@
 import { TransactionRepository } from "../repository/TransactionRepository";
 import { UserRepository } from "@/features/user/repository/UserRepository";
 import i18n from "@/i18n";
+import { parseDateOnly, parseDatabaseTimestamp } from "@/utils/date";
 
 const transacRepo = new TransactionRepository();
 const userRepo = new UserRepository();
@@ -45,9 +46,10 @@ class TransactionStatsService {
             const dateValue = t.date || t.created_at;
             if (!dateValue) return false;
 
-            const datePart = dateValue.split(' ')[0];
-            const [y, m, d] = datePart.split('-');
-            const transactionDate = new Date(Number(y), Number(m) - 1, Number(d));
+            const transactionDate = dateValue.length > 10
+                ? parseDatabaseTimestamp(dateValue)
+                : parseDateOnly(dateValue);
+            if (!transactionDate) return false;
 
             return (transactionDate.getMonth() + 1) === month && transactionDate.getFullYear() === year;
         });
@@ -65,18 +67,22 @@ class TransactionStatsService {
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
 
+        const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+        const previousMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
         const getExpensesByMonth = (m: number, y: number) => transactions
             .filter(t => {
                 const dateValue = t.date || t.created_at;
                 if (!dateValue) return false;
-                const [datePart] = dateValue.split(' ');
-                const [year, month] = datePart.split('-').map(Number);
-                return t.type === "expense" && (month - 1) === m && year === y;
+                const transactionDate = dateValue.length > 10
+                    ? parseDatabaseTimestamp(dateValue)
+                    : parseDateOnly(dateValue);
+                if (!transactionDate) return false;
+                return t.type === "expense" && transactionDate.getMonth() === m && transactionDate.getFullYear() === y;
             })
             .reduce((acc, t) => acc + Number(t.amount || 0), 0);
 
         const currentMonthExpenses = getExpensesByMonth(currentMonth, currentYear);
-        const lastMonthExpenses = getExpensesByMonth(currentMonth - 1, currentYear);
+        const lastMonthExpenses = getExpensesByMonth(previousMonth, previousMonthYear);
 
         if (lastMonthExpenses === 0) return { percentage: 0, status: "neutral" };
         const percentage = ((currentMonthExpenses - lastMonthExpenses) / lastMonthExpenses) * 100;
