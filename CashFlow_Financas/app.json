@@ -46,7 +46,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./src/assets/Logo_CashFlow.png",
+          "image": "./src/assets/Finno_icon.png",
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }

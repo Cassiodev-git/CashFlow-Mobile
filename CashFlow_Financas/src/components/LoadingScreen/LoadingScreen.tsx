@@ -19,7 +19,7 @@ export function LoadingScreen() {
                 style={{ alignItems: 'center', justifyContent: 'center' }}
             >
                 <Image
-                    source={require('@/assets/Logo_CashFlow.png')}
+                    source={require('@/assets/Finno_icon.png')}
                     style={{
                         width: scale(200),
                         height: scale(200),

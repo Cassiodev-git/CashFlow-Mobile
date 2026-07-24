@@ -22,7 +22,7 @@ import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { Box, Text, scale, type Theme } from "@/theme/unistyles";
 
-const logoCashFlow = require("@/assets/Logo_CashFlow.png");
+const logoCashFlow = require("@/assets/Finno_icon.png");
 
 type UserFormProps = {
     initialValues?: Partial<CreateUserDTO>;
