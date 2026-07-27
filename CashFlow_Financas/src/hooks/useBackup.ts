@@ -11,9 +11,10 @@ import { and, desc, gte, lte } from 'drizzle-orm';
 import { endOfMonth, format, startOfMonth, subDays } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { db } from '@/db';
-import { categories, transactions, users } from '@/db/schema';
+import { categories, transactions } from '@/db/schema';
 import type { ExportFormat, ExportPeriod } from '@/components/ExportConfigModal/ExportConfigModal';
 import { getLocalDateString, parseDatabaseTimestamp } from '@/utils/date';
+import AppUserService from '@/services/AppUserService';
 
 type TransactionStatus = 'paid' | 'pending' | 'canceled';
 
@@ -93,7 +94,7 @@ export function useBackup() {
         return true;
     };
 
-    const sanitizeTransaction = (item: Record<string, unknown>): BackupTransaction => {
+    const sanitizeTransaction = (item: Record<string, unknown>, currentUserId: string): BackupTransaction => {
         const now = new Date().toISOString();
         const updatedAt = typeof item.updated_at === 'string' ? item.updated_at : now;
         const candidateStatus = item.status;
@@ -105,7 +106,7 @@ export function useBackup() {
             amount: Number(item.amount) || 0,
             type: item.type === 'expense' ? 'expense' : 'income',
             date: typeof item.date === 'string' ? item.date : (parseDatabaseTimestamp(updatedAt) ? getLocalDateString(parseDatabaseTimestamp(updatedAt)!) : getLocalDateString()),
-            user_id: typeof item.user_id === 'string' ? item.user_id : 'default_user',
+            user_id: currentUserId, // Sobrescreve pelo ID do usuário logado
             category_id: typeof item.category_id === 'string' ? item.category_id : null,
             status,
             is_recurring: item.is_recurring === true || item.is_recurring === 1 || item.is_recurring === '1' || item.is_recurring === 'true',
@@ -139,7 +140,11 @@ export function useBackup() {
             const data = await fetchTransactions(period);
             if (data.length === 0) return showError(t('backup.feedback.noTransactions'));
             if (type === 'pdf' && data.length < 5) return showError(t('backup.feedback.minimumPdfTransactions'));
-            const filename = `Finno_${type}_${period}_${Date.now()}`;
+            
+            // Padrão americano: AAAA-MM-DD (Exemplo: Finno_backup_2026-07-27.json)
+            const formattedDate = format(new Date(), 'yyyy-MM-dd');
+            const filename = `Finno_backup_${formattedDate}`;
+            
             let uri: string;
             if (type === 'pdf') {
                 ({ uri } = await Print.printToFileAsync({ html: await buildPdf(data) }));
@@ -161,10 +166,15 @@ export function useBackup() {
     const importData = async () => {
         setIsImporting(true);
         try {
-            const result = await DocumentPicker.getDocumentAsync({ type: ['application/json', 'text/csv', 'text/comma-separated-values'], copyToCacheDirectory: true });
+            const result = await DocumentPicker.getDocumentAsync({
+                type: ['application/json', 'text/csv', 'text/comma-separated-values'],
+                copyToCacheDirectory: true,
+            });
             if (result.canceled || !result.assets[0]) return;
+
             const asset = result.assets[0];
             const content = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.UTF8 });
+
             let source: Record<string, unknown>[];
             if (asset.name.toLowerCase().endsWith('.json')) {
                 const parsed: unknown = JSON.parse(content);
@@ -178,22 +188,31 @@ export function useBackup() {
                 showError(t('backup.feedback.invalidFile'));
                 return;
             }
-            const [currentUser] = await db.select({ id: users.id }).from(users).limit(1);
+
+            const currentUser = await AppUserService.findFirstUser();
             if (!currentUser) throw new Error('user-not-found');
 
             const existingCategories = await db.select({ id: categories.id }).from(categories);
             const categoryIds = new Set(existingCategories.map((category) => category.id));
+
             const importedTransactions = source.map((item) => {
-                const sanitized = sanitizeTransaction(item);
+                const sanitized = sanitizeTransaction(item, currentUser.id);
                 return {
                     ...sanitized,
-                    user_id: currentUser.id,
                     category_id: sanitized.category_id && categoryIds.has(sanitized.category_id) ? sanitized.category_id : null,
                     recurrence_id: null,
                 };
             });
 
-            await db.insert(transactions).values(importedTransactions).onConflictDoNothing();
+            // Lotes de 200 itens para suportar 40.000+ transações com folga de memória
+            const CHUNK_SIZE = 200;
+            await db.transaction(async (tx) => {
+                for (let i = 0; i < importedTransactions.length; i += CHUNK_SIZE) {
+                    const chunk = importedTransactions.slice(i, i + CHUNK_SIZE);
+                    await tx.insert(transactions).values(chunk).onConflictDoNothing();
+                }
+            });
+
             DeviceEventEmitter.emit('transaction_mutated');
             Toast.show({ type: 'success', text1: t('feedback.success.title'), text2: t('backup.feedback.importSuccess', { count: source.length }) });
         } catch (error) {

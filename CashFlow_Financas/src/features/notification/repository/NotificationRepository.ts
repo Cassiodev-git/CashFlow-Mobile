@@ -104,7 +104,8 @@ export class NotificationRepository {
         return await db.delete(notifications).where(eq(notifications.transaction_id, transactionId));
     }
 
-    async deleteAll() {
-        return await db.delete(notifications);
+    async clearAll(tx?: any) {
+        const executor = tx ?? db; 
+        await executor.delete(notifications);
     }
 }

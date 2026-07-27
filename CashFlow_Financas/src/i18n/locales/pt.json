@@ -242,9 +242,17 @@
         "others": "Outros",
         "empty": "Sem dados registrados",
         "insights": {
-            "title": "Insights financeiros", "balanceEvolution": "Evolução do saldo", "periodComparison": "{{value}} {{direction}} em relação ao período anterior", "up": "acima", "down": "abaixo",
-            "expenseTrend": "Média de gastos", "topCategories": "Top categorias", "status": "Status das transações", "statusSummary": "{{paid}} pagas, {{pending}} pendentes e {{canceled}} canceladas de {{total}} transações.",
-            "financialCalendar": "Dia com maior volume de gastos", "recurringForecast": "Saldo previsto de recorrências"
+            "title": "Insights financeiros",
+            "balanceEvolution": "Evolução do saldo",
+            "periodComparison": "{{value}} {{direction}} em relação ao período anterior",
+            "up": "acima",
+            "down": "abaixo",
+            "expenseTrend": "Média de gastos",
+            "topCategories": "Top categorias",
+            "status": "Status das transações",
+            "statusSummary": "{{paid}} pagas, {{pending}} pendentes e {{canceled}} canceladas de {{total}} transações.",
+            "financialCalendar": "Dia com maior volume de gastos",
+            "recurringForecast": "Saldo previsto de recorrências"
         }
     },
     "report": {
@@ -373,9 +381,15 @@
         "permissionRequiredMessage": "Autorize o acesso à galeria para selecionar uma imagem de avatar."
     },
     "feedback": {
-        "success": { "title": "Sucesso" },
-        "error": { "title": "Ocorreu um erro" },
-        "validation": { "title": "Revise os dados" },
+        "success": {
+            "title": "Sucesso"
+        },
+        "error": {
+            "title": "Ocorreu um erro"
+        },
+        "validation": {
+            "title": "Revise os dados"
+        },
         "file": {
             "nativeUnavailable": "O armazenamento de arquivos não está disponível neste dispositivo.",
             "sharingUnavailable": "O compartilhamento de arquivos não está disponível neste dispositivo."
@@ -386,54 +400,130 @@
         "subtitle": "Exporte uma cópia dos seus dados financeiros e restaure-a quando precisar. Tudo permanece no dispositivo, sem sincronização em nuvem.",
         "processing": "Processando...",
         "untitledTransaction": "Sem título",
+        "configAlert": {
+            "extensionWarning": "Alguns apps podem renomear o arquivo ao compartilhar. Certifique-se de manter a extensão (.json ou .csv) no final do nome para conseguir importar depois."
+        },
         "uncategorized": "Sem categoria",
         "export": {
             "title": "Exportar dados",
-            "json": { "title": "Formato JSON (.json)", "description": "Crie uma cópia completa das suas transações para restaurar o Finno com segurança em outro dispositivo" },
-            "csv": { "title": "Planilha CSV (.csv)", "description": "Abra no Excel, Sheets ou Numbers" },
-            "pdf": { "title": "Relatório em PDF (.pdf)", "description": "Ideal para impressão ou compartilhamento" }
+            "json": {
+                "title": "Formato JSON (.json)",
+                "description": "Crie uma cópia completa das suas transações para restaurar o Finno com segurança em outro dispositivo"
+            },
+            "csv": {
+                "title": "Planilha CSV (.csv)",
+                "description": "Abra no Excel, Sheets ou Numbers"
+            },
+            "pdf": {
+                "title": "Relatório em PDF (.pdf)",
+                "description": "Ideal para impressão ou compartilhamento"
+            }
         },
-        "import": { "title": "Restaurar backup", "action": "Importar arquivo", "description": "Selecione um arquivo JSON ou CSV do Finno" },
+        "import": {
+            "title": "Restaurar backup",
+            "action": "Importar arquivo",
+            "description": "Selecione um arquivo JSON ou CSV do Finno"
+        },
         "config": {
-            "jsonTitle": "Confirmar backup completo", "csvTitle": "Exportar para CSV", "pdfTitle": "Configurar relatório PDF",
+            "jsonTitle": "Confirmar backup completo",
+            "csvTitle": "Exportar para CSV",
+            "pdfTitle": "Configurar relatório PDF",
             "fullBackupDescription": "Gera um arquivo com todo o seu histórico de transações. Use-o para restaurar dados em outro dispositivo.",
-            "selectPeriod": "Selecione o período dos dados:", "generate": "Gerar", "export": "Exportar"
+            "selectPeriod": "Selecione o período dos dados:",
+            "generate": "Gerar",
+            "export": "Exportar"
         },
-        "period": { "currentMonth": "Este mês", "threeMonths": "Últimos 3 meses", "currentYear": "Este ano", "all": "Todo o histórico" },
-        "share": { "title": "Compartilhar exportação" },
+        "period": {
+            "currentMonth": "Este mês",
+            "threeMonths": "Últimos 3 meses",
+            "currentYear": "Este ano",
+            "all": "Todo o histórico"
+        },
+        "share": {
+            "title": "Compartilhar exportação"
+        },
         "feedback": {
-            "noTransactions": "Você não possui transações para exportar.", "minimumPdfTransactions": "Adicione pelo menos 5 transações para gerar o PDF.",
-            "exportSuccess": "Exportação concluída.", "exportError": "Não foi possível exportar seus dados. Tente novamente.",
-            "importSuccess": "{{count}} transações importadas com sucesso.", "importError": "Não foi possível importar o arquivo. Verifique o conteúdo e tente novamente.",
+            "noTransactions": "Você não possui transações para exportar.",
+            "minimumPdfTransactions": "Adicione pelo menos 5 transações para gerar o PDF.",
+            "exportSuccess": "Exportação concluída.",
+            "exportError": "Não foi possível exportar seus dados. Tente novamente.",
+            "importSuccess": "{{count}} transações importadas com sucesso.",
+            "importError": "Não foi possível importar o arquivo. Verifique o conteúdo e tente novamente.",
             "invalidFile": "Selecione um arquivo JSON ou CSV válido do Finno."
         },
-        "pdf": { "title": "Relatório de transações - Finno", "generatedAt": "Gerado em {{date}}", "date": "Data", "description": "Título / descrição", "category": "Categoria", "status": "Status", "amount": "Valor" },
+        "pdf": {
+            "title": "Relatório de transações - Finno",
+            "generatedAt": "Gerado em {{date}}",
+            "date": "Data",
+            "description": "Título / descrição",
+            "category": "Categoria",
+            "status": "Status",
+            "amount": "Valor"
+        },
         "about": {
-            "open": "Abrir informações sobre o Finno", "title": "Sobre o Finno",
+            "open": "Abrir informações sobre o Finno",
+            "title": "Sobre o Finno",
             "localFirst": "O Finno funciona 100% offline e local-first: suas informações financeiras ficam no seu dispositivo.",
             "privacy": "Você mantém privacidade absoluta, pois os dados não são enviados para análise ou sincronização externa.",
             "noServers": "Não usamos servidores de terceiros nem backup automático em nuvem. Exporte um backup JSON periodicamente e guarde-o em um local seguro."
         }
     },
     "categoryManagement": {
-        "create": "Criar categoria", "newTitle": "Nova categoria", "editTitle": "Editar categoria", "mostUsed": "Categorias mais usadas",
-        "form": { "name": "Nome da categoria", "namePlaceholder": "Ex.: Supermercado", "type": "Tipo", "icon": "Selecione um ícone", "save": "Salvar categoria", "saving": "Salvando..." },
-        "deleteOne": { "title": "Excluir categoria", "description": "Tem certeza que deseja excluir esta categoria?" },
-        "deleteMany": { "title": "Excluir categorias", "description": "Você selecionou {{count}} categorias. Deseja excluí-las?" },
-        "feedback": { "loadError": "Não foi possível carregar as categorias.", "saveError": "Não foi possível salvar a categoria.", "deleteError": "Não foi possível excluir a categoria." }
+        "create": "Criar categoria",
+        "newTitle": "Nova categoria",
+        "editTitle": "Editar categoria",
+        "mostUsed": "Categorias mais usadas",
+        "form": {
+            "name": "Nome da categoria",
+            "namePlaceholder": "Ex.: Supermercado",
+            "type": "Tipo",
+            "icon": "Selecione um ícone",
+            "save": "Salvar categoria",
+            "saving": "Salvando..."
+        },
+        "deleteOne": {
+            "title": "Excluir categoria",
+            "description": "Tem certeza que deseja excluir esta categoria?"
+        },
+        "deleteMany": {
+            "title": "Excluir categorias",
+            "description": "Você selecionou {{count}} categorias. Deseja excluí-las?"
+        },
+        "feedback": {
+            "loadError": "Não foi possível carregar as categorias.",
+            "saveError": "Não foi possível salvar a categoria.",
+            "deleteError": "Não foi possível excluir a categoria."
+        }
     },
     "aboutFinno": {
         "name": "Finno",
         "introduction": "Seu gestor financeiro pessoal, criado para manter suas informações sob o seu controle.",
         "items": {
-            "offline": { "title": "100% offline", "description": "Use o Finno mesmo sem conexão com a internet." },
-            "privacy": { "title": "Privacidade absoluta", "description": "Seus dados financeiros não são enviados a servidores de terceiros." },
-            "localFirst": { "title": "Dados no seu dispositivo", "description": "O Finno é local-first: você decide quando e onde criar um backup." }
+            "offline": {
+                "title": "100% offline",
+                "description": "Use o Finno mesmo sem conexão com a internet."
+            },
+            "privacy": {
+                "title": "Privacidade absoluta",
+                "description": "Seus dados financeiros não são enviados a servidores de terceiros."
+            },
+            "localFirst": {
+                "title": "Dados no seu dispositivo",
+                "description": "O Finno é local-first: você decide quando e onde criar um backup."
+            }
         },
         "footer": "Feito para uma vida financeira mais clara."
     },
     "defaultCategories": {
-        "food": "Alimentação", "transport": "Transporte", "home": "Moradia", "health": "Saúde", "education": "Educação",
-        "entertainment": "Lazer", "shopping": "Compras", "bills": "Contas", "salary": "Salário", "investment": "Investimentos"
+        "food": "Alimentação",
+        "transport": "Transporte",
+        "home": "Moradia",
+        "health": "Saúde",
+        "education": "Educação",
+        "entertainment": "Lazer",
+        "shopping": "Compras",
+        "bills": "Contas",
+        "salary": "Salário",
+        "investment": "Investimentos"
     }
 }

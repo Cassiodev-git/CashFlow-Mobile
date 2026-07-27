@@ -6,7 +6,7 @@ import { eq, inArray, and, sql, desc } from "drizzle-orm";
 import type { CreateCategoryDTO, UpdateCategoryDTO } from "../validation";
 
 export class CategoryRepository {
-    async createCategory(data: CreateCategoryDTO){
+    async createCategory(data: CreateCategoryDTO) {
         const result = await db.insert(categories).values({
             ...data,
             id: uuid(),
@@ -15,21 +15,21 @@ export class CategoryRepository {
 
         return result
     }
-    async updateCategory(id: string, data: UpdateCategoryDTO){
+    async updateCategory(id: string, data: UpdateCategoryDTO) {
         const result = await db.update(categories).set({
             ...data,
             updated_at: new Date().toISOString()
         }).where(eq(categories.id, id))
         return result
     }
-    async deleteCategory(id: string){
+    async deleteCategory(id: string) {
         if (id.startsWith('default-')) {
             await db.insert(defaultCategoryExclusions).values({ category_id: id }).onConflictDoNothing();
         }
         const result = await db.delete(categories).where(eq(categories.id, id))
         return result
     }
-    async listCategory(){
+    async listCategory() {
         return await db.select().from(categories)
     }
 
@@ -61,11 +61,6 @@ export class CategoryRepository {
         }
     }
 
-    /**
-     * Keeps the category picker useful without loading or aggregating the whole
-     * transaction history in JavaScript. Categories without transactions are
-     * intentionally kept at the end of the result.
-     */
     async findMostUsed(limit = 10) {
         const transactionCount = sql<number>`count(${transactions.id})`;
 
@@ -83,7 +78,7 @@ export class CategoryRepository {
             .orderBy(desc(transactionCount), categories.name)
             .limit(limit);
     }
-    async deleteManyCategories(ids: string[]){
+    async deleteManyCategories(ids: string[]) {
         const defaultIds = ids.filter((id) => id.startsWith('default-'));
         if (defaultIds.length > 0) {
             await db.insert(defaultCategoryExclusions).values(defaultIds.map((category_id) => ({ category_id }))).onConflictDoNothing();
@@ -91,7 +86,7 @@ export class CategoryRepository {
         await db.delete(categories).where(inArray(categories.id, ids))
         return true
     }
-    async findById(id: string){
+    async findById(id: string) {
         const result = await db.select().from(categories).where(eq(categories.id, id))
         return result[0] || null
     }
@@ -106,5 +101,9 @@ export class CategoryRepository {
                 )
             )
         return result[0] || null
+    }
+    async clearAll(tx?: any) {
+        const executor = tx ?? db; 
+        await executor.delete(categories);
     }
 }

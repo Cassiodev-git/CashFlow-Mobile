@@ -364,9 +364,6 @@ export function RecentTransactions({
                                             setShowAll(true);
                                         }}
                                     >
-                                        <Text variant="body" fontWeight="600" color="income">
-                                            {t('transactions.seeAll')}
-                                        </Text>
                                     </TouchableOpacity>
                                 )}
                             </MotiView>

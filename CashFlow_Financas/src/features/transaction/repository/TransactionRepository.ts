@@ -55,7 +55,8 @@ export class TransactionRepository {
             .select()
             .from(transactions)
             .where(eq(transactions.id, id));
-        
+
         return result[0] || null;
     }
+
 }

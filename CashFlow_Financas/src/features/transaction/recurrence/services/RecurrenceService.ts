@@ -126,6 +126,9 @@ class RecurrenceService {
             default: return addMonths(date, 1);
         }
     }
+    async deleteAllRecurrence(){
+        await recurrenceRepo.clearAll()
+    }
 }
 
 export default new RecurrenceService();

@@ -91,4 +91,7 @@ export class RecurrenceRepository {
         return await db.delete(recurrenceRules)
             .where(eq(recurrenceRules.transaction_id, transactionId));
     }
+    async clearAll(){
+        await db.delete(recurrenceRules)
+    }
 }

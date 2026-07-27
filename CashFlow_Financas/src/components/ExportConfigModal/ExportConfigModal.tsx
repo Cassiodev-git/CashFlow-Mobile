@@ -64,14 +64,14 @@ export function ExportConfigModal({ visible, type, onClose, onConfirm }: ExportC
                     </Text>
 
                     {isBackupMode ? (
-                        <Box backgroundColor="background" padding="m" borderRadius="m" borderWidth={1} borderColor="border" marginBottom="l" flexDirection="row" alignItems="flex-start">
+                        <Box backgroundColor="background" padding="m" borderRadius="m" borderWidth={1} borderColor="border" marginBottom="m" flexDirection="row" alignItems="flex-start">
                             <MaterialCommunityIcons name="information-outline" size={20} color={theme.colors.primary} style={{ marginRight: scale(10), marginTop: scale(2) }} />
                             <Text variant="caption" color="textSecondary" style={{ flex: 1, lineHeight: scale(18) }}>
                                 {t('backup.config.fullBackupDescription')}
                             </Text>
                         </Box>
                     ) : (
-                        <Box marginBottom="l">
+                        <Box marginBottom="m">
                             <Text variant="caption" fontWeight="600" color="textSecondary" marginBottom="s">
                                 {t('backup.config.selectPeriod')}
                             </Text>
@@ -105,12 +105,32 @@ export function ExportConfigModal({ visible, type, onClose, onConfirm }: ExportC
                             </TouchableOpacity>
                         </Box>
                     )}
+                    <Box
+                        backgroundColor="background"
+                        padding="s"
+                        borderRadius="m"
+                        borderWidth={1}
+                        borderColor="border"
+                        marginBottom="l"
+                        flexDirection="row"
+                        alignItems="center"
+                    >
+                        <MaterialCommunityIcons
+                            name="alert-circle-outline"
+                            size={18}
+                            color={theme.colors.textSecondary}
+                            style={{ marginRight: scale(8) }}
+                        />
+                        <Text variant="caption" color="textSecondary" style={{ flex: 1, fontSize: scale(11), lineHeight: scale(15) }}>
+                            {t('backup.configAlert.extensionWarning')}
+                        </Text>
+                    </Box>
 
                     <Box flexDirection="row" style={{ gap: scale(12) }}>
                         <TouchableOpacity style={{ flex: 1, paddingVertical: scale(12), alignItems: 'center' }} onPress={onClose} activeOpacity={0.7}>
                             <Text variant="body" fontWeight="600" color="textSecondary">{t('common.cancel')}</Text>
                         </TouchableOpacity>
-                        
+
                         <TouchableOpacity style={{ flex: 1 }} activeOpacity={0.85} onPress={handleConfirm}>
                             <Box backgroundColor="primary" paddingVertical="s" borderRadius="m" alignItems="center" justifyContent="center" style={{ height: scale(44) }}>
                                 <Text variant="body" fontWeight="600" color="textInverse">

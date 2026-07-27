@@ -77,4 +77,7 @@ export class CategoryService {
     async deleteManyCategories(ids: string []){
         return await categoryRepo.deleteManyCategories(ids)
     }
+    async deleteAllCategories(){
+        return await categoryRepo.clearAll()
+    }
 }
