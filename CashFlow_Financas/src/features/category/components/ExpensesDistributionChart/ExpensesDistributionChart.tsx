@@ -17,11 +17,32 @@ interface ExpensesDistributionChartProps {
     data: CategoryItem[];
 }
 
-export function ExpensesDistributionChart({ data }: ExpensesDistributionChartProps) {
-    const {t} = useTranslation()
+export const ExpensesDistributionChart = React.memo(function ExpensesDistributionChart({ data }: ExpensesDistributionChartProps) {
+    const { t } = useTranslation();
     const colorKey: "color" = "color";
     const valueKey: "value" = "value";
     const labelKey: "label" = "label";
+
+    // Sanitiza os dados para o PolarChart não travar a GPU do Skia caso receba NaN ou valores <= 0
+    const safeData = useMemo(() => {
+        if (!Array.isArray(data)) return [];
+        return data
+            .map((item) => {
+                const rawVal = Number(item.value);
+                const validVal = Number.isFinite(rawVal) && rawVal > 0 ? rawVal : 0;
+                return {
+                    ...item,
+                    value: validVal,
+                    label: item.label || '',
+                    color: item.color || '#CCCCCC',
+                };
+            })
+            .filter((item) => item.value > 0);
+    }, [data]);
+
+    if (!safeData || safeData.length === 0) {
+        return null;
+    }
 
     return (
         <Box backgroundColor="card" borderRadius="xl" padding="m" style={{ marginBottom: scale(100), elevation: 2 }}>
@@ -31,7 +52,7 @@ export function ExpensesDistributionChart({ data }: ExpensesDistributionChartPro
 
                 <Box width={scale(150)} height={scale(150)} style={{ marginBottom: scale(20) }}>
                     <PolarChart
-                        data={data}
+                        data={safeData}
                         colorKey={colorKey}
                         valueKey={valueKey}
                         labelKey={labelKey}
@@ -41,8 +62,8 @@ export function ExpensesDistributionChart({ data }: ExpensesDistributionChartPro
                 </Box>
 
                 <Box flexDirection="row" flexWrap="wrap" justifyContent="center" width="100%" style={{ gap: scale(12) }}>
-                    {data.map((item, index) => (
-                        <Box key={index} flexDirection="row" alignItems="center" style={{ paddingVertical: scale(6), paddingHorizontal: scale(10), borderRadius: scale(20) }}>
+                    {safeData.map((item, index) => (
+                        <Box key={`legend-${item.label}-${index}`} flexDirection="row" alignItems="center" style={{ paddingVertical: scale(6), paddingHorizontal: scale(10), borderRadius: scale(20) }}>
                             <Box width={scale(8)} height={scale(8)} style={{ borderRadius: scale(4), marginRight: scale(6), backgroundColor: item.color }} />
                             <Text variant="caption" color="textSecondary" numberOfLines={1}>
                                 {item.label}
@@ -54,7 +75,7 @@ export function ExpensesDistributionChart({ data }: ExpensesDistributionChartPro
             </Box>
         </Box>
     );
-}
+});
 
 export function ExpensesDistributionChartSkeleton() {
     const theme = useTheme<Theme>();

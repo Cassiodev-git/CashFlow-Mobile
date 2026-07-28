@@ -9,7 +9,7 @@ export const categories = sqliteTable('categories',{
     updated_at: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull()
 })
 
-/** Prevents a default category removed by the user from being seeded again. */
+
 export const defaultCategoryExclusions = sqliteTable('default_category_exclusions', {
     category_id: text('category_id').primaryKey(),
     created_at: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),

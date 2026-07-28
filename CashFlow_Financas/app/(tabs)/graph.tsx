@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, TouchableOpacity, InteractionManager } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@shopify/restyle';
-import { MotiView } from 'moti';
 
 import { RevenueExpenseChart, RevenueExpenseChartSkeleton } from '@/features/transaction/components/RevenueExpenseChart/RevenueExpenseChart';
 import { ExpensesDistributionChart, ExpensesDistributionChartSkeleton } from '@/features/category/components/ExpensesDistributionChart/ExpensesDistributionChart';
@@ -17,13 +16,29 @@ export default function GraphScreen() {
     const theme = useTheme<Theme>();
     
     const [selectedTab, setSelectedTab] = useState<ReportPeriod>('month');
+    const [isReady, setIsReady] = useState(false); // 1. Controle para aguardar a transição de tela terminar
+
     const { loading, error, lineChartData, pieChartData, insights, refresh } = useReports(selectedTab);
+
+    // 1. Só libera a renderização do Skia APÓS o término da animação de navegação
+    useEffect(() => {
+        const task = InteractionManager.runAfterInteractions(() => {
+            setIsReady(true);
+        });
+        return () => task.cancel();
+    }, []);
 
     const tabs: { id: ReportPeriod; label: string }[] = [
         { id: 'week', label: t("common.week") },
         { id: 'month', label: t("common.month") },
         { id: 'year', label: t("common.year") },
     ];
+
+    // 2. Trava de cliques repetidos durante a busca ou transição
+    const handleTabPress = (tabId: ReportPeriod) => {
+        if (loading || selectedTab === tabId) return;
+        setSelectedTab(tabId);
+    };
 
     if (error) {
         return (
@@ -34,14 +49,10 @@ export default function GraphScreen() {
     }
 
     return (
-        <MotiView
-            from={{ opacity: 0, translateY: 6 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: 'timing', duration: 220 }}
-            style={{ flex: 1 }}
-        >
+        // 3. Removido MotiView do contêiner raiz para não conflitar quadros com o Skia Canvas
+        <Box flex={1} backgroundColor="card">
             <ScrollView
-                style={{ flex: 1, backgroundColor: theme.colors.card }}
+                style={{ flex: 1 }}
                 contentContainerStyle={{ padding: scale(24) }}
                 showsVerticalScrollIndicator={false}
             >
@@ -49,20 +60,23 @@ export default function GraphScreen() {
                     <Text variant="titleLarge" color="textPrimary" fontWeight="700">{t("graph.title")}</Text>
                     <Text variant="body" color="textSecondary" style={{ marginTop: scale(4) }}>{t("graph.titleDescription")}</Text>
                 </Box>
+
                 <Box flexDirection="row" borderRadius="m" padding="s" marginBottom="s" backgroundColor="surface">
                     {tabs.map((tab) => {
                         const isActive = selectedTab === tab.id;
                         return (
                             <TouchableOpacity 
                                 key={tab.id} 
-                                onPress={() => setSelectedTab(tab.id)}
+                                onPress={() => handleTabPress(tab.id)}
                                 activeOpacity={0.7}
+                                disabled={loading || !isReady} // Desabilita o clique enquanto carrega
                                 style={{
                                     flex: 1,
                                     paddingVertical: scale(8),
                                     alignItems: 'center',
                                     borderRadius: scale(10),
                                     backgroundColor: isActive ? theme.colors.primaryDark : 'transparent',
+                                    opacity: loading ? 0.6 : 1,
                                     elevation: isActive ? 2 : 0,
                                 }}
                             >
@@ -73,8 +87,7 @@ export default function GraphScreen() {
                         );
                     })}
                 </Box>
-
-                {loading ? (
+                {!isReady || loading ? (
                     <>
                         <RevenueExpenseChartSkeleton />
                         <ExpensesDistributionChartSkeleton />
@@ -101,6 +114,6 @@ export default function GraphScreen() {
                     </>
                 )}
             </ScrollView>
-        </MotiView>
+        </Box>
     );
 }
