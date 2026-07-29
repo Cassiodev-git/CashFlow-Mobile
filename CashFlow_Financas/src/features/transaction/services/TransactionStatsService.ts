@@ -62,31 +62,66 @@ class TransactionStatsService {
 
     async getMonthlyExpensePercentage(): Promise<MonthlyExpensePercentage> {
         const userId = await getLocalUserId();
-        const transactions = (await transacRepo.listTransactions(userId)).filter(isPaidTransaction);
+        const transactions = (await transacRepo.listTransactions(userId))
+            .filter(isPaidTransaction);
+
         const now = new Date();
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
 
         const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-        const previousMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-        const getExpensesByMonth = (m: number, y: number) => transactions
-            .filter(t => {
-                const dateValue = t.date || t.created_at;
-                if (!dateValue) return false;
-                const transactionDate = dateValue.length > 10
-                    ? parseDatabaseTimestamp(dateValue)
-                    : parseDateOnly(dateValue);
-                if (!transactionDate) return false;
-                return t.type === "expense" && transactionDate.getMonth() === m && transactionDate.getFullYear() === y;
-            })
-            .reduce((acc, t) => acc + Number(t.amount || 0), 0);
+        const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear;
 
-        const currentMonthExpenses = getExpensesByMonth(currentMonth, currentYear);
-        const lastMonthExpenses = getExpensesByMonth(previousMonth, previousMonthYear);
+        const getBalanceByMonth = (month: number, year: number) => {
+            return transactions
+                .filter(t => {
+                    const dateValue = t.date || t.created_at;
+                    if (!dateValue) return false;
 
-        if (lastMonthExpenses === 0) return { percentage: 0, status: "neutral" };
-        const percentage = ((currentMonthExpenses - lastMonthExpenses) / lastMonthExpenses) * 100;
-        return { percentage: Number(percentage.toFixed(1)), status: percentage > 0 ? "negative" : percentage < 0 ? "positive" : "neutral" };
+                    const date = dateValue.length > 10
+                        ? parseDatabaseTimestamp(dateValue)
+                        : parseDateOnly(dateValue);
+
+                    if (!date) return false;
+
+                    return (
+                        date.getMonth() === month &&
+                        date.getFullYear() === year
+                    );
+                })
+                .reduce((balance, t) => {
+                    const amount = Number(t.amount || 0);
+                    return t.type === "income"
+                        ? balance + amount
+                        : balance - amount;
+                }, 0);
+        };
+
+        const currentBalance = getBalanceByMonth(currentMonth, currentYear);
+        const previousBalance = getBalanceByMonth(previousMonth, previousYear);                
+        const MIN_BASELINE = 50;
+
+        if (Math.abs(previousBalance) < MIN_BASELINE) {
+            return {
+                percentage: 0,
+                status: "neutral",
+            };
+        }
+
+        let percentage = ((currentBalance - previousBalance) / Math.abs(previousBalance)) * 100;
+
+        
+        percentage = Math.min(Math.max(percentage, -999), 999);
+
+        return {
+            percentage: Number(percentage.toFixed(1)),
+            status:
+                percentage > 0
+                    ? "positive"
+                    : percentage < 0
+                        ? "negative"
+                        : "neutral",
+        };
     }
 }
 

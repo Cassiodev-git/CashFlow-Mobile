@@ -284,7 +284,6 @@ function groupTransactionsByCategory(
     });
 
     return Object.values(categoryMap)
-        // Dica: Se quiser mostrar todas as categorias independente da quantidade de transações, remova o .filter abaixo:
         .filter((category) => category.transactionCount >= 1) 
         .sort((left, right) => right.value - left.value)
         .map((category, index) => ({
