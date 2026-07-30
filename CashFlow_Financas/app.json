@@ -39,7 +39,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./src/assets/Finno_icon.png",
+          "icon": "./src/assets/Finno_icon_notification.png",
           "color": "#18181B"
         }
       ],
