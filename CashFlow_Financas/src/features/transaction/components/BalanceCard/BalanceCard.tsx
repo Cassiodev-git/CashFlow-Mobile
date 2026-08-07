@@ -136,7 +136,7 @@ export function BalanceCard({
                         )}
                     </AnimatePresence>
                 </Box>
-
+                
                 <Box flexDirection="row" alignItems="center">
                     <Box
                         backgroundColor="card"

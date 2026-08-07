@@ -32,10 +32,52 @@ function isPaidTransaction(transaction: { status?: string | null }) {
 class TransactionStatsService {
     async getSummary(): Promise<TransactionSummary> {
         const userId = await getLocalUserId();
-        const transactions = (await transacRepo.listTransactions(userId)).filter(isPaidTransaction);
-        const income = transactions.filter(t => t.type === "income").reduce((acc, t) => acc + Number(t.amount || 0), 0);
-        const expense = transactions.filter(t => t.type === "expense").reduce((acc, t) => acc + Number(t.amount || 0), 0);
-        return { income, expense, balance: income - expense };
+
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+
+        const transactions = (await transacRepo.listTransactions(userId))
+            .filter(isPaidTransaction);
+
+        let income = 0;
+        let expense = 0;
+        let balance = 0;
+
+        for (const transaction of transactions) {
+            const amount = Number(transaction.amount || 0);
+
+            // Saldo geral
+            if (transaction.type === "income") {
+                balance += amount;
+            } else if (transaction.type === "expense") {
+                balance -= amount;
+            }
+
+            // Ignora transações sem data para o resumo mensal
+            if (!transaction.date) continue;
+
+            const date = new Date(transaction.date);
+
+            const isCurrentMonth =
+                date.getMonth() === currentMonth &&
+                date.getFullYear() === currentYear;
+
+            if (!isCurrentMonth) continue;
+
+            // Receita e despesa apenas do mês atual
+            if (transaction.type === "income") {
+                income += amount;
+            } else if (transaction.type === "expense") {
+                expense += amount;
+            }
+        }
+
+        return {
+            income,
+            expense,
+            balance,
+        };
     }
 
     async getSummaryByPeriod(month: number, year: number): Promise<TransactionSummary> {
@@ -98,7 +140,7 @@ class TransactionStatsService {
         };
 
         const currentBalance = getBalanceByMonth(currentMonth, currentYear);
-        const previousBalance = getBalanceByMonth(previousMonth, previousYear);                
+        const previousBalance = getBalanceByMonth(previousMonth, previousYear);
         const MIN_BASELINE = 50;
 
         if (Math.abs(previousBalance) < MIN_BASELINE) {
@@ -110,7 +152,7 @@ class TransactionStatsService {
 
         let percentage = ((currentBalance - previousBalance) / Math.abs(previousBalance)) * 100;
 
-        
+
         percentage = Math.min(Math.max(percentage, -999), 999);
 
         return {
