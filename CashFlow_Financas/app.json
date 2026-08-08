@@ -2,7 +2,7 @@
   "expo": {
     "name": "Finno: Financial Manager",
     "slug": "finno-app",
-    "version": "0.0.3",
+    "version": "1.0.0",
     "icon": "./src/assets/Finno_icon.png",
     "orientation": "portrait",
     "scheme": "finno",
@@ -40,7 +40,7 @@
         "expo-notifications",
         {
           "icon": "./src/assets/Finno_icon_notification.png",
-          "color": "#18181B"
+          "color": "#FFFFFF"
         }
       ],
       [
