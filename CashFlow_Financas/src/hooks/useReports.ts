@@ -5,6 +5,7 @@ import { Transactions as Transaction } from "@/features/transaction/types/Transa
 import { useTranslation } from 'react-i18next';
 import { DeviceEventEmitter } from 'react-native';
 import { getLocalDateString, parseDateOnly, parseDatabaseTimestamp } from '@/utils/date';
+import { startOfDay, isAfter } from 'date-fns';
 
 export type ReportPeriod = 'week' | 'month' | 'year';
 export interface GraphInsights {
@@ -110,30 +111,39 @@ export function useReports(selectedTab: ReportPeriod) {
 }
 
 function buildInsights(transactions: Transaction[], period: ReportPeriod, categoryNames: Map<string, string>, t: (key: string) => string): GraphInsights {
+    const today = startOfDay(new Date());
+
     const periodTransactions = transactions
         .map((transaction) => ({ transaction, date: getSafeDate(transaction) }))
         .filter((item): item is { transaction: Transaction; date: Date } => item.date !== null && checkPeriodMatch(item.date, period));
-    
-    const active = periodTransactions.filter(({ transaction }) => transaction.status !== 'canceled');
-    const expenses = active.filter(({ transaction }) => transaction.type === 'expense');
+
     const categoryTotals = new Map<string, number>();
     const days = new Map<string, number>();
     const status: GraphInsights['status'] = { paid: 0, pending: 0, canceled: 0 };
     let balance = 0;
     let recurringBalance = 0;
+    let totalExp = 0;
+    let paidExpenseCount = 0;
 
     periodTransactions.forEach(({ transaction, date }) => {
         const rawAmount = Number(transaction.amount);
         const amount = Number.isFinite(rawAmount) ? rawAmount : 0; // Proteção contra NaN
         
+        // Contagem de status (inclui pendentes e canceladas para telemetria do relatório)
         const transactionStatus = transaction.status === 'paid' || transaction.status === 'canceled' ? transaction.status : 'pending';
         status[transactionStatus] += 1;
-        if (transaction.status === 'canceled') return;
-        
+
+        // FILTRO CRÍTICO: Apenas pagas e com data <= HOJE entram nos valores financeiros
+        if (transaction.status !== 'paid') return;
+        if (isAfter(startOfDay(date), today)) return;
+
         balance += transaction.type === 'income' ? amount : -amount;
         if (transaction.is_recurring) recurringBalance += transaction.type === 'income' ? amount : -amount;
         
         if (transaction.type === 'expense') {
+            totalExp += amount;
+            paidExpenseCount += 1;
+
             const categoryId = transaction.category_id ?? 'uncategorized';
             categoryTotals.set(categoryId, (categoryTotals.get(categoryId) ?? 0) + amount);
             const day = getLocalDateString(date);
@@ -152,20 +162,17 @@ function buildInsights(transactions: Transaction[], period: ReportPeriod, catego
     
     const previousBalance = transactions.reduce((total, transaction) => {
         const date = getSafeDate(transaction);
-        if (!date || date < previousPeriod.start || date > previousPeriod.end || transaction.status === 'canceled') return total;
+        if (!date || date < previousPeriod.start || date > previousPeriod.end || transaction.status !== 'paid') return total;
+        if (isAfter(startOfDay(date), today)) return total;
+
         const rawAmount = Number(transaction.amount);
         const amount = Number.isFinite(rawAmount) ? rawAmount : 0;
         return total + (transaction.type === 'income' ? amount : -amount);
     }, 0);
 
-    const totalExp = expenses.reduce((total, { transaction }) => {
-        const rawAmount = Number(transaction.amount);
-        return total + (Number.isFinite(rawAmount) ? rawAmount : 0);
-    }, 0);
-
     return { 
         balance, 
-        expenseAverage: expenses.length ? totalExp / expenses.length : 0, 
+        expenseAverage: paidExpenseCount ? totalExp / paidExpenseCount : 0, 
         topCategories, 
         status, 
         busiestDay, 
@@ -222,9 +229,16 @@ function getSafeDate(transaction: Transaction): Date | null {
 }
 
 function filterAndGroupTransactionsByDay(transactions: Transaction[], period: ReportPeriod, language: string) {
+    const today = startOfDay(new Date());
+
     const validTransactions = transactions
         .map(t => ({ transaction: t, tDate: getSafeDate(t) }))
-        .filter(item => item.tDate !== null && checkPeriodMatch(item.tDate, period) && item.transaction.status !== 'canceled');
+        .filter(item => 
+            item.tDate !== null && 
+            checkPeriodMatch(item.tDate, period) && 
+            item.transaction.status === 'paid' && // Apenas pagas
+            !isAfter(startOfDay(item.tDate), today) // Apenas até hoje
+        );
 
     const dailyMap: Record<string, { day: string; revenue: number; expense: number; sortIndex: number }> = {};
 
@@ -258,9 +272,17 @@ function groupTransactionsByCategory(
     categoryNames: Map<string, string>,
     t: (key: string) => string,
 ) {
+    const today = startOfDay(new Date());
+
     const expenses = transactions
         .map(t => ({ transaction: t, tDate: getSafeDate(t) }))
-        .filter(item => item.tDate !== null && item.transaction.type === 'expense' && checkPeriodMatch(item.tDate, period) && item.transaction.status !== 'canceled');
+        .filter(item => 
+            item.tDate !== null && 
+            item.transaction.type === 'expense' && 
+            checkPeriodMatch(item.tDate, period) && 
+            item.transaction.status === 'paid' && // Apenas pagas
+            !isAfter(startOfDay(item.tDate), today) // Apenas até hoje
+        );
 
     const categoryMap: Record<string, { label: string; value: number; transactionCount: number }> = {};
     const colorPalette = ["#2D6A4F", "#FF9F1C", "#3A86FF", "#FFD60A", "#80ED99", "#E74C3C", "#9B59B6"];

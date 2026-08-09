@@ -80,6 +80,7 @@ class RecurrenceService {
                 const nextDate = this.calculateNextDate(lastDate, rule.frequency as RecurrenceFrequency, rule.interval ?? 1);
                 const nextDateStart = startOfDay(nextDate);
 
+            
                 if (isAfter(nextDateStart, today)) {
                     break;
                 }
@@ -98,13 +99,15 @@ class RecurrenceService {
                     continue;
                 }
 
+                const statusToApply = parentTransaction.status === "pending" ? "pending" : "paid";
+
                 await transacRepo.createTransaction(userId, {
                     title: parentTransaction.title,
                     amount: parentTransaction.amount,
                     type: parentTransaction.type as "income" | "expense",
                     category_id: parentTransaction.category_id ?? undefined,
                     description: parentTransaction.description ?? undefined,
-                    status: "pending",
+                    status: statusToApply,
                     date: formattedNextDate,
                     is_recurring: false,
                     recurrence_id: rule.id,
@@ -126,8 +129,9 @@ class RecurrenceService {
             default: return addMonths(date, 1);
         }
     }
-    async deleteAllRecurrence(){
-        await recurrenceRepo.clearAll()
+
+    async deleteAllRecurrence() {
+        await recurrenceRepo.clearAll();
     }
 }
 

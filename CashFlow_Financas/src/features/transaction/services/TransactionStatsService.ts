@@ -2,6 +2,7 @@ import { TransactionRepository } from "../repository/TransactionRepository";
 import { UserRepository } from "@/features/user/repository/UserRepository";
 import i18n from "@/i18n";
 import { parseDateOnly, parseDatabaseTimestamp } from "@/utils/date";
+import { startOfDay, isAfter } from "date-fns";
 
 const transacRepo = new TransactionRepository();
 const userRepo = new UserRepository();
@@ -34,6 +35,7 @@ class TransactionStatsService {
         const userId = await getLocalUserId();
 
         const now = new Date();
+        const today = startOfDay(now);
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
 
@@ -45,27 +47,34 @@ class TransactionStatsService {
         let balance = 0;
 
         for (const transaction of transactions) {
+            const dateValue = transaction.date || transaction.created_at;
+            if (!dateValue) continue;
+
+            const date = dateValue.length > 10
+                ? parseDatabaseTimestamp(dateValue)
+                : parseDateOnly(dateValue);
+
+            if (!date) continue;
+
+            // TRAVA DE DATA FUTURA: Ignora qualquer lançamento cuja data seja posterior a hoje
+            if (isAfter(startOfDay(date), today)) continue;
+
             const amount = Number(transaction.amount || 0);
 
-            // Saldo geral
+            // Saldo geral acumulado até hoje
             if (transaction.type === "income") {
                 balance += amount;
             } else if (transaction.type === "expense") {
                 balance -= amount;
             }
 
-            // Ignora transações sem data para o resumo mensal
-            if (!transaction.date) continue;
-
-            const date = new Date(transaction.date);
-
+            // Resumo restrito apenas ao MÊS e ANO ATUAL
             const isCurrentMonth =
                 date.getMonth() === currentMonth &&
                 date.getFullYear() === currentYear;
 
             if (!isCurrentMonth) continue;
 
-            // Receita e despesa apenas do mês atual
             if (transaction.type === "income") {
                 income += amount;
             } else if (transaction.type === "expense") {
@@ -82,6 +91,8 @@ class TransactionStatsService {
 
     async getSummaryByPeriod(month: number, year: number): Promise<TransactionSummary> {
         const userId = await getLocalUserId();
+        const today = startOfDay(new Date());
+
         const transactions = (await transacRepo.listTransactions(userId)).filter(isPaidTransaction);
 
         const periodTransactions = transactions.filter((t) => {
@@ -92,6 +103,9 @@ class TransactionStatsService {
                 ? parseDatabaseTimestamp(dateValue)
                 : parseDateOnly(dateValue);
             if (!transactionDate) return false;
+
+            // Ignora datas futuras no cálculo do período
+            if (isAfter(startOfDay(transactionDate), today)) return false;
 
             return (transactionDate.getMonth() + 1) === month && transactionDate.getFullYear() === year;
         });
@@ -104,6 +118,8 @@ class TransactionStatsService {
 
     async getMonthlyExpensePercentage(): Promise<MonthlyExpensePercentage> {
         const userId = await getLocalUserId();
+        const today = startOfDay(new Date());
+
         const transactions = (await transacRepo.listTransactions(userId))
             .filter(isPaidTransaction);
 
@@ -125,6 +141,9 @@ class TransactionStatsService {
                         : parseDateOnly(dateValue);
 
                     if (!date) return false;
+
+                    // Ignora datas futuras
+                    if (isAfter(startOfDay(date), today)) return false;
 
                     return (
                         date.getMonth() === month &&
@@ -151,7 +170,6 @@ class TransactionStatsService {
         }
 
         let percentage = ((currentBalance - previousBalance) / Math.abs(previousBalance)) * 100;
-
 
         percentage = Math.min(Math.max(percentage, -999), 999);
 
