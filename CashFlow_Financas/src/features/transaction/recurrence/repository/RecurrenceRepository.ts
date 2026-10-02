@@ -12,7 +12,7 @@ export interface RecurrencePayload {
 }
 
 export class RecurrenceRepository {
-    async createRecurrence(data: RecurrencePayload, transactionId: string) {
+    async createRecurrence(data: RecurrencePayload, transactionId: string, executor: any = db) {
         const values = {
             id: uuid(),
             transaction_id: transactionId,
@@ -22,7 +22,7 @@ export class RecurrenceRepository {
             end_date: data.end_date ?? null,
         };
 
-        return await db.insert(recurrenceRules).values(values).returning();
+        return await executor.insert(recurrenceRules).values(values).returning();
     }
 
     async findGeneratedTransaction(recurrenceId: string, date: string) {
@@ -68,8 +68,11 @@ export class RecurrenceRepository {
         return result;
     }
 
-    async listRecurringTransactions(userId: string) {
-        return await db
+    async listRecurringTransactions(userId: string, executor: any = db): Promise<{
+        rule: typeof recurrenceRules.$inferSelect;
+        transaction: typeof transactions.$inferSelect | null;
+    }[]> {
+        return await executor
             .select({
                 rule: recurrenceRules,
                 transaction: transactions,

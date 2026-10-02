@@ -160,7 +160,7 @@ class NotificationService {
     async deleteAllNotifications() {
         try {
             await Notifications.cancelAllScheduledNotificationsAsync();
-            await notificationRepo.deleteAll();
+            await notificationRepo.clearAll();
         } catch (error) {
             logger.error("Erro ao deletar todas as notificações:", error);
         }

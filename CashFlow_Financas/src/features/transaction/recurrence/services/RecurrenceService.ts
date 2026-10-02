@@ -12,12 +12,12 @@ type RecurrenceFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
 class RecurrenceService {
     private processingPromise: Promise<void> | null = null;
 
-    async createRecurrence(data: RecurrencePayload, transactionId: string, userId: string) {
-        const currentList = await this.listRecurringTransactions(userId);
+    async createRecurrence(data: RecurrencePayload, transactionId: string, userId: string, executor?: any) {
+        const currentList = await this.listRecurringTransactions(userId, executor);
         if (currentList.length >= 30) {
             throw new Error(i18n.t("recurrence.errors.limitReached"));
         }
-        return await recurrenceRepo.createRecurrence(data, transactionId);
+        return await recurrenceRepo.createRecurrence(data, transactionId, executor);
     }
 
     async updateRecurrence(id: string, data: RecurrencePayload) {
@@ -36,8 +36,8 @@ class RecurrenceService {
         return await recurrenceRepo.deleteRecurrence(id);
     }
 
-    async listRecurringTransactions(userId: string) {
-        return await recurrenceRepo.listRecurringTransactions(userId);
+    async listRecurringTransactions(userId: string, executor?: any) {
+        return await recurrenceRepo.listRecurringTransactions(userId, executor);
     }
 
     async findByTransactionId(id: string) {

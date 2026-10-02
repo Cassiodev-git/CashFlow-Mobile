@@ -5,8 +5,8 @@ import { transactions } from "../schema";
 import type { CreateTransactionDTO, UpdateTransactionDTO } from "../validation";
 
 export class TransactionRepository {
-    async createTransaction(userId: string, data: CreateTransactionDTO) {
-        const result = await db.insert(transactions).values({
+    async createTransaction(userId: string, data: CreateTransactionDTO, executor: any = db) {
+        const result = await executor.insert(transactions).values({
             ...data,
             id: uuid(),
             user_id: userId,
@@ -15,8 +15,8 @@ export class TransactionRepository {
         return result;
     }
 
-    async updateTransaction(id: string, data: UpdateTransactionDTO) {
-        const result = await db.update(transactions).set({
+    async updateTransaction(id: string, data: UpdateTransactionDTO, executor: any = db) {
+        const result = await executor.update(transactions).set({
             ...data,
             updated_at: new Date().toISOString()
         }).where(eq(transactions.id, id));

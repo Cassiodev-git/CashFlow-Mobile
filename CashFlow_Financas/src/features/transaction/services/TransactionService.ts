@@ -6,6 +6,8 @@ import { scheduleDueNotification, scheduleRecurringCreatedNotification } from "@
 import i18n from "@/i18n";
 import recurrenceService from "@/features/transaction/recurrence/services/RecurrenceService";
 import { getLocalDateString } from "@/utils/date";
+import { db } from "@/db";
+import { logger } from "@/utils/logger";
 
 const transacRepo = new TransactionRepository();
 const userRepo = new UserRepository();
@@ -17,6 +19,16 @@ const getLocalUserId = async () => {
 };
 
 class TransactionService {
+    private async runNotificationTask(task: () => Promise<unknown>, context: string): Promise<void> {
+        try {
+            await task();
+        } catch (error) {
+            // Notificações são um recurso auxiliar: falhas não podem desfazer
+            // nem mascarar uma operação financeira já persistida.
+            logger.warn(`Falha ao sincronizar notificação (${context}).`, error);
+        }
+    }
+
     async createTransaction(data: CreateTransactionDTO) {
         const userId = await getLocalUserId();
         const transactionData = {
@@ -24,22 +36,39 @@ class TransactionService {
             date: data.date || getLocalDateString(),
         };
         
-        const result = await transacRepo.createTransaction(userId, transactionData);
-        const transaction = Array.isArray(result) ? result[0] : result;
+        const transaction = await db.transaction(async (tx) => {
+            const result = await transacRepo.createTransaction(userId, transactionData, tx);
+            const createdTransaction = Array.isArray(result) ? result[0] : result;
+
+            if (transactionData.is_recurring && transactionData.frequency) {
+                const recurrenceResult = await recurrenceService.createRecurrence({
+                    frequency: transactionData.frequency,
+                    interval: transactionData.interval,
+                    date: transactionData.date,
+                    end_date: transactionData.end_date,
+                }, createdTransaction.id, userId, tx);
+                const recurrence = Array.isArray(recurrenceResult) ? recurrenceResult[0] : recurrenceResult;
+
+                await transacRepo.updateTransaction(createdTransaction.id, {
+                    recurrence_id: recurrence.id,
+                }, tx);
+                createdTransaction.recurrence_id = recurrence.id;
+            }
+
+            return createdTransaction;
+        });
 
         if (transactionData.is_recurring && transactionData.frequency) {
-            const transactionDate = transactionData.date;
-            
-            await recurrenceService.createRecurrence({
-                frequency: transactionData.frequency,
-                interval: transactionData.interval,
-                date: transactionDate,
-                end_date: transactionData.end_date
-            }, transaction.id, userId);
-            await scheduleRecurringCreatedNotification(transaction.id, transactionData.title);
+            await this.runNotificationTask(
+                () => scheduleRecurringCreatedNotification(transaction.id, transactionData.title),
+                'recorrência criada',
+            );
         }
         
-        await scheduleDueNotification(transaction.id, transactionData);
+        await this.runNotificationTask(
+            () => scheduleDueNotification(transaction.id, transactionData),
+            'vencimento criado',
+        );
         return transaction;
     }
 
@@ -70,8 +99,14 @@ class TransactionService {
 
         const result = await transacRepo.updateTransaction(id, data);
 
-        await notificationService.deleteByTransactionId(id);
-        await scheduleDueNotification(id, data);
+        await this.runNotificationTask(
+            () => notificationService.deleteByTransactionId(id),
+            'limpeza da notificação atualizada',
+        );
+        await this.runNotificationTask(
+            () => scheduleDueNotification(id, data),
+            'vencimento atualizado',
+        );
         
         return result;
     }
@@ -82,15 +117,21 @@ class TransactionService {
 
     async deleteTransaction(id: string) {
         await recurrenceService.deleteByTransactionId(id);
-        await notificationService.deleteByTransactionId(id);
+        await this.runNotificationTask(
+            () => notificationService.deleteByTransactionId(id),
+            'exclusão de transação',
+        );
         return await transacRepo.deleteTransaction(id);
     }
 
     async deleteManyTransactions(ids: string[]) {
         for (const id of ids) {
             await recurrenceService.deleteByTransactionId(id);
-            await notificationService.deleteByTransactionId(id);
         }
+        await Promise.all(ids.map((id) => this.runNotificationTask(
+            () => notificationService.deleteByTransactionId(id),
+            'exclusão de transação em lote',
+        )));
         return await transacRepo.deleteManyTransactions(ids);
     }
 
@@ -100,11 +141,11 @@ class TransactionService {
         const transactions = await transacRepo.listTransactions(userId, options);
         await Promise.all(transactions
             .filter((transaction) => transaction.status === 'pending')
-            .map((transaction) => scheduleDueNotification(transaction.id, {
+            .map((transaction) => this.runNotificationTask(() => scheduleDueNotification(transaction.id, {
                 title: transaction.title,
                 date: transaction.date ?? undefined,
                 status: transaction.status === 'paid' || transaction.status === 'canceled' ? transaction.status : 'pending',
-            })));
+            }), 'sincronização da lista')));
         return transactions;
     }
 

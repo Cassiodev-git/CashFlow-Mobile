@@ -5,8 +5,8 @@ import i18n from "@/i18n";
 import AppCategoryService from '@/services/AppCategoryService';
 import { sqlite } from "@/db";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { initializeDatabase } from "@/db/database";
 import { logger } from "@/utils/logger";
+import notificationService from "@/features/notification/services/notificationService";
 const userRepo = new UserRepository()
 
 export class UserService {
@@ -46,22 +46,22 @@ export class UserService {
             if (!existingUser || existingUser.id !== id) {
                 throw new Error(i18n.t("errors.userNotFound"))
             }
-            await sqlite.withTransactionAsync(async () => {
-                await sqlite.execAsync(`
-                PRAGMA foreign_keys = OFF;
-                DROP TABLE IF EXISTS recurring_transactions;
-                DROP TABLE IF EXISTS recurrences;
-                DROP TABLE IF EXISTS transactions;
-                DROP TABLE IF EXISTS default_category_exclusions;
-                DROP TABLE IF EXISTS categories;
-                DROP TABLE IF EXISTS notifications;
-                DROP TABLE IF EXISTS messages;
-                DROP TABLE IF EXISTS users;
-                PRAGMA foreign_keys = ON;
-            `);
-            })
+            // Notificações agendadas vivem fora do SQLite e precisam ser
+            // canceladas antes de apagar os dados locais.
+            await notificationService.deleteAllNotifications();
 
-            await initializeDatabase()
+            // Apaga somente os dados, preservando o schema e as constraints.
+            // A ordem respeita as relações entre notificações, recorrências,
+            // transações, categorias e usuário.
+            await sqlite.withTransactionAsync(async () => {
+                await sqlite.runAsync('DELETE FROM notifications');
+                await sqlite.runAsync('DELETE FROM recurrence_rules');
+                await sqlite.runAsync('DELETE FROM transactions');
+                await sqlite.runAsync('DELETE FROM default_category_exclusions');
+                await sqlite.runAsync('DELETE FROM categories');
+                await sqlite.runAsync('DELETE FROM users');
+            });
+
             await AsyncStorage.clear()
             return true
 
