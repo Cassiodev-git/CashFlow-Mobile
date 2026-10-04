@@ -7,6 +7,7 @@ import { useTheme } from '@shopify/restyle';
 import { MotiView } from 'moti';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { Box, Text, scale, type Theme } from '@/theme/unistyles';
+import { useCurrency } from '@/features/settings/hooks/useCurrency';
 
 interface ChartItem {
     day: string;
@@ -19,9 +20,10 @@ interface RevenueExpenseChartProps {
     data: ChartItem[];
 }
 
-export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
+export const RevenueExpenseChart = React.memo(function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
     const { t } = useTranslation();
     const theme = useTheme<Theme>();
+    const { formatCurrency } = useCurrency();
     const { state, isActive } = useChartPressState({
         x: "",
         y: { revenue: 0, expense: 0 },
@@ -50,15 +52,9 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
         };
     }, [isActive, showTooltip]);
 
-    const formatCurrency = (val: number) => {
-        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
-    };
-
-    const formatYLabel = (val: number): string => {
-        if (val >= 1_000_000) return `R$${(val / 1_000_000).toFixed(1)}M`;
-        if (val >= 500) return `R$${(val / 1_000).toFixed(1)}k`;
-        return `R$${Math.round(val)}`;
-    };
+    const formatYLabel = React.useCallback((val: number): string => {
+        return formatCurrency(Math.round(val));
+    }, [formatCurrency]);
 
     const TICK_COUNT = 5;
     const CHART_PADDING_TOP = 5;
@@ -78,7 +74,7 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
             const val = paddedMax - (i * (paddedMax - paddedMin) / (TICK_COUNT - 1));
             return formatYLabel(val);
         });
-    }, [data]);
+    }, [data, formatYLabel]);
 
     const xKey: "day" = "day";
     const yKeys: ["revenue", "expense"] = ["revenue", "expense"];
@@ -100,10 +96,10 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
                     {showTooltip ? (
                         <Box flexDirection="row" backgroundColor="surface" padding="s" borderRadius="s" style={{ gap: scale(12), marginTop: scale(4) }}>
                             <Text variant="caption" fontWeight="700" color="income">
-                                Rec: {formatCurrency(state.y.revenue.value.value)}
+                                Rec: {formatCurrency(state?.y?.revenue?.value?.value ?? 0)}
                             </Text>
                             <Text variant="caption" fontWeight="700" color="expense">
-                                Des: {formatCurrency(state.y.expense.value.value)}
+                                Des: {formatCurrency(state?.y?.expense?.value?.value ?? 0)}
                             </Text>
                         </Box>
                     ) : (
@@ -124,7 +120,6 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
             </Box>
 
             <Box flexDirection="row" alignItems="stretch">
-
                 <Box style={{
                     width: scale(44),
                     justifyContent: 'space-between',
@@ -146,7 +141,6 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
                         xKey={xKey}
                         yKeys={yKeys}
                         padding={{ top: CHART_PADDING_TOP, bottom: CHART_PADDING_BOTTOM, left: 1, right: 12 }}
-
                         domainPadding={{ top: 90, bottom: 20, left: 8, right: 8 }}
                         chartPressState={state}
                         axisOptions={{
@@ -165,16 +159,16 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
                                 <Line points={points.expense} color={theme.colors.expense} strokeWidth={3} curveType="natural" />
 
                                 {points.revenue?.map((point, index) => {
-                                    if (typeof point.y !== 'number') return null;
+                                    if (typeof point.x !== 'number' || typeof point.y !== 'number' || !Number.isFinite(point.x) || !Number.isFinite(point.y)) return null;
                                     return <Circle key={`rev-dot-${index}`} cx={point.x} cy={point.y} r={5} color={theme.colors.income} />;
                                 })}
 
                                 {points.expense?.map((point, index) => {
-                                    if (typeof point.y !== 'number') return null;
+                                    if (typeof point.x !== 'number' || typeof point.y !== 'number' || !Number.isFinite(point.x) || !Number.isFinite(point.y)) return null;
                                     return <Circle key={`exp-dot-${index}`} cx={point.x} cy={point.y} r={5} color={theme.colors.expense} />;
                                 })}
 
-                                {showTooltip && (
+                                {showTooltip && state?.x && state?.y && (
                                     <>
                                         <Circle cx={state.x.position} cy={state.y.revenue.position} r={8} color={theme.colors.income} />
                                         <Circle cx={state.x.position} cy={state.y.revenue.position} r={3} color={theme.colors.surface} />
@@ -197,7 +191,7 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
             </Box>
         </Box>
     );
-}
+});
 
 export function RevenueExpenseChartSkeleton() {
     const theme = useTheme<Theme>();

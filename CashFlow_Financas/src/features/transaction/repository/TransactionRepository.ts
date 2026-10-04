@@ -5,18 +5,18 @@ import { transactions } from "../schema";
 import type { CreateTransactionDTO, UpdateTransactionDTO } from "../validation";
 
 export class TransactionRepository {
-    async createTransaction(userId: string, data: CreateTransactionDTO) {
-        const result = await db.insert(transactions).values({
+    async createTransaction(userId: string, data: CreateTransactionDTO, executor: any = db) {
+        const result = await executor.insert(transactions).values({
             ...data,
             id: uuid(),
             user_id: userId,
-        });
+        }).returning();
 
         return result;
     }
 
-    async updateTransaction(id: string, data: UpdateTransactionDTO) {
-        const result = await db.update(transactions).set({
+    async updateTransaction(id: string, data: UpdateTransactionDTO, executor: any = db) {
+        const result = await executor.update(transactions).set({
             ...data,
             updated_at: new Date().toISOString()
         }).where(eq(transactions.id, id));
@@ -50,4 +50,13 @@ export class TransactionRepository {
     async deleteManyTransactions(ids: string[]) {
         return await db.delete(transactions).where(inArray(transactions.id, ids));
     }
+    async findById(id: string) {
+        const result = await db
+            .select()
+            .from(transactions)
+            .where(eq(transactions.id, id));
+
+        return result[0] || null;
+    }
+
 }

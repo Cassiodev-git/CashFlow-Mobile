@@ -24,7 +24,6 @@ const lightTheme = createTheme({
     primary: "#289653",
     primaryDark: "#1E7A42",
     primaryLight: "#E4F5EA",
-
     success: "#289653",
     successLight: "#E4F5EA",
 
@@ -102,29 +101,60 @@ const lightTheme = createTheme({
   },
 });
 
-const darkTheme: Theme = {
+const darkTheme = createTheme({
   ...lightTheme,
   colors: {
     ...lightTheme.colors,
-    background: "#121318",
-    surface: "#1A1D26",
-    card: "#1A1D26",
+
+    background: "#0E1014",
+    surface: "#1A1D23",
+    card: "#1A1D23",
 
     textPrimary: "#FFFFFF",
-    textSecondary: "#A5ABB6",
-    textMuted: "#6F7583",
+    textSecondary: "#A3A8B3",
+    textMuted: "#6E7480",
     textInverse: "#191D29",
 
-    inputBackground: "#222634",
-    inputBorder: "#2E3545",
-    border: "#252A37",
-    divider: "#222634",
+    modalOverlay: 'rgba(0, 0, 0, 0.7)',
+
+    primary: "#3DA65A",
+    primaryDark: "#2E8748",
+    primaryLight: "#1F3A28",
+
+    success: "#3DA65A",
+    successLight: "#1F3A28",
+
+    danger: "#F05A5A",
+    dangerLight: "#3A2020",
+
+    warning: "#D9A441",
+    warningLight: "#3A3120",
+
+    income: "#3DA65A",
+    incomeLight: "#1F3A28",
+
+    expense: "#F05A5A",
+    expenseLight: "#3A2020",
+
+    chartBlue: "#5C9CFF",
+    chartPurple: "#9A7BFF",
+
+    inputBackground: "#20242C",
+    inputBorder: "#2A2F39",
+    inputBorderFocus: "#3DA65A",
+    inputBorderError: "#F05A5A",
+
+    placeholder: "#6E7480",
+
     icon: "#FFFFFF",
+    iconMuted: "#8C929E",
+
+    border: "#2A2F39",
+    divider: "#20242C",
+
+    tabInactive: "#8C929E",
   },
-  borderRadii: {
-    ...lightTheme.borderRadii,
-  }
-};
+});
 
 export type Theme = typeof lightTheme;
 export const Box = createBox<Theme>();

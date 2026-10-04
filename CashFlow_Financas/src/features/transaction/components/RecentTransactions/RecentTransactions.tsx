@@ -1,8 +1,7 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
     StyleSheet,
     TouchableOpacity,
-    TextInput,
     Modal,
     TouchableWithoutFeedback,
 } from 'react-native';
@@ -13,7 +12,9 @@ import { FlashList } from '@shopify/flash-list';
 import { Transactions as Transaction } from '../../types/Transactions';
 import { ConfirmationModal } from '@/components/ConfirmationModal/ConfirmationModal'; 
 import { Skeleton } from '@/components/Skeleton/Skeleton'; 
+import { useCurrency } from '@/features/settings/hooks/useCurrency';
 import { Box, Text, scale, verticalScale, moderateScale} from '@/theme/unistyles';
+import { parseDateOnly, parseDatabaseTimestamp } from '@/utils/date';
 
 const OtimizedList = FlashList as React.ComponentType<any>;
 
@@ -53,6 +54,7 @@ function TransactionDetailsModal({
     onDelete
 }: TransactionDetailsModalProps) {
     const { t } = useTranslation();
+    const { formatCurrency } = useCurrency();
     const [isConfirmOpen, setIsConfirmOpen] = useState(false); 
 
     if (!transaction) return null;
@@ -61,10 +63,7 @@ function TransactionDetailsModal({
     const statusColor = isExpense ? "#FF4747" : "#289653";
     const iconName = categoryIcons[transaction.title] || (isExpense ? 'arrow-down-left' : 'arrow-up-right');
 
-    const formattedAmount = transaction.amount.toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL',
-    });
+    const formattedAmount = formatCurrency(transaction.amount);
 
     const handleConfirmDelete = () => {
         setIsConfirmOpen(false);
@@ -165,7 +164,7 @@ function TransactionDetailsModal({
                                         </Box>
                                         {transaction.description && (
                                             <Box flexDirection="row" justifyContent="space-between" alignItems="center">
-                                                <Text variant="body" color="textSecondary">{t('transactions.description', 'Descrição')}</Text>
+                                                <Text variant="body" color="textSecondary">{t('transactions.descriptionLabel')}</Text>
                                                 <Text
                                                     variant="body"
                                                     color="textPrimary"
@@ -257,52 +256,33 @@ export function RecentTransactions({
     isLoadingMore = false,
     onTransactionCreated
 }: RecentTransactionsProps) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const { formatCurrency: formatCurrencyValue } = useCurrency();
     const [showAll, setShowAll] = useState(false);
-    const [inputQuery, setInputQuery] = useState('');
-    const [searchQuery, setSearchQuery] = useState('');
 
     const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
-
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setSearchQuery(inputQuery);
-        }, 180);
-        return () => clearTimeout(handler);
-    }, [inputQuery]);
 
     const formatDate = useCallback((dateString?: string | null, createdAtString?: string | null) => {
         const targetDate = dateString || createdAtString;
         if (!targetDate) return '';
 
-        const date = new Date(targetDate);
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = date.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
-        return `${day} de ${month}`;
-    }, []);
+        const date = dateString ? parseDateOnly(dateString) : parseDatabaseTimestamp(createdAtString);
+        if (!date) return '';
+        const locale = i18n.language.startsWith('en') ? 'en-US' : 'pt-BR';
+        return new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short' }).format(date).replace('.', '');
+    }, [i18n.language]);
 
     const formatCurrency = useCallback((value: number, isExpense: boolean) => {
-        const formatted = value.toLocaleString('pt-BR', {
-            style: 'currency',
-            currency: 'BRL',
-        });
+        const formatted = formatCurrencyValue(value);
         return isExpense ? `-${formatted}` : formatted;
-    }, []);
+    }, [formatCurrencyValue]);
 
     const processedTransactions = useMemo(() => {
-        let result = transactions;
-
-        if (searchQuery.trim() !== '') {
-            result = result.filter(item =>
-                item.title.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-        }
         if (!showAll) {
-            return result.slice(0, 5);
+            return transactions.slice(0, 5);
         }
-
-        return result;
-    }, [transactions, searchQuery, showAll]);
+        return transactions;
+    }, [transactions, showAll]);
 
     const renderItem = useCallback(({ item }: { item: Transaction; index: number }) => {
         const isExpense = String(item.type).toLowerCase() === 'expense';
@@ -382,56 +362,26 @@ export function RecentTransactions({
                                         activeOpacity={0.6}
                                         onPress={() => {
                                             setShowAll(true);
-                                            setInputQuery('');
                                         }}
                                     >
-                                        <Text variant="body" fontWeight="600" color="income">
-                                            {t('transactions.seeAll')}
-                                        </Text>
                                     </TouchableOpacity>
                                 )}
                             </MotiView>
                         ) : (
                             <MotiView
-                                key="search-section"
+                                key="all-title-section"
                                 from={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 transition={{ type: 'timing', duration: 100 }}
+                                style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}
                             >
-                                <Box
-                                    flexDirection="row"
-                                    alignItems="center"
-                                    backgroundColor="inputBackground"
-                                    borderRadius="m"
-                                    paddingLeft="m"
-                                    borderWidth={scale(1)}
-                                    borderColor="inputBorder"
-                                    width="100%"
-                                    height="100%"
-                                >
-                                    <Feather name="search" size={18} color="#6F7583" style={{ marginRight: scale(8) }} />
-                                    <TextInput
-                                        style={{ flex: 1, height: '100%', fontSize: moderateScale(14), color: '#191D29' }}
-                                        placeholder={t('transactions.searchPlaceholder')}
-                                        placeholderTextColor="#A5ABB6"
-                                        value={inputQuery}
-                                        onChangeText={setInputQuery}
-                                        autoFocus={true}
-                                    />
-
-                                    <TouchableOpacity
-                                        style={{ height: '100%', justifyContent: 'center', paddingHorizontal: scale(14) }}
-                                        onPress={() => {
-                                            setShowAll(false);
-                                            setInputQuery('');
-                                        }}
-                                    >
-                                        <Text variant="body" fontWeight="600" color="textSecondary" style={{ fontSize: moderateScale(13) }}>
-                                            {t('transactions.seeLess')}
-                                        </Text>
-                                    </TouchableOpacity>
-                                </Box>
+                                <Text variant="body" fontWeight="700" color="textPrimary" style={{ fontSize: moderateScale(16), letterSpacing: -0.3 }}>
+                                    {t('transactions.recentTitle')}
+                                </Text>
+                                <TouchableOpacity activeOpacity={0.6} onPress={() => setShowAll(false)}>
+                                    <Text variant="body" fontWeight="600" color="income">{t('transactions.seeLess')}</Text>
+                                </TouchableOpacity>
                             </MotiView>
                         )}
                     </AnimatePresence>

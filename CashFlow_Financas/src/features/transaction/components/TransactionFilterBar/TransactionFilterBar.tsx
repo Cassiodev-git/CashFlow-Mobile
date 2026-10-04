@@ -13,9 +13,10 @@ interface Props {
     onUpdate: (newFilters: Partial<FilterOptions>) => void;
     onReset: () => void;
     loading?: boolean;
+    categories: { id: string; name: string }[];
 }
 
-export function TransactionFilterBar({ filters, onUpdate, onReset, loading = false }: Props) {
+export function TransactionFilterBar({ filters, onUpdate, onReset, categories, loading = false }: Props) {
     const theme = useTheme<Theme>();
     const { t } = useTranslation(); // Hook adicionado
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -122,6 +123,7 @@ export function TransactionFilterBar({ filters, onUpdate, onReset, loading = fal
                 currentFilters={filters}
                 onApply={onUpdate}
                 onReset={onReset}
+                categories={categories}
             />
         </Box>
     );

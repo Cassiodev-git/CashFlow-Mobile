@@ -3,7 +3,7 @@ import {drizzle} from "drizzle-orm/expo-sqlite"
 
 import * as schemas from "./schema"
 
-const sqlite = SQLite.openDatabaseSync("database.db")
+export const sqlite = SQLite.openDatabaseSync("database.db")
 
 export const db = drizzle(sqlite, {
     schema: schemas

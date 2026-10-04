@@ -14,20 +14,24 @@ import { useTransactionFilter } from '@/hooks/useTransactionFilter';
 import { useHomeData } from '@/hooks/useHomeData';
 import { Transactions } from '@/features/transaction/types/Transactions';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
-
+import { useCurrency } from '@/features/settings/hooks/useCurrency';
+import { useCategories } from '@/hooks/useCategories';
+import { getLocalDateString } from '@/utils/date';
 export default function ReportsScreen() {
     const { t, i18n } = useTranslation();
     const { date, data, handleNext, handlePrev, loading: loadingSummary } = useMonthlySummary();
     const { transactions, loading: loadingTransactions, deleteMultipleTransactions } = useTransactions();
     const { filters, updateFilter, resetFilters, filteredTransactions } = useTransactionFilter(transactions);
+    const {categories} = useCategories()
     const { deleteTransaction } = useHomeData();
+    const { formatCurrency } = useCurrency();
 
     const [selectedTransaction, setSelectedTransaction] = useState<Transactions | null>(null);
     const [transactionToEdit, setTransactionToEdit] = useState<Transactions | null>(null);
     const isReportLoading = loadingSummary || loadingTransactions;
 
     const sanitizedTransactions = useMemo<Transactions[]>(() => {
-        const now = new Date().toISOString();
+        const now = getLocalDateString();
 
         return filteredTransactions.map(tx => ({
             ...tx,
@@ -40,10 +44,8 @@ export default function ReportsScreen() {
         })) as Transactions[];
     }, [filteredTransactions]);
 
-    const formatCurrency = (value: number) => 
-        value.toLocaleString(i18n.language, { style: 'currency', currency: 'BRL' });
-
-    const monthName = new Date(date.year, date.month - 1).toLocaleString(i18n.language, { month: 'long' });
+    const reportLocale = i18n.language.startsWith('en') ? 'en-US' : 'pt-BR';
+    const monthName = new Date(date.year, date.month - 1).toLocaleString(reportLocale, { month: 'long' });
     const capitalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
     const handleEditTransaction = useCallback((transaction: Transactions) => {
@@ -99,6 +101,7 @@ export default function ReportsScreen() {
                 onUpdate={updateFilter}
                 onReset={resetFilters}
                 loading={loadingTransactions}
+                categories={categories}
             />
         </Box>
         </MotiView>
@@ -109,6 +112,7 @@ export default function ReportsScreen() {
             <TransactionHistoryList 
                 transactions={sanitizedTransactions} 
                 ListHeaderComponent={renderHeader()}
+                categories={categories}
                 loading={loadingTransactions}
                 onTransactionPress={setSelectedTransaction}
                 onDeleteMultiple={handleDeleteMultiple}

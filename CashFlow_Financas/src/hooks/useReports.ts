@@ -1,66 +1,194 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import AppTransactionsService from '@/services/AppTransactionsService';
+import AppCategoryService from '@/services/AppCategoryService';
 import { Transactions as Transaction } from "@/features/transaction/types/Transactions";
 import { useTranslation } from 'react-i18next';
-import { logger } from '@/utils/logger';
+import { DeviceEventEmitter } from 'react-native';
+import { getLocalDateString, parseDateOnly, parseDatabaseTimestamp } from '@/utils/date';
+import { startOfDay, isAfter } from 'date-fns';
 
 export type ReportPeriod = 'week' | 'month' | 'year';
+export interface GraphInsights {
+    balance: number;
+    expenseAverage: number;
+    topCategories: Array<{ name: string; amount: number }>;
+    status: Record<'paid' | 'pending' | 'canceled', number>;
+    busiestDay: string | null;
+    recurringBalance: number;
+    balanceChange: number;
+    totalExpenses: number;
+}
 
 export function useReports(selectedTab: ReportPeriod) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false); 
-    const [error, setError] = useState<boolean>(false);   
+    const [refreshing, setRefreshing] = useState(false);
+    const [error, setError] = useState<boolean>(false);
     const [lineChartData, setLineChartData] = useState<any[]>([]);
     const [pieChartData, setPieChartData] = useState<any[]>([]);
+    const [insights, setInsights] = useState<GraphInsights | null>(null);
 
-    const loadChartData = useCallback(async (isPullToRefresh = false) => {
+    // Ref para evitar chamadas de refresh simultâneas
+    const isFetchingRef = useRef(false);
+
+    const fetchReports = useCallback(async (isPullToRefresh = false, isCancelledCheck?: () => boolean) => {
+        if (isFetchingRef.current) return;
+        isFetchingRef.current = true;
+
         try {
             if (isPullToRefresh) {
                 setRefreshing(true);
             } else {
                 setLoading(true);
             }
+            setError(false);
 
-            setError(false); 
+            const [transactions, categories] = await Promise.all([
+                AppTransactionsService.listTransactions(),
+                AppCategoryService.listCategories(),
+            ]);
 
-            const transactions: Transaction[] = await AppTransactionsService.listTransactions();
+            // Se a requisição foi cancelada (mudou de aba ou desmontou), ignora os setStates
+            if (isCancelledCheck && isCancelledCheck()) return;
 
-            const formattedLineData = filterAndGroupTransactionsByDay(transactions, selectedTab);
-            const formattedPieData = groupTransactionsByCategory(transactions, selectedTab, t);
+            const categoryNames = new Map(categories.map((category) => [category.id, category.name]));
+
+            const formattedLineData = filterAndGroupTransactionsByDay(transactions, selectedTab, i18n.language);
+            const formattedPieData = groupTransactionsByCategory(transactions, selectedTab, categoryNames, t);
+            const generatedInsights = buildInsights(transactions, selectedTab, categoryNames, t);
 
             setLineChartData(formattedLineData);
             setPieChartData(formattedPieData);
+            setInsights(generatedInsights);
         } catch (err) {
-            logger.error("Erro ao carregar os dados dos gráficos:", err);
-            setError(true); 
+            if (!isCancelledCheck || !isCancelledCheck()) {
+                setError(true);
+            }
         } finally {
+            isFetchingRef.current = false;
             setLoading(false);
             setRefreshing(false);
         }
-    }, [selectedTab, t]);
+    }, [i18n.language, selectedTab, t]);
 
+    // Executa na troca de aba ou idioma
     useEffect(() => {
-        loadChartData();
-    }, [loadChartData]);
+        let isCancelled = false;
+
+        fetchReports(false, () => isCancelled);
+
+        return () => {
+            isCancelled = true; // Cancela atualizações pendentes caso selectedTab mude ou o componente desmonte
+        };
+    }, [fetchReports]);
+
+    // Escuta mutações no banco
+    useEffect(() => {
+        const subscription = DeviceEventEmitter.addListener('transaction_mutated', () => {
+            fetchReports(true);
+        });
+        return () => subscription.remove();
+    }, [fetchReports]);
 
     const refresh = useCallback(() => {
-        loadChartData(false); 
-    }, [loadChartData]);
+        fetchReports(false);
+    }, [fetchReports]);
 
     const onRefresh = useCallback(() => {
-        loadChartData(true); 
-    }, [loadChartData]);
+        fetchReports(true);
+    }, [fetchReports]);
+
+    return {
+        loading,
+        refreshing,
+        error,
+        lineChartData,
+        pieChartData,
+        insights,
+        refresh,
+        onRefresh
+    };
+}
+
+function buildInsights(transactions: Transaction[], period: ReportPeriod, categoryNames: Map<string, string>, t: (key: string) => string): GraphInsights {
+    const today = startOfDay(new Date());
+
+    const periodTransactions = transactions
+        .map((transaction) => ({ transaction, date: getSafeDate(transaction) }))
+        .filter((item): item is { transaction: Transaction; date: Date } => item.date !== null && checkPeriodMatch(item.date, period));
+
+    const categoryTotals = new Map<string, number>();
+    const days = new Map<string, number>();
+    const status: GraphInsights['status'] = { paid: 0, pending: 0, canceled: 0 };
+    let balance = 0;
+    let recurringBalance = 0;
+    let totalExp = 0;
+    let paidExpenseCount = 0;
+
+    periodTransactions.forEach(({ transaction, date }) => {
+        const rawAmount = Number(transaction.amount);
+        const amount = Number.isFinite(rawAmount) ? rawAmount : 0; // Proteção contra NaN
+        
+        // Contagem de status (inclui pendentes e canceladas para telemetria do relatório)
+        const transactionStatus = transaction.status === 'paid' || transaction.status === 'canceled' ? transaction.status : 'pending';
+        status[transactionStatus] += 1;
+
+        // FILTRO CRÍTICO: Apenas pagas e com data <= HOJE entram nos valores financeiros
+        if (transaction.status !== 'paid') return;
+        if (isAfter(startOfDay(date), today)) return;
+
+        balance += transaction.type === 'income' ? amount : -amount;
+        if (transaction.is_recurring) recurringBalance += transaction.type === 'income' ? amount : -amount;
+        
+        if (transaction.type === 'expense') {
+            totalExp += amount;
+            paidExpenseCount += 1;
+
+            const categoryId = transaction.category_id ?? 'uncategorized';
+            categoryTotals.set(categoryId, (categoryTotals.get(categoryId) ?? 0) + amount);
+            const day = getLocalDateString(date);
+            days.set(day, (days.get(day) ?? 0) + amount);
+        }
+    });
+
+    const topCategories = [...categoryTotals.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([id, amount]) => ({ name: categoryNames.get(id) ?? t('graph.others'), amount }));
+        
+    const busiestDay = [...days.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+    const now = new Date();
+    const previousPeriod = getPreviousPeriod(period, now);
+    
+    const previousBalance = transactions.reduce((total, transaction) => {
+        const date = getSafeDate(transaction);
+        if (!date || date < previousPeriod.start || date > previousPeriod.end || transaction.status !== 'paid') return total;
+        if (isAfter(startOfDay(date), today)) return total;
+
+        const rawAmount = Number(transaction.amount);
+        const amount = Number.isFinite(rawAmount) ? rawAmount : 0;
+        return total + (transaction.type === 'income' ? amount : -amount);
+    }, 0);
 
     return { 
-        loading, 
-        refreshing, 
-        error, 
-        lineChartData, 
-        pieChartData,
-        refresh, 
-        onRefresh 
+        balance, 
+        expenseAverage: paidExpenseCount ? totalExp / paidExpenseCount : 0, 
+        topCategories, 
+        status, 
+        busiestDay, 
+        recurringBalance, 
+        balanceChange: balance - previousBalance, 
+        totalExpenses: totalExp 
     };
+}
+
+function getPreviousPeriod(period: ReportPeriod, now: Date) {
+    if (period === 'week') {
+        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7, 23, 59, 59);
+        return { start: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 14), end };
+    }
+    if (period === 'month') return { start: new Date(now.getFullYear(), now.getMonth() - 1, 1), end: new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59) };
+    return { start: new Date(now.getFullYear() - 1, 0, 1), end: new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59) };
 }
 
 function checkPeriodMatch(transactionDate: Date, period: ReportPeriod): boolean {
@@ -82,9 +210,10 @@ function checkPeriodMatch(transactionDate: Date, period: ReportPeriod): boolean 
     return false;
 }
 
-function getXKeyLabel(transactionDate: Date, period: ReportPeriod): string {
+function getXKeyLabel(transactionDate: Date, period: ReportPeriod, language: string): string {
     if (period === 'year') {
-        return transactionDate.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
+        const locale = language.startsWith('en') ? 'en-US' : 'pt-BR';
+        return transactionDate.toLocaleDateString(locale, { month: 'short' }).replace('.', '');
     }
     if (period === 'week') {
         return `${transactionDate.getDate()}/${transactionDate.getMonth() + 1}`;
@@ -96,68 +225,92 @@ function getSafeDate(transaction: Transaction): Date | null {
     const rawDate = transaction.date || (transaction as any).created_at;
     if (!rawDate) return null;
 
-    const cleanDateStr = rawDate.slice(0, 10);
-    const parsedDate = new Date(`${cleanDateStr}T12:00:00`);
-    
-    return isNaN(parsedDate.getTime()) ? null : parsedDate;
+    return rawDate.length > 10 ? parseDatabaseTimestamp(rawDate) : parseDateOnly(rawDate);
 }
 
-function filterAndGroupTransactionsByDay(transactions: Transaction[], period: ReportPeriod) {
+function filterAndGroupTransactionsByDay(transactions: Transaction[], period: ReportPeriod, language: string) {
+    const today = startOfDay(new Date());
+
     const validTransactions = transactions
         .map(t => ({ transaction: t, tDate: getSafeDate(t) }))
-        .filter(item => item.tDate !== null && checkPeriodMatch(item.tDate, period) && item.transaction.status !== 'canceled');
+        .filter(item => 
+            item.tDate !== null && 
+            checkPeriodMatch(item.tDate, period) && 
+            item.transaction.status === 'paid' && // Apenas pagas
+            !isAfter(startOfDay(item.tDate), today) // Apenas até hoje
+        );
 
     const dailyMap: Record<string, { day: string; revenue: number; expense: number; sortIndex: number }> = {};
 
     validTransactions.forEach(({ transaction: t, tDate }) => {
-        const xAxisLabel = getXKeyLabel(tDate!, period);
+        const xAxisLabel = getXKeyLabel(tDate!, period, language);
+        const rawAmount = Number(t.amount);
+        const amount = Number.isFinite(rawAmount) ? rawAmount : 0;
 
         if (!dailyMap[xAxisLabel]) {
-            dailyMap[xAxisLabel] = { 
-                day: xAxisLabel, 
-                revenue: 0, 
+            dailyMap[xAxisLabel] = {
+                day: xAxisLabel,
+                revenue: 0,
                 expense: 0,
                 sortIndex: period === 'year' ? tDate!.getMonth() : tDate!.getTime()
             };
         }
 
         if (t.type === 'income') {
-            dailyMap[xAxisLabel].revenue += Number(t.amount);
+            dailyMap[xAxisLabel].revenue += amount;
         } else if (t.type === 'expense') {
-            dailyMap[xAxisLabel].expense += Number(t.amount);
+            dailyMap[xAxisLabel].expense += amount;
         }
     });
 
     return Object.values(dailyMap).sort((a, b) => a.sortIndex - b.sortIndex);
 }
 
-function groupTransactionsByCategory(transactions: Transaction[], period: ReportPeriod, t: any) {
+function groupTransactionsByCategory(
+    transactions: Transaction[],
+    period: ReportPeriod,
+    categoryNames: Map<string, string>,
+    t: (key: string) => string,
+) {
+    const today = startOfDay(new Date());
+
     const expenses = transactions
         .map(t => ({ transaction: t, tDate: getSafeDate(t) }))
-        .filter(item => item.tDate !== null && item.transaction.type === 'expense' && checkPeriodMatch(item.tDate, period) && item.transaction.status !== 'canceled');
+        .filter(item => 
+            item.tDate !== null && 
+            item.transaction.type === 'expense' && 
+            checkPeriodMatch(item.tDate, period) && 
+            item.transaction.status === 'paid' && // Apenas pagas
+            !isAfter(startOfDay(item.tDate), today) // Apenas até hoje
+        );
 
-    const totalExpense = expenses.reduce((acc, item) => acc + Number(item.transaction.amount), 0);
-    if (totalExpense === 0) return [];
-
-    const categoryMap: Record<string, { label: string; value: number; color: string }> = {};
+    const categoryMap: Record<string, { label: string; value: number; transactionCount: number }> = {};
     const colorPalette = ["#2D6A4F", "#FF9F1C", "#3A86FF", "#FFD60A", "#80ED99", "#E74C3C", "#9B59B6"];
 
-    expenses.forEach((item, index) => {
-        const categoryName = item.transaction.category_id || t("graph.others");
+    expenses.forEach((item) => {
+        const categoryId = item.transaction.category_id || 'uncategorized';
+        const categoryName = categoryNames.get(categoryId) || t("graph.others");
+        const rawAmount = Number(item.transaction.amount);
+        const amount = Number.isFinite(rawAmount) ? rawAmount : 0;
 
-        if (!categoryMap[categoryName]) {
-            categoryMap[categoryName] = {
+        if (!categoryMap[categoryId]) {
+            categoryMap[categoryId] = {
                 label: categoryName,
                 value: 0,
-                color: colorPalette[index % colorPalette.length]
+                transactionCount: 0,
             };
         }
 
-        categoryMap[categoryName].value += Number(item.transaction.amount);
+        categoryMap[categoryId].value += amount;
+        categoryMap[categoryId].transactionCount += 1;
     });
 
-    return Object.values(categoryMap).map(item => ({
-        ...item,
-        value: Math.round((item.value / totalExpense) * 100)
-    }));
+    return Object.values(categoryMap)
+        .filter((category) => category.transactionCount >= 1) 
+        .sort((left, right) => right.value - left.value)
+        .map((category, index) => ({
+            label: category.label,
+            value: category.value,
+            color: colorPalette[index % colorPalette.length],
+        }));
 }

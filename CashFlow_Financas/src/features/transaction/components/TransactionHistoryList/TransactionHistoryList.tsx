@@ -5,13 +5,22 @@ import { MotiView } from 'moti';
 import { Box, Text, scale, Theme } from '@/theme/unistyles'; 
 import { useTheme } from '@shopify/restyle';
 import { useTranslation } from 'react-i18next';
+import { getLocalDateString, parseDatabaseTimestamp } from '@/utils/date';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Transactions as Transaction } from '../../types/Transactions';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { ConfirmationModal } from '@/components/ConfirmationModal/ConfirmationModal';
+import { useCurrency } from '@/features/settings/hooks/useCurrency';
+
+interface Category {
+    id: string;
+    name: string;
+    [key: string]: any;
+}
 
 interface TransactionHistoryListProps {
     transactions: Transaction[]; 
+    categories?: Category[];
     ListHeaderComponent?: React.ReactElement;
     loading?: boolean;
     onTransactionPress?: (transaction: Transaction) => void;
@@ -20,6 +29,7 @@ interface TransactionHistoryListProps {
 
 export function TransactionHistoryList({ 
     transactions, 
+    categories,
     ListHeaderComponent, 
     loading = false,
     onTransactionPress,
@@ -27,12 +37,18 @@ export function TransactionHistoryList({
 }: TransactionHistoryListProps) {
     const theme = useTheme<Theme>();
     const { t, i18n } = useTranslation();
+    const { formatCurrency } = useCurrency();
     const insets = useSafeAreaInsets();
     
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [isModalVisible, setIsModalVisible] = useState(false);
     
     const isSelectionMode = selectedIds.size > 0;
+
+    const categoryMap = useMemo(() => {
+        if (!categories) return new Map<string, string>();
+        return new Map(categories.map(c => [c.id, c.name]));
+    }, [categories]);
 
     const toggleSelection = (id: string) => {
         const newSet = new Set(selectedIds);
@@ -58,8 +74,9 @@ export function TransactionHistoryList({
     };
 
     const getDateKey = useCallback((transaction: Transaction) => {
-        const dateRaw = transaction.date || transaction.created_at;
-        return dateRaw ? dateRaw.split(' ')[0].split('T')[0] : new Date().toISOString().split('T')[0];
+        if (transaction.date) return transaction.date.slice(0, 10);
+        const createdAt = parseDatabaseTimestamp(transaction.created_at);
+        return createdAt ? getLocalDateString(createdAt) : getLocalDateString();
     }, []);
 
     const getSectionTitle = useCallback((dateKey: string) => {
@@ -96,7 +113,6 @@ export function TransactionHistoryList({
             }));
     }, [transactions, loading, getDateKey, getSectionTitle, t]);
 
-    const formatCurrency = (value: number) => value.toLocaleString(i18n.language, { style: 'currency', currency: 'BRL' });
     const dynamicPaddingBottom = 95 + (insets.bottom > 0 ? insets.bottom : 4);
 
     const renderLoadingSkeleton = () => (
@@ -184,6 +200,12 @@ export function TransactionHistoryList({
                     const statusOpacity = item.status === 'paid' ? 1 : item.status === 'pending' ? 0.6 : 0.4;
                     const finalOpacity = isSelected ? 0.5 : statusOpacity;
 
+                    const categoryName = 
+                        (item as any).category?.name || 
+                        (item as any).category_name || 
+                        (item.category_id ? categoryMap.get(item.category_id) : null) || 
+                        item.category_id;
+
                     return (
                         <TouchableOpacity 
                             activeOpacity={0.7} 
@@ -212,7 +234,7 @@ export function TransactionHistoryList({
                                         </Box>
                                         <Box marginLeft="m" flex={1}>
                                             <Text variant="body" color="textPrimary" fontWeight="500" style={{ fontSize: scale(15) }}>{item.title}</Text>
-                                            <Text variant="caption" color="textSecondary" style={{ fontSize: scale(12) }}>{typeLabel} {item.category_id ? `• ${item.category_id}` : ''}</Text>
+                                            <Text variant="caption" color="textSecondary" style={{ fontSize: scale(12) }}>{typeLabel} {categoryName ? `• ${categoryName}` : ''}</Text>
                                         </Box>
                                     </Box>
                                     <Box alignItems="flex-end">

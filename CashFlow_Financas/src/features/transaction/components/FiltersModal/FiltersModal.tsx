@@ -1,294 +1,104 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Modal, TouchableOpacity, ScrollView, TextInput, NativeModules, Platform } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Modal, ScrollView, TextInput, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '@shopify/restyle';
-import { Box, Text, type Theme } from '@/theme/unistyles';
-import { FilterOptions } from '@/hooks/useTransactionFilter';
-import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { useTranslation } from 'react-i18next';
+import { Box, Text, type Theme } from '@/theme/unistyles';
+import type { FilterOptions } from '@/hooks/useTransactionFilter';
 
+interface CategoryOption { id: string; name: string; }
 interface Props {
     visible: boolean;
     onClose: () => void;
     currentFilters: FilterOptions;
     onApply: (filters: Partial<FilterOptions>) => void;
     onReset: () => void;
-    loading?: boolean;
+    categories: CategoryOption[];
 }
 
-export function FiltersModal({ visible, onClose, currentFilters, onApply, onReset, loading = false }: Props) {
+const isoToDisplay = (value: string | undefined, english: boolean) => {
+    if (!value) return '';
+    const [year, month, day] = value.split('-');
+    return year && month && day ? (english ? `${month}/${day}/${year}` : `${day}/${month}/${year}`) : '';
+};
+
+const displayToIso = (value: string, english: boolean) => {
+    if (!value) return undefined;
+    const parts = value.split('/');
+    if (parts.length !== 3) return null;
+    const [first, second, year] = parts;
+    const month = english ? first : second;
+    const day = english ? second : first;
+    if (![day, month, year].every(Boolean)) return null;
+    const date = new Date(Number(year), Number(month) - 1, Number(day));
+    if (date.getFullYear() !== Number(year) || date.getMonth() !== Number(month) - 1 || date.getDate() !== Number(day)) return null;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+};
+
+const maskDate = (value: string) => value.replace(/\D/g, '').slice(0, 8).replace(/(\d{2})(\d)/, '$1/$2').replace(/(\d{2})(\d)/, '$1/$2');
+const parseAmount = (value: string, english: boolean) => {
+    if (!value.trim()) return null;
+    const normalized = english ? value.replace(/,/g, '') : value.replace(/\./g, '').replace(',', '.');
+    const amount = Number(normalized);
+    return Number.isFinite(amount) && amount >= 0 ? amount : null;
+};
+
+export function FiltersModal({ visible, onClose, currentFilters, onApply, onReset, categories }: Props) {
+    const { t, i18n } = useTranslation();
     const theme = useTheme<Theme>();
-    const { t } = useTranslation();
+    const english = i18n.language.startsWith('en');
     const [tempFilters, setTempFilters] = useState(currentFilters);
-    const [startDateError, setStartDateError] = useState(false);
-    const [endDateError, setEndDateError] = useState(false);
-
-    const deviceLocale = useMemo(() => {
-        if (Platform.OS === 'android') {
-            return NativeModules.I18nManager.localeIdentifier || 'pt-BR';
-        } else {
-            return NativeModules.SettingsManager.settings.AppleLocale || 
-                NativeModules.SettingsManager.settings.AppleLanguages[0] || 'pt-BR';
-        }
-    }, []);
-
-    const isEnUS = deviceLocale.includes('en');
-    const placeholderFormat = isEnUS ? 'MM/DD/YYYY' : 'DD/MM/YYYY';
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [minAmount, setMinAmount] = useState('');
+    const [maxAmount, setMaxAmount] = useState('');
+    const [errorKey, setErrorKey] = useState<string | null>(null);
 
     useEffect(() => {
-        if (visible) {
-            setTempFilters(currentFilters);
-            setStartDateError(false);
-            setEndDateError(false);
-        }
-    }, [visible, currentFilters]);
+        if (!visible) return;
+        setTempFilters(currentFilters);
+        setStartDate(isoToDisplay(currentFilters.startDate, english));
+        setEndDate(isoToDisplay(currentFilters.endDate, english));
+        setMinAmount(currentFilters.minAmount == null ? '' : String(currentFilters.minAmount));
+        setMaxAmount(currentFilters.maxAmount == null ? '' : String(currentFilters.maxAmount));
+        setErrorKey(null);
+    }, [currentFilters, english, visible]);
 
-    const maskDate = (value: string) => {
-        return value
-            .replace(/\D/g, '') 
-            .replace(/(\d{2})(\d)/, '$1/$2') 
-            .replace(/(\d{2})(\d)/, '$1/$2') 
-            .replace(/(\d{4})(\d)/, '$1'); 
-    };
-
-    const isValidDate = (dateStr: string) => {
-        if (!dateStr) return true; 
-        if (dateStr.length !== 10) return false;
-
-        const parts = dateStr.split('/').map(Number);
-        const day = isEnUS ? parts[1] : parts[0];
-        const month = isEnUS ? parts[0] : parts[1];
-        const year = parts[2];
-
-        if (!day || !month || !year) return false;
-        if (month < 1 || month > 12) return false;
-        if (year < 1900 || year > 2100) return false;
-
-        const dateCheck = new Date(year, month - 1, day);
-        return (
-            dateCheck.getFullYear() === year &&
-            dateCheck.getMonth() === month - 1 &&
-            dateCheck.getDate() === day
-        );
-    };
+    const inputStyle = useMemo(() => ({ padding: theme.spacing.s, backgroundColor: theme.colors.inputBackground, borderRadius: theme.borderRadii.s, color: theme.colors.textPrimary, borderWidth: 1, borderColor: theme.colors.inputBorder }), [theme]);
+    const datePlaceholder = english ? 'MM/DD/YYYY' : 'DD/MM/YYYY';
 
     const handleApply = () => {
-        const isStartValid = isValidDate(tempFilters.startDate || '');
-        const isEndValid = isValidDate(tempFilters.endDate || '');
-
-        setStartDateError(!isStartValid);
-        setEndDateError(!isEndValid);
-
-        if (isStartValid && isEndValid) {
-            onApply(tempFilters);
-            onClose();
-        }
-    };
-
-    const handleReset = () => {
-        setStartDateError(false);
-        setEndDateError(false);
-        onReset();
+        const normalizedStart = displayToIso(startDate, english);
+        const normalizedEnd = displayToIso(endDate, english);
+        const normalizedMin = parseAmount(minAmount, english);
+        const normalizedMax = parseAmount(maxAmount, english);
+        if (normalizedStart === null || normalizedEnd === null) return setErrorKey('invalidFormat');
+        if (minAmount.trim() && normalizedMin === null || maxAmount.trim() && normalizedMax === null) return setErrorKey('invalidAmount');
+        if (normalizedStart && normalizedEnd && normalizedStart > normalizedEnd) return setErrorKey('invalidDateRange');
+        if (normalizedMin != null && normalizedMax != null && normalizedMin > normalizedMax) return setErrorKey('invalidAmountRange');
+        onApply({ ...tempFilters, startDate: normalizedStart, endDate: normalizedEnd, minAmount: normalizedMin, maxAmount: normalizedMax });
         onClose();
     };
 
-    const baseInputStyle = { 
-        padding: 12, 
-        backgroundColor: theme.colors.inputBackground, 
-        borderRadius: 8, 
-        color: theme.colors.textPrimary,
-        borderWidth: 1,
-    };
-
-    const isButtonDisabled = startDateError || endDateError;
-
     return (
-        <Modal visible={visible} animationType="slide" transparent>
+        <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
             <Box flex={1} backgroundColor="modalOverlay" justifyContent="flex-end">
                 <Box backgroundColor="card" borderTopLeftRadius="xl" borderTopRightRadius="xl" padding="l" maxHeight="90%">
-                    
-                    <Box flexDirection="row" justifyContent="space-between" alignItems="center" marginBottom="l">
-                        <Text variant="titleMedium">{t("report.titleModal")}</Text>
-                        <TouchableOpacity onPress={onClose}>
-                            <Feather name="x" size={24} color={theme.colors.textPrimary} />
-                        </TouchableOpacity>
-                    </Box>
-
-                    <ScrollView showsVerticalScrollIndicator={false}>
-                        <Box marginBottom="l">
-                            <Text variant="body" style={{ fontWeight: '600' }} marginBottom="s">{t("report.status")}</Text>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                <Box flexDirection="row" style={{ gap: 8 }}>
-                                    {loading ? (
-                                        <>
-                                            <Skeleton width={65} height={36} borderRadius={6} />
-                                            <Skeleton width={60} height={36} borderRadius={6} />
-                                            <Skeleton width={85} height={36} borderRadius={6} />
-                                            <Skeleton width={90} height={36} borderRadius={6} />
-                                        </>
-                                    ) : (
-                                        (['all', 'paid', 'pending', 'canceled'] as const).map((s) => {
-                                            const isActive = tempFilters.status === s;
-                                            return (
-                                                <TouchableOpacity key={s} onPress={() => setTempFilters({ ...tempFilters, status: s })}>
-                                                    <Box 
-                                                        paddingHorizontal="m" 
-                                                        height={36} 
-                                                        borderRadius="s" 
-                                                        justifyContent="center"
-                                                        alignItems="center"
-                                                        borderWidth={isActive ? 0 : 1}
-                                                        borderColor="border"
-                                                        backgroundColor={isActive ? 'primary' : 'card'}
-                                                    >
-                                                        <Text color={isActive ? 'textInverse' : 'textPrimary'} style={{ fontSize: 14, fontWeight: '500' }}>
-                                                            {t(`report.filters.${s}`)}
-                                                        </Text>
-                                                    </Box>
-                                                </TouchableOpacity>
-                                            );
-                                        })
-                                    )}
-                                </Box>
-                            </ScrollView>
-                        </Box>
-
-                        <Box marginBottom="l">
-                            <Text variant="body" style={{ fontWeight: '600' }} marginBottom="s">{t("report.filters.period")}</Text>
-                            <Box flexDirection="row" style={{ gap: 16 }}>
-                                <Box flex={1}>
-                                    <Text variant="caption" marginBottom="xs" color={startDateError ? "expense" : "textSecondary"}>{t("report.filters.startDate")}</Text>
-                                    {loading ? (
-                                        <Skeleton width="100%" height={45} borderRadius={8} />
-                                    ) : (
-                                        <>
-                                            <TextInput 
-                                                style={[baseInputStyle, { borderColor: startDateError ? theme.colors.expense : 'transparent' }]} 
-                                                placeholder={placeholderFormat}
-                                                placeholderTextColor={theme.colors.textSecondary} 
-                                                keyboardType="numeric"
-                                                maxLength={10}
-                                                value={tempFilters.startDate || ''} 
-                                                onChangeText={(v) => {
-                                                    const masked = maskDate(v);
-                                                    setTempFilters({...tempFilters, startDate: masked});
-                                                    if (startDateError && (masked.length === 10 || masked.length === 0)) {
-                                                        setStartDateError(!isValidDate(masked));
-                                                    }
-                                                }} 
-                                            />
-                                            {startDateError && (
-                                                <Text variant="caption" color="expense" style={{ marginTop: 4, fontSize: 11 }}>{t("report.filters.invalidFormat")}</Text>
-                                            )}
-                                        </>
-                                    )}
-                                </Box>
-                                <Box flex={1}>
-                                    <Text variant="caption" marginBottom="xs" color={endDateError ? "expense" : "textSecondary"}>{t("report.filters.endDate")}</Text>
-                                    {loading ? (
-                                        <Skeleton width="100%" height={45} borderRadius={8} />
-                                    ) : (
-                                        <>
-                                            <TextInput 
-                                                style={[baseInputStyle, { borderColor: endDateError ? theme.colors.expense : 'transparent' }]} 
-                                                placeholder={placeholderFormat} 
-                                                placeholderTextColor={theme.colors.textSecondary} 
-                                                keyboardType="numeric"
-                                                maxLength={10}
-                                                value={tempFilters.endDate || ''} 
-                                                onChangeText={(v) => {
-                                                    const masked = maskDate(v);
-                                                    setTempFilters({...tempFilters, endDate: masked});
-                                                    if (endDateError && (masked.length === 10 || masked.length === 0)) {
-                                                        setEndDateError(!isValidDate(masked));
-                                                    }
-                                                }} 
-                                            />
-                                            {endDateError && (
-                                                <Text variant="caption" color="expense" style={{ marginTop: 4, fontSize: 11 }}>{t("report.filters.invalidFormat")}</Text>
-                                            )}
-                                        </>
-                                    )}
-                                </Box>
-                            </Box>
-                        </Box>
-
-                        <Box marginBottom="l">
-                            <Text variant="body" style={{ fontWeight: '600' }} marginBottom="s">{t("report.filters.amountRange")}</Text>
-                            <Box flexDirection="row" style={{ gap: 16 }}>
-                                <Box flex={1}>
-                                    <Text variant="caption" marginBottom="xs">{t("report.filters.min")}</Text>
-                                    {loading ? (
-                                        <Skeleton width="100%" height={45} borderRadius={8} />
-                                    ) : (
-                                        <TextInput 
-                                            style={[baseInputStyle, { borderColor: 'transparent' }]} 
-                                            placeholder="R$ 0,00"
-                                            placeholderTextColor={theme.colors.textSecondary} 
-                                            keyboardType="numeric" 
-                                            value={tempFilters.minAmount?.toString() || ''} 
-                                            onChangeText={(v) => setTempFilters({...tempFilters, minAmount: v ? Number(v) : undefined})} 
-                                        />
-                                    )}
-                                </Box>
-                                <Box flex={1}>
-                                    <Text variant="caption" marginBottom="xs">{t("report.filters.max")}</Text>
-                                    {loading ? (
-                                        <Skeleton width="100%" height={45} borderRadius={8} />
-                                    ) : (
-                                        <TextInput 
-                                            style={[baseInputStyle, { borderColor: 'transparent' }]} 
-                                            placeholder="R$ 0,00"
-                                            placeholderTextColor={theme.colors.textSecondary} 
-                                            keyboardType="numeric" 
-                                            value={tempFilters.maxAmount?.toString() || ''} 
-                                            onChangeText={(v) => setTempFilters({...tempFilters, maxAmount: v ? Number(v) : undefined})} 
-                                        />
-                                    )}
-                                </Box>
-                            </Box>
-                        </Box>
-
-                        <Box marginBottom="xl">
-                            <Text variant="body" style={{ fontWeight: '600' }} marginBottom="s">{t("report.filters.categories")}</Text>
-                            {loading ? (
-                                <Skeleton width="100%" height={45} borderRadius={8} />
-                            ) : (
-                                <TextInput 
-                                    style={[baseInputStyle, { borderColor: 'transparent' }]} 
-                                    placeholder={t("report.filters.selectCategories")} 
-                                    placeholderTextColor={theme.colors.textSecondary}
-                                    editable={false} 
-                                />
-                            )}
-                        </Box>
+                    <Box flexDirection="row" justifyContent="space-between" alignItems="center" marginBottom="l"><Text variant="titleMedium">{t('report.titleModal')}</Text><TouchableOpacity onPress={onClose}><Feather name="x" size={24} color={theme.colors.icon} /></TouchableOpacity></Box>
+                    <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                        <Text variant="body" fontWeight="600" marginBottom="s">{t('report.status')}</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: theme.spacing.s }}>
+                            {(['all', 'paid', 'pending', 'canceled'] as const).map((status) => <TouchableOpacity key={status} onPress={() => setTempFilters({ ...tempFilters, status })}><Box paddingHorizontal="m" paddingVertical="s" borderRadius="s" backgroundColor={tempFilters.status === status ? 'primary' : 'surface'} borderWidth={1} borderColor={tempFilters.status === status ? 'primary' : 'border'}><Text color={tempFilters.status === status ? 'textInverse' : 'textPrimary'}>{t(`report.filters.${status}`)}</Text></Box></TouchableOpacity>)}
+                        </ScrollView>
+                        <Text variant="body" fontWeight="600" marginTop="l" marginBottom="s">{t('report.filters.period')}</Text>
+                        <Box flexDirection="row" gap="s"><Box flex={1}><Text variant="caption" marginBottom="xs">{t('report.filters.startDate')}</Text><TextInput style={inputStyle} placeholder={datePlaceholder} placeholderTextColor={theme.colors.placeholder} keyboardType="numeric" maxLength={10} value={startDate} onChangeText={(value) => setStartDate(maskDate(value))} /></Box><Box flex={1}><Text variant="caption" marginBottom="xs">{t('report.filters.endDate')}</Text><TextInput style={inputStyle} placeholder={datePlaceholder} placeholderTextColor={theme.colors.placeholder} keyboardType="numeric" maxLength={10} value={endDate} onChangeText={(value) => setEndDate(maskDate(value))} /></Box></Box>
+                        <Text variant="body" fontWeight="600" marginTop="l" marginBottom="s">{t('report.filters.amountRange')}</Text>
+                        <Box flexDirection="row" gap="s"><Box flex={1}><Text variant="caption" marginBottom="xs">{t('report.filters.min')}</Text><TextInput style={inputStyle} placeholder={t('report.filters.amountPlaceholder')} placeholderTextColor={theme.colors.placeholder} keyboardType="decimal-pad" value={minAmount} onChangeText={setMinAmount} /></Box><Box flex={1}><Text variant="caption" marginBottom="xs">{t('report.filters.max')}</Text><TextInput style={inputStyle} placeholder={t('report.filters.amountPlaceholder')} placeholderTextColor={theme.colors.placeholder} keyboardType="decimal-pad" value={maxAmount} onChangeText={setMaxAmount} /></Box></Box>
+                        <Text variant="body" fontWeight="600" marginTop="l" marginBottom="s">{t('report.filters.categories')}</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: theme.spacing.s }}><TouchableOpacity onPress={() => setTempFilters({ ...tempFilters, categoryId: 'all' })}><Box paddingHorizontal="m" paddingVertical="s" borderRadius="s" backgroundColor={tempFilters.categoryId === 'all' ? 'primary' : 'surface'} borderWidth={1} borderColor={tempFilters.categoryId === 'all' ? 'primary' : 'border'}><Text color={tempFilters.categoryId === 'all' ? 'textInverse' : 'textPrimary'}>{t('report.filters.all')}</Text></Box></TouchableOpacity>{categories.map((category) => <TouchableOpacity key={category.id} onPress={() => setTempFilters({ ...tempFilters, categoryId: category.id })}><Box paddingHorizontal="m" paddingVertical="s" borderRadius="s" backgroundColor={tempFilters.categoryId === category.id ? 'primary' : 'surface'} borderWidth={1} borderColor={tempFilters.categoryId === category.id ? 'primary' : 'border'}><Text color={tempFilters.categoryId === category.id ? 'textInverse' : 'textPrimary'}>{category.name}</Text></Box></TouchableOpacity>)}</ScrollView>
+                        {errorKey && <Text variant="caption" color="danger" marginTop="m">{t(`report.filters.${errorKey}`)}</Text>}
                     </ScrollView>
-
-                    <Box flexDirection="row" style={{ gap: 16 }} marginTop="s">
-                        <TouchableOpacity onPress={handleReset} style={{ flex: 1 }}>
-                            <Box padding="m" borderRadius="s" alignItems="center" borderWidth={1} borderColor="border">
-                                <Text color="textSecondary" style={{ fontWeight: '700' }}>{t("report.filters.reset")}</Text>
-                            </Box>
-                        </TouchableOpacity>
-                        
-                        <TouchableOpacity 
-                            onPress={handleApply} 
-                            style={{ flex: 1 }}
-                            disabled={isButtonDisabled}
-                        >
-                            <Box 
-                                backgroundColor={isButtonDisabled ? "inputBackground" : "primary"} 
-                                padding="m" 
-                                borderRadius="s" 
-                                alignItems="center"
-                                style={{ opacity: isButtonDisabled ? 0.6 : 1 }}
-                            >
-                                <Text color={isButtonDisabled ? "textSecondary" : "textInverse"} style={{ fontWeight: '700' }}>
-                                    {t("report.filters.apply")}
-                                </Text>
-                            </Box>
-                        </TouchableOpacity>
-                    </Box>
+                    <Box flexDirection="row" gap="m" marginTop="l"><TouchableOpacity onPress={() => { onReset(); onClose(); }} style={{ flex: 1 }}><Box padding="m" borderRadius="s" alignItems="center" borderWidth={1} borderColor="border"><Text color="textSecondary" fontWeight="700">{t('report.filters.reset')}</Text></Box></TouchableOpacity><TouchableOpacity onPress={handleApply} style={{ flex: 1 }}><Box backgroundColor="primary" padding="m" borderRadius="s" alignItems="center"><Text color="textInverse" fontWeight="700">{t('report.filters.apply')}</Text></Box></TouchableOpacity></Box>
                 </Box>
             </Box>
         </Modal>

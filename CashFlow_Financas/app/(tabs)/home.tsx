@@ -3,8 +3,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useState, useEffect } from "react"; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from "@shopify/restyle";
-//compoenets
-import { TopBar, TopBarSkeleton } from "@/components/TopBar/TopBar";
+
+// components
+import { TopBar } from "@/components/TopBar/TopBar";
 import { BalanceCard, BalanceCardSkeleton } from "@/features/transaction/components/BalanceCard/BalanceCard";
 import { FinanceCard, FinanceCardSkeleton } from "@/features/transaction/components/FinanceCard/FinanceCard";
 import { RecentTransactions, RecentTransactionsSkeleton } from "@/features/transaction/components/RecentTransactions/RecentTransactions";
@@ -87,11 +88,11 @@ export default function HomeScreen() {
                 contentContainerStyle={{
                     padding: scale(24),
                     gap: scale(16),
-                    paddingBottom: verticalScale(40) 
+                    paddingBottom: verticalScale(80) 
                 }}
                 showsVerticalScrollIndicator={false}
             >
-                {loadingUser ? <TopBarSkeleton /> : <TopBar user={user} />}
+                {!loadingUser && <TopBar user={user} />}
 
                 {hasError ? (
                     <ErrorState onRetry={refetch} />

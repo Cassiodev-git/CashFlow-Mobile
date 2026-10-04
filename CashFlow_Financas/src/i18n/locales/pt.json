@@ -51,7 +51,9 @@
         "userNotFoundForTransactionRead": "Usuário não encontrado para consultar transações",
         "networkError": "Erro de conexão",
         "databaseError": "Erro no banco de dados",
-        "permissionDenied": "Permissão negada"
+        "permissionDenied": "Permissão negada",
+        "categoryAlreadyExists": "Já existe uma categoria com esse nome e tipo",
+        "categoryNotFound": "Categoria não encontrada"
     },
     "validation": {
         "user": {
@@ -61,7 +63,19 @@
         "transaction": {
             "titleTooShort": "Título muito curto",
             "titleTooLong": "Título muito longo",
-            "descriptionTooLong": "Descrição muito longa"
+            "descriptionTooLong": "Descrição muito longa",
+            "intervalTooSmall": "O intervalo deve ser maior ou igual a 1"
+        },
+        "category": {
+            "nameRequired": "O nome da categoria é obrigatório"
+        },
+        "notification": {
+            "invalidId": "Formato de ID inválido",
+            "titleRequired": "O título é obrigatório",
+            "bodyRequired": "O corpo da mensagem é obrigatório",
+            "titleTooLong": "O título deve ter no máximo 100 caracteres",
+            "bodyTooLong": "O corpo da mensagem deve ter no máximo 255 caracteres",
+            "invalidDate": "Data inválida"
         }
     },
     "user": {
@@ -91,12 +105,13 @@
         "detailsTitle": "Detalhes da transação",
         "descriptionLabel": "Descrição",
         "descriptionPlaceholder": "Descreva a transação",
-        "amountLabel": "Valor (R$)",
+        "amountLabel": "Valor",
         "amountPlaceholder": "0,00",
         "typeLabel": "Tipo",
         "statusLabel": "Status",
         "dateLabel": "Data",
         "datePlaceholder": "AAAA-MM-DD",
+        "datePlaceholderLocal": "DD/MM/AAAA",
         "categoryIdLabel": "ID da categoria",
         "categoryIdPlaceholder": "Opcional",
         "errorDelete": "Não foi possível excluir a transação.",
@@ -146,7 +161,34 @@
         "salary": "Salário",
         "investment": "Investimentos",
         "entertainment": "Lazer",
-        "createCategory": "Crie sua categoria"
+        "createCategory": "Crie sua categoria",
+        "mostUsed": "Mais usadas"
+    },
+    "notifications": {
+        "enable": "Ativar notificações",
+        "reminders": "Lembretes de vencimento",
+        "reports": "Relatórios mensais",
+        "clearHistory": "Limpar histórico",
+        "historyTitle": "Lista de notificações",
+        "openList": "Abrir lista de notificações",
+        "empty": "Nenhuma notificação registrada",
+        "loadError": "Não foi possível carregar as notificações.",
+        "read": "Lida",
+        "unread": "Nova",
+        "dueDateTitle": "Atenção ao vencimento",
+        "dueDateBody": "Sua conta '{{title}}' está com vencimento próximo.",
+        "overdueTitle": "Conta vencida",
+        "overdueBody": "A conta '{{title}}' continua pendente e está vencida.",
+        "monthlyReportTitle": "Relatório mensal",
+        "monthlyReportBody": "O relatório do mês de {{month}} está pronto!",
+        "recurringCreatedTitle": "Recorrência criada",
+        "recurringCreatedBody": "A recorrência de '{{title}}' foi criada com sucesso.",
+        "weeklySummaryTitle": "Resumo semanal",
+        "weeklySummaryBody": "Confira suas receitas, despesas e saldo da semana anterior.",
+        "backupReminderTitle": "Backup preventivo",
+        "backupReminderBody": "Exporte seu backup JSON para manter seus dados financeiros protegidos.",
+        "testTitle": "Teste de notificação",
+        "testBody": "Isso é um teste do sistema de notificações."
     },
     "settings": {
         "title": "Configurações",
@@ -160,20 +202,24 @@
         "notificationsSubtitle": "Gerencie seus alertas",
         "preferences": "Preferências",
         "currency": "Moeda",
-        "currencySubtitle": "Real (R$)",
+        "currencySubtitle": "Real brasileiro",
         "theme": "Tema",
         "lightMode": "Modo claro",
+        "darkMode": "Modo escuro",
+        "systemMode": "Modo do sistema",
         "language": "Idioma",
         "languageSubtitle": "Português",
         "data": "Dados",
         "about": "Sobre",
         "defaultCategory": "Categoria padrão",
         "manageCategories": "Gerenciar categorias",
+        "recurringTransactions": "Transações recorrentes",
+        "recurringTransactionsSubtitle": "Gerencie contas e receitas fixas",
         "exportData": "Exportar dados",
         "exportDataSubtitle": "Exporte seus dados financeiros",
         "backup": "Backup",
         "backupSubtitle": "Gerencie seus backups",
-        "aboutApp": "Sobre o Cashflow",
+        "aboutApp": "Sobre o Finno",
         "appVersion": "Versão {{version}}"
     },
     "balance": {
@@ -187,9 +233,27 @@
         "title": "Gráficos",
         "cardSubtitle": "Pressione e arraste para inspecionar valores",
         "titleDescription": "Acompanhe sua evolução financeira",
+        "monthlyComparisonTitle": "Comparativo mensal",
+        "monthlyComparisonDescription": "Compare receitas e despesas mês a mês.",
+        "balanceEvolutionTitle": "Evolução do saldo",
+        "balanceEvolutionDescription": "Veja como o saldo acumulado mudou no período.",
+        "balanceEvolutionDescription": "Veja como o saldo acumulado mudou no período.",
         "revenue": "Receitas",
         "others": "Outros",
-        "empty": "Sem dados registrados"
+        "empty": "Sem dados registrados",
+        "insights": {
+            "title": "Insights financeiros",
+            "balanceEvolution": "Evolução do saldo",
+            "periodComparison": "{{value}} {{direction}} em relação ao período anterior",
+            "up": "acima",
+            "down": "abaixo",
+            "expenseTrend": "Média de gastos",
+            "topCategories": "Top categorias",
+            "status": "Status das transações",
+            "statusSummary": "{{paid}} pagas, {{pending}} pendentes e {{canceled}} canceladas de {{total}} transações.",
+            "financialCalendar": "Dia com maior volume de gastos",
+            "recurringForecast": "Saldo previsto de recorrências"
+        }
     },
     "report": {
         "title": "Relatório",
@@ -205,8 +269,12 @@
             "period": "Período",
             "startDate": "Início",
             "endDate": "Fim",
-            "invalidFormat": "Formato inválido",
+            "invalidFormat": "Formato de data inválido",
+            "invalidDateRange": "A data inicial deve ser anterior ou igual à data final.",
+            "invalidAmount": "Informe um valor válido.",
+            "invalidAmountRange": "O valor mínimo não pode ser maior que o máximo.",
             "amountRange": "Faixa de Valor",
+            "amountPlaceholder": "0,00",
             "min": "Mínimo",
             "max": "Máximo",
             "categories": "Categorias",
@@ -250,8 +318,212 @@
         "password": "Senha",
         "forgotPassword": "Esqueci minha senha"
     },
+    "security": {
+        "biometricEnable": "Ativar biometria",
+        "biometricSubtitle": "Exigir autenticação ao abrir o aplicativo",
+        "authPrompt": "Confirme sua biometria para ativar a proteção",
+        "unlockPrompt": "Autentique-se para acessar o Finno",
+        "fallbackLabel": "Usar senha do dispositivo",
+        "notSupported": "Biometria não disponível neste dispositivo.",
+        "lockedTitle": "Finno bloqueado",
+        "lockedSubtitle": "Confirme sua identidade para liberar suas informações financeiras.",
+        "unlockAction": "Desbloquear",
+        "authenticating": "Autenticando..."
+    },
+    "currencies": {
+        "BRL": "Real brasileiro",
+        "USD": "Dólar americano",
+        "EUR": "Euro",
+        "GBP": "Libra esterlina",
+        "JPY": "Iene japonês",
+        "AUD": "Dólar australiano",
+        "CHF": "Franco suíço",
+        "CAD": "Dólar canadense",
+        "CNY": "Yuan chinês",
+        "ARS": "Peso argentino"
+    },
+    "recurrence": {
+        "title": "Transações recorrentes",
+        "usage": "{{count}} de {{limit}} recorrências utilizadas",
+        "syncing": "Sincronizando recorrências...",
+        "empty": "Nenhuma recorrência cadastrada",
+        "interval": "a cada {{count}} período",
+        "interval_plural": "a cada {{count}} períodos",
+        "nextDate": "Próximo: {{date}}",
+        "deleteTitle": "Excluir recorrência",
+        "deleteDescription": "Tem certeza que deseja excluir esta recorrência? As transações já geradas serão mantidas.",
+        "frequency": {
+            "daily": "Diário",
+            "weekly": "Semanal",
+            "monthly": "Mensal",
+            "yearly": "Anual"
+        },
+        "form": {
+            "isRecurring": "Transação recorrente?",
+            "intervalPlaceholder": "A cada quantos períodos? Ex: 1",
+            "endDatePlaceholder": "Data final (YYYY-MM-DD)",
+            "endDatePlaceholderLocal": "Data final (DD/MM/AAAA)"
+        },
+        "help": {
+            "open": "Abrir ajuda de recorrências",
+            "title": "Como funcionam as recorrências",
+            "description": "Com as transações recorrentes, você não precisa cadastrar mensalmente suas contas fixas. Basta definir a frequência e o app organiza tudo automaticamente.",
+            "limitTitle": "Por que o limite de 30?",
+            "limitDescription": "Para manter o app rápido e organizado, o uso é limitado a 30 recorrências ativas ao mesmo tempo. Para adicionar uma nova conta, remova ou edite uma recorrência que você não usa mais."
+        },
+        "errors": {
+            "limitReached": "Limite de 15 recorrências atingido.",
+            "unexpected": "Não foi possível processar as recorrências."
+        }
+    },
     "alerts": {
         "permissionRequiredTitle": "Permissão necessária",
         "permissionRequiredMessage": "Autorize o acesso à galeria para selecionar uma imagem de avatar."
+    },
+    "feedback": {
+        "success": {
+            "title": "Sucesso"
+        },
+        "error": {
+            "title": "Ocorreu um erro"
+        },
+        "validation": {
+            "title": "Revise os dados"
+        },
+        "file": {
+            "nativeUnavailable": "O armazenamento de arquivos não está disponível neste dispositivo.",
+            "sharingUnavailable": "O compartilhamento de arquivos não está disponível neste dispositivo."
+        }
+    },
+    "backup": {
+        "title": "Backup e relatórios",
+        "subtitle": "Exporte uma cópia dos seus dados financeiros e restaure-a quando precisar. Tudo permanece no dispositivo, sem sincronização em nuvem.",
+        "processing": "Processando...",
+        "untitledTransaction": "Sem título",
+        "configAlert": {
+            "extensionWarning": "Alguns apps podem renomear o arquivo ao compartilhar. Certifique-se de manter a extensão (.json ou .csv) no final do nome para conseguir importar depois."
+        },
+        "uncategorized": "Sem categoria",
+        "export": {
+            "title": "Exportar dados",
+            "json": {
+                "title": "Formato JSON (.json)",
+                "description": "Crie uma cópia completa das suas transações para restaurar o Finno com segurança em outro dispositivo"
+            },
+            "csv": {
+                "title": "Planilha CSV (.csv)",
+                "description": "Abra no Excel, Sheets ou Numbers"
+            },
+            "pdf": {
+                "title": "Relatório em PDF (.pdf)",
+                "description": "Ideal para impressão ou compartilhamento"
+            }
+        },
+        "import": {
+            "title": "Restaurar backup",
+            "action": "Importar arquivo",
+            "description": "Selecione um arquivo JSON ou CSV do Finno"
+        },
+        "config": {
+            "jsonTitle": "Confirmar backup completo",
+            "csvTitle": "Exportar para CSV",
+            "pdfTitle": "Configurar relatório PDF",
+            "fullBackupDescription": "Gera um arquivo com todo o seu histórico de transações. Use-o para restaurar dados em outro dispositivo.",
+            "selectPeriod": "Selecione o período dos dados:",
+            "generate": "Gerar",
+            "export": "Exportar"
+        },
+        "period": {
+            "currentMonth": "Este mês",
+            "threeMonths": "Últimos 3 meses",
+            "currentYear": "Este ano",
+            "all": "Todo o histórico"
+        },
+        "share": {
+            "title": "Compartilhar exportação"
+        },
+        "feedback": {
+            "noTransactions": "Você não possui transações para exportar.",
+            "minimumPdfTransactions": "Adicione pelo menos 5 transações para gerar o PDF.",
+            "exportSuccess": "Exportação concluída.",
+            "exportError": "Não foi possível exportar seus dados. Tente novamente.",
+            "importSuccess": "{{count}} transações importadas com sucesso.",
+            "importError": "Não foi possível importar o arquivo. Verifique o conteúdo e tente novamente.",
+            "invalidFile": "Selecione um arquivo JSON ou CSV válido do Finno."
+        },
+        "pdf": {
+            "title": "Relatório de transações - Finno",
+            "generatedAt": "Gerado em {{date}}",
+            "date": "Data",
+            "description": "Título / descrição",
+            "category": "Categoria",
+            "status": "Status",
+            "amount": "Valor"
+        },
+        "about": {
+            "open": "Abrir informações sobre o Finno",
+            "title": "Sobre o Finno",
+            "localFirst": "O Finno funciona 100% offline e local-first: suas informações financeiras ficam no seu dispositivo.",
+            "privacy": "Você mantém privacidade absoluta, pois os dados não são enviados para análise ou sincronização externa.",
+            "noServers": "Não usamos servidores de terceiros nem backup automático em nuvem. Exporte um backup JSON periodicamente e guarde-o em um local seguro."
+        }
+    },
+    "categoryManagement": {
+        "create": "Criar categoria",
+        "newTitle": "Nova categoria",
+        "editTitle": "Editar categoria",
+        "mostUsed": "Categorias mais usadas",
+        "form": {
+            "name": "Nome da categoria",
+            "namePlaceholder": "Ex.: Supermercado",
+            "type": "Tipo",
+            "icon": "Selecione um ícone",
+            "save": "Salvar categoria",
+            "saving": "Salvando..."
+        },
+        "deleteOne": {
+            "title": "Excluir categoria",
+            "description": "Tem certeza que deseja excluir esta categoria?"
+        },
+        "deleteMany": {
+            "title": "Excluir categorias",
+            "description": "Você selecionou {{count}} categorias. Deseja excluí-las?"
+        },
+        "feedback": {
+            "loadError": "Não foi possível carregar as categorias.",
+            "saveError": "Não foi possível salvar a categoria.",
+            "deleteError": "Não foi possível excluir a categoria."
+        }
+    },
+    "aboutFinno": {
+        "name": "Finno",
+        "introduction": "Seu gestor financeiro pessoal, criado para manter suas informações sob o seu controle.",
+        "items": {
+            "offline": {
+                "title": "100% offline",
+                "description": "Use o Finno mesmo sem conexão com a internet."
+            },
+            "privacy": {
+                "title": "Privacidade absoluta",
+                "description": "Seus dados financeiros não são enviados a servidores de terceiros."
+            },
+            "localFirst": {
+                "title": "Dados no seu dispositivo",
+                "description": "O Finno é local-first: você decide quando e onde criar um backup."
+            }
+        },
+        "footer": "Feito para uma vida financeira mais clara."
+    },
+    "defaultCategories": {
+        "food": "Alimentação",
+        "transport": "Transporte",
+        "home": "Moradia",
+        "health": "Saúde",
+        "education": "Educação",
+        "entertainment": "Lazer",
+        "shopping": "Compras",
+        "bills": "Contas",
+        "salary": "Salário",
+        "investment": "Investimentos"
     }
 }

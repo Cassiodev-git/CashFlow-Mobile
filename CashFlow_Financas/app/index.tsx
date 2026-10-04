@@ -1,3 +1,4 @@
+import { scheduleMonthlyReportNotification } from "@/features/notification/utils/notificationsRules"
 //components
 import { UserForm } from "@/features/user/components/UserForm/UserForm";
 //Schema zod
@@ -14,6 +15,7 @@ export default function ModalScreen() {
   async function handleSaveUser(data: CreateUserDTO){
     const user = await createUser(data)
     if(user){
+      await scheduleMonthlyReportNotification()
       router.replace("/home")
     }
   }

@@ -1,7 +1,8 @@
 import React from 'react';
-import { ActivityIndicator, Image } from 'react-native';
+import { Image } from 'react-native';
 import { MotiView } from 'moti';
 import { Box, scale } from '@/theme/unistyles';
+import { Skeleton } from '@/components/Skeleton/Skeleton';
 
 export function LoadingScreen() {
     return (
@@ -18,7 +19,7 @@ export function LoadingScreen() {
                 style={{ alignItems: 'center', justifyContent: 'center' }}
             >
                 <Image
-                    source={require('@/assets/Logo_CashFlow.png')}
+                    source={require('@/assets/Finno_icon.png')}
                     style={{
                         width: scale(200),
                         height: scale(200),
@@ -27,14 +28,14 @@ export function LoadingScreen() {
                 />
             </MotiView>
 
-            <ActivityIndicator 
-                size="small" 
-                color="#2ecc71" 
+            <Box
                 style={{
                     position: 'absolute',
                     bottom: scale(80),
                 }}
-            />
+            >
+                <Skeleton width={scale(96)} height={scale(8)} borderRadius={scale(8)} />
+            </Box>
         </Box>
     );
 }

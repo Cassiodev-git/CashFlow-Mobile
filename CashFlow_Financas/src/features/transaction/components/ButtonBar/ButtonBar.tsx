@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
     StyleSheet,
     TouchableOpacity,
@@ -6,31 +6,35 @@ import {
     TextInput,
     KeyboardAvoidingView,
     Platform,
-    TouchableWithoutFeedback,
-    Keyboard,
     ScrollView,
     useWindowDimensions,
-    DeviceEventEmitter
+    DeviceEventEmitter,
+    Pressable,
+    Keyboard
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { MotiView, AnimatePresence } from 'moti';
 import { BlurView } from 'expo-blur';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@shopify/restyle';
-import AppTransactionsService from '@/services/AppTransactionsService';
 import AppCategoryService from '@/services/AppCategoryService';
+import { useTransactions } from '@/hooks/useTransactions';
 import type { categories } from '@/features/category/schema';
 import { Box, Text, scale, type Theme } from '@/theme/unistyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Skeleton } from '@/components/Skeleton/Skeleton';
+import { getLocalDateString } from '@/utils/date';
 
 interface ButtonBarProps {
     onTransactionCreated?: () => void | Promise<void>;
+    onPress?: () => void;
+    useExternalAction?: boolean;
 }
 
 type Category = typeof categories.$inferSelect;
 
 const applyDateMask = (value: string, lang: string) => {
     const cleanValue = value.replace(/\D/g, '');
-    
     if (lang.startsWith('en')) {
         if (cleanValue.length <= 4) return cleanValue;
         if (cleanValue.length <= 6) return `${cleanValue.slice(0, 4)}-${cleanValue.slice(4)}`;
@@ -44,24 +48,24 @@ const applyDateMask = (value: string, lang: string) => {
 
 const formatToBackendDate = (dateStr: string, lang: string): string => {
     if (!dateStr) return '';
-    
-    if (lang.startsWith('en')) {
-        return dateStr;
-    } else {
-        const parts = dateStr.split('/');
-        if (parts.length === 3) {
-            const [day, month, year] = parts;
-            return `${year}-${month}-${day}`;
-        }
-        return dateStr;
-    }
+    if (lang.startsWith('en')) return dateStr;
+    const parts = dateStr.split('/');
+    if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    return dateStr;
 };
 
-export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
+export function ButtonBar({ onTransactionCreated, onPress, useExternalAction = false }: ButtonBarProps) {
     const { t, i18n } = useTranslation();
     const theme = useTheme<Theme>();
     const { height } = useWindowDimensions();
+    const insets = useSafeAreaInsets();
+    const { createTransaction } = useTransactions();
+    const fullScreenModal = !useExternalAction;
+    const bottomBarHeight = fullScreenModal ? scale(64) + insets.bottom : 0;
+    
     const [isOpen, setIsOpen] = useState(false);
+    const [externalModalOpen, setExternalModalOpen] = useState(false);
+    const [isCompleted, setIsCompleted] = useState(false);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [amount, setAmount] = useState('');
@@ -69,459 +73,217 @@ export function ButtonBar({ onTransactionCreated }: ButtonBarProps) {
     const [categoryId, setCategoryId] = useState('');
     const [type, setType] = useState<'income' | 'expense'>('expense');
     const [status, setStatus] = useState<'paid' | 'pending' | 'canceled'>('paid');
+    
+    const [isRecurring, setIsRecurring] = useState(false);
+    const [frequency, setFrequency] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
+    const [interval, setInterval] = useState('');
+    const [endDate, setEndDate] = useState('');
+
     const [categories, setCategories] = useState<Category[]>([]);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [loadingCategories, setLoadingCategories] = useState(false);
-    const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+    const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const triggerError = (errorMessage: string) => {
+        setError(errorMessage);
+        if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+        errorTimeoutRef.current = setTimeout(() => setError(''), 6000);
+    };
 
     const resetForm = () => {
-        setTitle('');
-        setDescription('');
-        setAmount('');
-        setDate('');
-        setCategoryId('');
-        setType('expense');
-        setStatus('paid');
-        setError('');
+        setTitle(''); setDescription(''); setAmount(''); setDate(''); setCategoryId('');
+        setType('expense'); setStatus('paid'); setIsRecurring(false);
+        setFrequency('monthly'); setInterval(''); setEndDate(''); setError('');
+        if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
     };
 
     const handleOpen = () => {
+        if (useExternalAction) {
+            onPress?.();
+            return;
+        }
         setIsOpen(true);
-        setDate('');
+    };
+    const handleClose = () => {
+        setIsOpen(false);
+        setTimeout(() => resetForm(), 300);
     };
 
-    const handleClose = () => {
-        resetForm();
-        setIsOpen(false);
+    const handleBackdropPress = () => {
+        Keyboard.dismiss();
+        handleClose();
     };
 
     const handleSave = async () => {
         const normalizedTitle = title.trim();
-        const normalizedDescription = description.trim();
         const normalizedAmount = Number(amount.replace(',', '.'));
-        const trimmedDate = date.trim();
-        const normalizedDate = trimmedDate ? formatToBackendDate(trimmedDate, i18n.language) : undefined;
-        const normalizedCategoryId = categoryId.trim();
+        const normalizedDate = date.trim() ? formatToBackendDate(date.trim(), i18n.language) : getLocalDateString();
 
         if (!normalizedTitle || Number.isNaN(normalizedAmount) || normalizedAmount <= 0) {
-            setError(t("transactions.invalidCreateData"));
+            triggerError(t("transactions.invalidCreateData"));
             return;
-        }
-
-        if (normalizedDate) {
-            if (normalizedDate.length !== 10) {
-                setError(t("transactions.invalidDate", "Insira uma data válida no formato DD/MM/AAAA."));
-                return;
-            }
-
-            const partesAno = normalizedDate.split('-'); 
-            const anoDigitado = Number(partesAno[0]);
-            const mesDigitado = Number(partesAno[1]);
-            const diaDigitado = Number(partesAno[2]);
-
-            if (anoDigitado < 2000 || anoDigitado > new Date().getFullYear() + 2 || mesDigitado > 12 || diaDigitado > 31) {
-                setError(t("transactions.dateOutRange", "Por favor, insira uma data válida a partir do ano 2000."));
-                return;
-            }
         }
 
         try {
             setLoading(true);
-            setError('');
-
-            const result = await AppTransactionsService.createTransaction({
+            Keyboard.dismiss();
+            await createTransaction({
                 title: normalizedTitle,
-                description: normalizedDescription || undefined,
+                description: description.trim() || undefined,
                 amount: normalizedAmount,
                 type,
                 status,
-                date: normalizedDate || undefined,
-                category_id: normalizedCategoryId || undefined,
+                date: normalizedDate,
+                category_id: categoryId.trim() || undefined,
+                is_recurring: isRecurring,
+                frequency: isRecurring ? frequency : undefined,
+                interval: isRecurring ? (Number(interval) || 1) : undefined,
+                end_date: (isRecurring && endDate) ? formatToBackendDate(endDate, i18n.language) : undefined,
             });
 
-            if (!result) {
-                setError(t("errors.unexpected"));
-                return;
-            }
-
-            handleClose();
-
-            await new Promise(resolve => setTimeout(resolve, 120));
-
             DeviceEventEmitter.emit("transaction_mutated");
-
+            setIsCompleted(true);
+            handleClose();
+            setTimeout(() => setIsCompleted(false), 800);
             await onTransactionCreated?.();
-            
         } catch {
-            setError(t("errors.unexpected"));
+            triggerError(t("errors.unexpected"));
         } finally {
             setLoading(false);
         }
     };
 
     const filteredCategories = categories.filter((category) => category.type === type);
-    const shouldHideSecondaryFields = isKeyboardVisible;
 
     useEffect(() => {
-        async function loadCategories() {
-            if (!isOpen) return;
-
-            try {
-                setLoadingCategories(true);
-                const result = await AppCategoryService.listCategories();
-                setCategories(result);
-            } finally {
-                setLoadingCategories(false);
-            }
+        if (isOpen) {
+            setLoadingCategories(true);
+            AppCategoryService.listCategories()
+                .then(setCategories)
+                .finally(() => setLoadingCategories(false));
         }
-
-        loadCategories();
     }, [isOpen]);
 
     useEffect(() => {
-        const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
-            setIsKeyboardVisible(true);
+        const stateSubscription = DeviceEventEmitter.addListener('transaction_form_modal_state', (event: { open: boolean; completed?: boolean }) => {
+            setExternalModalOpen(event.open);
+            if (event.completed) {
+                setIsCompleted(true);
+                setTimeout(() => setIsCompleted(false), 800);
+            }
         });
-
-        const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-            setIsKeyboardVisible(false);
+        const closeSubscription = DeviceEventEmitter.addListener('transaction_form_close', () => {
+            setExternalModalOpen(false);
         });
-
         return () => {
-            showSubscription.remove();
-            hideSubscription.remove();
+            stateSubscription.remove();
+            closeSubscription.remove();
+            if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
         };
     }, []);
 
-    useEffect(() => {
-        if (error) {
-            const timer = setTimeout(() => {
-                setError('');
-            }, 6000); 
+    useEffect(() => { setCategoryId(''); }, [type]);
 
-            return () => clearTimeout(timer);
-        }
-    }, [error]);
+    const showBasic = true;
+    const showMiddle = true;
+    const showRecurrence = true;
 
     return (
         <Box alignItems="center" justifyContent="center">
-            {!isOpen && (
-                <TouchableOpacity activeOpacity={0.85} onPress={handleOpen}>
-                    <MotiView
-                        animate={{ rotate: '0deg', backgroundColor: theme.colors.primary }}
-                        transition={{ type: 'timing', duration: 220 }}
-                        style={plusButtonStyle}
-                    >
-                        <Feather name="plus" size={26} color={theme.colors.textInverse} />
+            <TouchableOpacity activeOpacity={0.85} onPress={() => {
+                if (isOpen) handleClose();
+                else if (externalModalOpen) DeviceEventEmitter.emit('transaction_form_close');
+                else handleOpen();
+            }}>
+                <MotiView animate={{ rotate: '0deg', scale: isCompleted ? 1.12 : 1, backgroundColor: isCompleted ? theme.colors.success : (isOpen || externalModalOpen ? theme.colors.danger : theme.colors.primary) }} transition={{ type: 'timing', duration: 280 }} style={plusButtonStyle(theme)}>
+                    <MotiView key={isCompleted ? 'completed' : (isOpen || externalModalOpen ? 'close' : 'add')} from={{ opacity: 0, scale: 0.5, rotate: '-45deg' }} animate={{ opacity: 1, scale: 1, rotate: '0deg' }} transition={{ type: 'timing', duration: 220 }}>
+                        <Feather name={isCompleted ? 'check' : (isOpen || externalModalOpen ? 'x' : 'plus')} size={26} color={theme.colors.textInverse} />
                     </MotiView>
-                </TouchableOpacity>
-            )}
+                </MotiView>
+            </TouchableOpacity>
 
-            <Modal
-                visible={isOpen}
-                transparent
-                animationType="none"
-                statusBarTranslucent
-                presentationStyle="overFullScreen"
-                onRequestClose={handleClose}
-            >
-                <BlurView intensity={70} tint="dark" style={StyleSheet.absoluteFillObject}>
-                    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                        <KeyboardAvoidingView 
-                            behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} 
-                            style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: scale(16), width: '100%' }}
-                        >
-                            <AnimatePresence>
-                                {isOpen && (
-                                    <MotiView
-                                        from={{ opacity: 0, scale: 0.9, translateY: 30 }}
-                                        animate={{
-                                            opacity: 1,
-                                            scale: isKeyboardVisible ? 0.96 : 1,
-                                            translateY: 0, 
-                                        }}
-                                        exit={{ opacity: 0, scale: 0.9, translateY: 30 }}
-                                        transition={{ type: 'timing', duration: 250 }}
-                                        style={{
-                                            width: '100%',
-                                            maxHeight: isKeyboardVisible ? Math.min(height * 0.55, 420) : Math.min(height * 0.84, 700),
-                                        }}
-                                    >
-                                        <Box
-                                            backgroundColor="card"
-                                            borderRadius="xl"
-                                            borderWidth={scale(1)}
-                                            borderColor="border"
-                                            overflow="hidden"
-                                            style={{
-                                                shadowColor: '#191D29',
-                                                shadowOffset: { width: 0, height: 10 },
-                                                shadowOpacity: 0.15,
-                                                shadowRadius: 14,
-                                                elevation: 10,
-                                            }}
-                                        >
-                                            <Box 
-                                                paddingHorizontal="m" 
-                                                paddingTop="s" 
-                                                paddingBottom="xs" 
-                                                borderBottomWidth={scale(1)} 
-                                                borderColor="inputBorder"
-                                                backgroundColor="card"
-                                                style={isKeyboardVisible ? { paddingTop: 14, paddingBottom: 4 } : {}}
-                                            >
-                                                <Text variant="titleMedium" color="textPrimary" fontWeight="700">
-                                                    {t("transactions.newTransaction")}
-                                                </Text>
-                                            </Box>
-
-                                            <ScrollView
-                                                style={{ width: '100%' }}
-                                                contentContainerStyle={{
-                                                    paddingHorizontal: scale(24),
-                                                    paddingTop: isKeyboardVisible ? scale(8) : scale(16),
-                                                    paddingBottom: isKeyboardVisible ? scale(12) : scale(24),
-                                                }}
-                                                showsVerticalScrollIndicator={false}
-                                                keyboardShouldPersistTaps="handled"
-                                            >
-                                                {/* Campo: Título */}
-                                                <Box width="100%" marginBottom="s">
-                                                    <Text variant="body" fontWeight="600" color="textPrimary" style={{ marginBottom: 4 }}>
-                                                        {t("transactions.title")}
-                                                    </Text>
-                                                    <TextInput 
-                                                        style={[inputStyle(theme), { fontSize: scale(15), color: theme.colors.textPrimary }]}
-                                                        placeholder={t("transactions.titlePlaceholder")}
-                                                        placeholderTextColor={theme.colors.placeholder}
-                                                        value={title}
-                                                        onChangeText={setTitle}
-                                                        maxLength={20}
-                                                    />
-                                                </Box>
-
-                                                {/* Campo: Descrição */}
-                                                <Box width="100%" marginBottom="s">
-                                                    <Text variant="body" fontWeight="600" color="textPrimary" style={{ marginBottom: 4 }}>
-                                                        {t("transactions.descriptionLabel")}
-                                                    </Text>
-                                                    <TextInput 
-                                                        style={[
-                                                            inputStyle(theme), 
-                                                            { fontSize: scale(15), color: theme.colors.textPrimary, textAlignVertical: 'top', paddingTop: scale(14) },
-                                                            isKeyboardVisible ? { minHeight: scale(48), height: scale(48) } : { minHeight: scale(104), height: scale(100) }
-                                                        ]}
-                                                        placeholder={t("transactions.descriptionPlaceholder")}
-                                                        placeholderTextColor={theme.colors.placeholder}
-                                                        value={description}
-                                                        onChangeText={setDescription}
-                                                        multiline
-                                                        maxLength={120}
-                                                    />
-                                                </Box>
-
-                                                
-                                                <Box flexDirection="row" style={{ gap: scale(12) }} alignItems="stretch" marginBottom="s">
-                                                    <Box flex={1}>
-                                                        <Text variant="body" fontWeight="600" color="textPrimary" style={{ marginBottom: 4 }}>
-                                                            {t("transactions.amountLabel")}
-                                                        </Text>
-                                                        <TextInput 
-                                                            style={[inputStyle(theme), { fontSize: scale(15), color: theme.colors.textPrimary }]}
-                                                            placeholder={t("transactions.amountPlaceholder")}
-                                                            placeholderTextColor={theme.colors.placeholder}
-                                                            keyboardType="numeric"
-                                                            value={amount}
-                                                            onChangeText={setAmount}
-                                                        />
+            <Modal visible={isOpen} transparent animationType="fade" statusBarTranslucent presentationStyle="overFullScreen" onRequestClose={handleClose}>
+                <Box flex={1}>
+                <BlurView intensity={70} tint="dark" style={[StyleSheet.absoluteFillObject, fullScreenModal && { bottom: bottomBarHeight }]}>
+                    <Pressable style={StyleSheet.absoluteFillObject} onPress={handleBackdropPress} />
+                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1, justifyContent: fullScreenModal ? 'flex-start' : 'center', paddingHorizontal: fullScreenModal ? 0 : scale(16), paddingTop: fullScreenModal ? insets.top + scale(8) : 0, paddingBottom: fullScreenModal ? 0 : scale(24) }}>
+                        <AnimatePresence>
+                            {isOpen && (
+                                <MotiView from={{ opacity: 0, scale: fullScreenModal ? 1 : 0.9, translateY: fullScreenModal ? 0 : 30 }} animate={{ opacity: 1, scale: 1, translateY: 0 }} exit={{ opacity: 0, scale: fullScreenModal ? 1 : 0.9, translateY: fullScreenModal ? 0 : 30 }} transition={{ type: 'timing', duration: 250 }} style={{ width: '100%', flex: fullScreenModal ? 1 : undefined, maxHeight: fullScreenModal ? undefined : Math.min(height * 0.85, 640) }}>
+                                    <Box flex={fullScreenModal ? 1 : undefined} backgroundColor="card" borderRadius={fullScreenModal ? 'none' : 'xl'} borderWidth={fullScreenModal ? 0 : scale(1)} borderColor="border" overflow="hidden">
+                                        <Box padding="m" borderBottomWidth={1} borderColor="inputBorder"><Text variant="titleMedium" fontWeight="700">{t("transactions.newTransaction")}</Text></Box>
+                                        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: scale(16) }}>
+                                            {showBasic && (
+                                                <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 200 }}>
+                                                    <Box width="100%" marginBottom="s"><Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.title")}</Text><TextInput style={inputStyle(theme)} placeholder={t("transactions.titlePlaceholder")} placeholderTextColor={theme.colors.textSecondary} value={title} onChangeText={setTitle} /></Box>
+                                                    <Box width="100%" marginBottom="s"><Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.descriptionLabel")}</Text><TextInput style={[inputStyle(theme), { height: scale(80) }]} multiline placeholder={t("transactions.descriptionPlaceholder")} placeholderTextColor={theme.colors.textSecondary} value={description} onChangeText={setDescription} /></Box>
+                                                </MotiView>
+                                            )}
+                                            {showMiddle && (
+                                                <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 200 }}>
+                                                    <Box flexDirection="row" gap="s" marginBottom="s">
+                                                        <Box flex={1}><Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.amountLabel")}</Text><TextInput style={inputStyle(theme)} placeholder={t("transactions.amountPlaceholder")} placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" value={amount} onChangeText={setAmount} /></Box>
+                                                        <Box flex={1}><Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.dateLabel")}</Text><TextInput style={inputStyle(theme)} placeholder={i18n.language.startsWith('en') ? t("transactions.datePlaceholder") : t("transactions.datePlaceholderLocal")} placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" maxLength={10} value={date} onChangeText={(t) => setDate(applyDateMask(t, i18n.language))} /></Box>
+                                                    </Box>
+                                                    <Box marginBottom="s"><Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.typeLabel")}</Text><Box flexDirection="row" gap="s">{(['income', 'expense'] as const).map((opt) => (<TouchableOpacity key={opt} style={[choiceButtonStyle(theme), type === opt && activeChoiceStyle(theme)]} onPress={() => setType(opt)}><Text color={type === opt ? 'primary' : 'textSecondary'}>{t(`transactions.${opt}`)}</Text></TouchableOpacity>))}</Box></Box>
+                                                    
+                                                    <Box marginBottom="s">
+                                                        <Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.statusLabel")}</Text>
+                                                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: scale(8) }}>
+                                                            {(['paid', 'pending', 'canceled'] as const).map((opt) => (
+                                                                <TouchableOpacity key={opt} style={[choiceButtonStyle(theme), status === opt && activeChoiceStyle(theme)]} onPress={() => setStatus(opt)}>
+                                                                    <Text color={status === opt ? 'primary' : 'textSecondary'}>{t(`transactions.status.${opt}`)}</Text>
+                                                                </TouchableOpacity>
+                                                            ))}
+                                                        </ScrollView>
                                                     </Box>
 
-                                                    <Box flex={1}>
-                                                        <Text variant="body" fontWeight="600" color="textPrimary" style={{ marginBottom: 4 }}>
-                                                            {t("transactions.dateLabel")}
-                                                        </Text>
-                                                        <TextInput
-                                                            style={[inputStyle(theme), { fontSize: scale(15), color: theme.colors.textPrimary }]}
-                                                            placeholder={i18n.language.startsWith('en') ? "YYYY-MM-DD" : "DD/MM/YYYY"}
-                                                            placeholderTextColor={theme.colors.placeholder}
-                                                            keyboardType="numeric"
-                                                            maxLength={10}
-                                                            value={date}
-                                                            onChangeText={(text) => setDate(applyDateMask(text, i18n.language))}
-                                                        />
+                                                    <Box marginBottom="s">
+                                                        <Text variant="body" fontWeight="600" marginBottom="xs">{t("transactions.categoryLabel")}</Text>
+                                                        {loadingCategories ? <Skeleton width="60%" height={20} /> : (
+                                                            <Box flexDirection="row" gap="s" flexWrap="wrap">
+                                                                {filteredCategories.map((c) => (<TouchableOpacity key={c.id} style={[choiceButtonStyle(theme), categoryId === c.id && activeChoiceStyle(theme)]} onPress={() => setCategoryId(c.id)}><Text color={categoryId === c.id ? 'primary' : 'textSecondary'}>{c.name}</Text></TouchableOpacity>))}
+                                                            </Box>
+                                                        )}
                                                     </Box>
-                                                </Box>
-
-                                                {/* Campos Secundários (Escondem com teclado aberto) */}
-                                                {!shouldHideSecondaryFields && (
-                                                    <>
-                                                        {/* Tipo */}
-                                                        <Box width="100%" marginBottom="s">
-                                                            <Text variant="body" fontWeight="600" color="textPrimary" style={{ marginBottom: 6 }}>
-                                                                {t("transactions.typeLabel")}
-                                                            </Text>
-                                                            <Box flexDirection="row" style={{ gap: scale(8) }} flexWrap="wrap">
-                                                                {(['income', 'expense'] as const).map((option) => {
-                                                                    const isSelected = type === option;
-                                                                    return (
-                                                                        <TouchableOpacity
-                                                                            key={option}
-                                                                            style={[choiceButtonStyle(theme), isSelected && { backgroundColor: theme.colors.primaryLight, borderColor: theme.colors.primary }]}
-                                                                            onPress={() => setType(option)}
-                                                                        >
-                                                                            <Text variant="body" fontWeight="600" color={isSelected ? 'primary' : 'textSecondary'}>
-                                                                                {t(`transactions.${option}`)}
-                                                                            </Text>
-                                                                        </TouchableOpacity>
-                                                                    );
-                                                                })}
+                                                </MotiView>
+                                            )}
+                                            {showRecurrence && (
+                                                <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 200 }} style={{ marginBottom: scale(8) }}>
+                                                    <Box borderTopWidth={1} borderColor="inputBorder" paddingTop="s">
+                                                        <>
+                                                                <Text variant="body" fontWeight="600" marginBottom="xs">{t("recurrence.form.isRecurring")}</Text>
+                                                                <TouchableOpacity style={[choiceButtonStyle(theme), isRecurring && activeChoiceStyle(theme)]} onPress={() => setIsRecurring(!isRecurring)}><Text color={isRecurring ? 'primary' : 'textSecondary'}>{isRecurring ? t("common.yes") : t("common.no")}</Text></TouchableOpacity>
+                                                        </>
+                                                        {isRecurring && (
+                                                            <Box marginTop="s" padding="s" backgroundColor="inputBackground" borderRadius="s">
+                                                                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: scale(8), marginBottom: scale(8) }}>{(['daily', 'weekly', 'monthly', 'yearly'] as const).map((f) => (<TouchableOpacity key={f} style={[choiceButtonStyle(theme), frequency === f && activeChoiceStyle(theme)]} onPress={() => setFrequency(f)}><Text variant="caption" color={frequency === f ? 'primary' : 'textSecondary'}>{t(`recurrence.frequency.${f}`)}</Text></TouchableOpacity>))}</ScrollView>
+                                                                <TextInput style={[inputStyle(theme), { marginBottom: scale(8) }]} placeholder={t("recurrence.form.intervalPlaceholder")} placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" value={interval} onChangeText={setInterval} />
+                                                                <TextInput style={inputStyle(theme)} placeholder={i18n.language.startsWith('en') ? t("recurrence.form.endDatePlaceholder") : t("recurrence.form.endDatePlaceholderLocal")} placeholderTextColor={theme.colors.textSecondary} keyboardType="numeric" maxLength={10} value={endDate} onChangeText={(t) => setEndDate(applyDateMask(t, i18n.language))} />
                                                             </Box>
-                                                        </Box>
-
-                                                        {/* Status */}
-                                                        <Box width="100%" marginBottom="s">
-                                                            <Text variant="body" fontWeight="600" color="textPrimary" style={{ marginBottom: 6 }}>
-                                                                {t("transactions.statusLabel")}
-                                                            </Text>
-                                                            <Box flexDirection="row" style={{ gap: scale(8) }} flexWrap="wrap">
-                                                                {(['pending', 'paid', 'canceled'] as const).map((option) => {
-                                                                    const isSelected = status === option;
-                                                                    return (
-                                                                        <TouchableOpacity
-                                                                            key={option}
-                                                                            style={[choiceButtonStyle(theme), isSelected && { backgroundColor: theme.colors.primaryLight, borderColor: theme.colors.primary }]}
-                                                                            onPress={() => setStatus(option)}
-                                                                        >
-                                                                            <Text variant="body" fontWeight="600" color={isSelected ? 'primary' : 'textSecondary'}>
-                                                                                {t(`transactions.status.${option}`)}
-                                                                            </Text>
-                                                                        </TouchableOpacity>
-                                                                    );
-                                                                })}
-                                                            </Box>
-                                                        </Box>
-
-                                                        {/* Categoria */}
-                                                        <Box width="100%" marginBottom="s">
-                                                            <Text variant="body" fontWeight="600" color="textPrimary" style={{ marginBottom: 6 }}>
-                                                                {t("transactions.categoryLabel")}
-                                                            </Text>
-                                                            {loadingCategories ? (
-                                                                <Text variant="body" color="textSecondary" style={{ paddingVertical: 2 }}>{t("common.loading")}</Text>
-                                                            ) : filteredCategories.length > 0 ? (
-                                                                <Box flexDirection="row" style={{ gap: scale(8) }} flexWrap="wrap">
-                                                                    {filteredCategories.map((category) => {
-                                                                        const isSelected = categoryId === category.id;
-                                                                        return (
-                                                                            <TouchableOpacity
-                                                                                key={category.id}
-                                                                                style={[choiceButtonStyle(theme), isSelected && { backgroundColor: theme.colors.primaryLight, borderColor: theme.colors.primary }]}
-                                                                                onPress={() => setCategoryId(category.id)}
-                                                                            >
-                                                                                <Text variant="body" fontWeight="600" color={isSelected ? 'primary' : 'textSecondary'}>
-                                                                                    {category.name}
-                                                                                </Text>
-                                                                            </TouchableOpacity>
-                                                                        );
-                                                                    })}
-                                                                </Box>
-                                                            ) : (
-                                                                <Text variant="body" color="textSecondary" style={{ paddingVertical: 2 }}>{t("categories.createCategory")}</Text>
-                                                            )}
-                                                        </Box>
-                                                    </>
-                                                )}
-
-                                                {/* Exibição do Erro */}
-                                                {!!error && (
-                                                    <Text variant="caption" color="danger" style={{ marginBottom: scale(12), textAlign: 'center' }}>
-                                                        {error}
-                                                    </Text>
-                                                )}
-
-                                                {/* Botão Salvar */}
-                                                <Box width="100%">
-                                                    <TouchableOpacity 
-                                                        style={saveButtonStyle(theme)}
-                                                        onPress={handleSave}
-                                                        disabled={loading}
-                                                        activeOpacity={0.8}
-                                                    >
-                                                        <Text variant="body" fontWeight="600" color="textInverse">
-                                                            {loading ? t("common.loading") : t("transactions.add")}
-                                                        </Text>
-                                                    </TouchableOpacity>
-                                                </Box>
-                                            </ScrollView>
-                                        </Box>
-                                    </MotiView>
-                                )}
-                            </AnimatePresence>
-
-                            {/* Botão de Fechar Dinâmico */}
-                            {!isKeyboardVisible && (
-                                <TouchableOpacity
-                                    activeOpacity={0.85}
-                                    onPress={handleClose}
-                                    style={{ position: 'absolute', bottom: scale(40), left: 0, right: 0, alignItems: 'center', justifyContent: 'center', zIndex: 30 }}
-                                >
-                                    <MotiView
-                                        from={{ rotate: '0deg', backgroundColor: theme.colors.primary }}
-                                        animate={{ rotate: '135deg', backgroundColor: theme.colors.danger }}
-                                        transition={{ type: 'timing', duration: 220 }}
-                                        style={plusButtonStyle}
-                                    >
-                                        <Feather name="plus" size={26} color={theme.colors.textInverse} />
-                                    </MotiView>
-                                </TouchableOpacity>
+                                                        )}
+                                                    </Box>
+                                                </MotiView>
+                                            )}
+                                            {error ? <Box marginBottom="s" marginTop="s"><Text color="danger" variant="caption">{error}</Text></Box> : null}
+                                            <TouchableOpacity style={saveButtonStyle(theme)} onPress={handleSave} disabled={loading}><Text color="textInverse" fontWeight="600">{loading ? t("common.loading") : t("transactions.add")}</Text></TouchableOpacity>
+                                        </ScrollView>
+                                    </Box>
+                                </MotiView>
                             )}
-                        </KeyboardAvoidingView>
-                    </TouchableWithoutFeedback>
+                        </AnimatePresence>
+                    </KeyboardAvoidingView>
                 </BlurView>
+                {fullScreenModal && <TouchableOpacity activeOpacity={1} onPress={handleClose} accessibilityLabel={t("common.close")} style={{ position: 'absolute', alignSelf: 'center', bottom: 0, width: scale(64), height: bottomBarHeight }} />}
+                </Box>
             </Modal>
         </Box>
     );
 }
 
-const plusButtonStyle = {
-    width: scale(48),
-    height: scale(48),
-    borderRadius: scale(24), 
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    elevation: 5,
-    zIndex: 9999,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: scale(4) },
-    shadowOpacity: 0.3,
-    shadowRadius: scale(5),
-};
-
-const inputStyle = (theme: Theme) => ({
-    width: '100%' as const,
-    height: scale(48),
-    backgroundColor: theme.colors.inputBackground, 
-    borderRadius: scale(12),
-    paddingHorizontal: scale(16),
-    borderWidth: scale(1),
-    borderColor: theme.colors.inputBorder, 
-});
-
-const choiceButtonStyle = (theme: Theme) => ({
-    paddingHorizontal: scale(14),
-    paddingVertical: scale(10),
-    borderRadius: scale(12),
-    borderWidth: scale(1),
-    borderColor: theme.colors.inputBorder,
-    backgroundColor: theme.colors.surface,
-});
-
-const saveButtonStyle = (theme: Theme) => ({
-    width: '100%' as const,
-    height: scale(48),
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    borderRadius: scale(12),
-    backgroundColor: theme.colors.primary,
-});
+const plusButtonStyle = (theme: Theme) => ({ width: scale(48), height: scale(48), borderRadius: scale(24), justifyContent: 'center' as const, alignItems: 'center' as const, elevation: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5 });
+const inputStyle = (theme: Theme) => ({ width: '100%' as const, height: scale(48), backgroundColor: theme.colors.inputBackground, borderRadius: scale(12), paddingHorizontal: scale(16), borderWidth: 1, borderColor: theme.colors.inputBorder, color: theme.colors.textPrimary });
+const choiceButtonStyle = (theme: Theme) => ({ paddingHorizontal: scale(12), paddingVertical: scale(8), borderRadius: scale(8), borderWidth: 1, borderColor: theme.colors.inputBorder, backgroundColor: theme.colors.surface });
+const activeChoiceStyle = (theme: Theme) => ({ backgroundColor: theme.colors.primaryLight, borderColor: theme.colors.primary });
+const saveButtonStyle = (theme: Theme) => ({ width: '100%' as const, height: scale(48), justifyContent: 'center' as const, alignItems: 'center' as const, borderRadius: scale(12), backgroundColor: theme.colors.primary, marginTop: scale(8) });

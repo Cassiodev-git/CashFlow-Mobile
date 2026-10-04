@@ -1,12 +1,14 @@
-import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import React, { useEffect } from 'react';
+import { DeviceEventEmitter, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { MotiView } from 'moti';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ButtonBar } from '@/features/transaction/components/ButtonBar/ButtonBar';
 import { Box, Text, scale } from '@/theme/unistyles';
+import { useProfile } from '@/hooks/useProfile';
 
 type TabRoute = 'Home' | 'Graph' | 'Relatório' | 'Perfil';
 
@@ -19,6 +21,12 @@ interface BottomBarProps {
 export function BottomBar({ currentRoute = 'Home', onNavigate, onTransactionCreated }: BottomBarProps) {
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
+    const { user, loadUser } = useProfile();
+
+    useEffect(() => {
+        const subscription = DeviceEventEmitter.addListener('profile_mutated', loadUser);
+        return () => subscription.remove();
+    }, [loadUser]);
 
     const tabs: { route: TabRoute; icon: keyof typeof Feather.glyphMap; label: string }[] = [
         { route: 'Home', icon: 'home', label: t("bottomBar.home") },
@@ -53,11 +61,11 @@ export function BottomBar({ currentRoute = 'Home', onNavigate, onTransactionCrea
                         marginBottom: 4, 
                     }}
                 >
-                    <Feather 
-                        name={tab.icon} 
-                        size={22} 
-                        color={isActive ? activeColor : inactiveColor} 
-                    />
+                    {tab.route === 'Perfil' && user?.imageProfile ? (
+                        <Image source={{ uri: user.imageProfile }} style={{ width: 24, height: 24, borderRadius: 12 }} contentFit="cover" />
+                    ) : (
+                        <Feather name={tab.icon} size={22} color={isActive ? activeColor : inactiveColor} />
+                    )}
                 </MotiView>
                 <Text 
                     variant="caption" 

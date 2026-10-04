@@ -9,6 +9,10 @@ export default function createCategoriesTable(db: SQlite.SQLiteDatabase){
         type TEXT NOT NULL CHECK (type IN ('income','expense')),
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
+        );
+        CREATE TABLE IF NOT EXISTS default_category_exclusions (
+        category_id TEXT PRIMARY KEY NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        );
     `)
 }

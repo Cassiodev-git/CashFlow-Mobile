@@ -6,6 +6,7 @@ import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { MotiView, AnimatePresence } from 'moti';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
+import { useCurrency } from '@/features/settings/hooks/useCurrency';
 import { Box, Text, verticalScale } from '@/theme/unistyles';
 
 interface BalanceCardProps {
@@ -24,13 +25,7 @@ export function BalanceCard({
     onToggleVisibility
 }: BalanceCardProps) {
     const { t } = useTranslation();
-
-    const formatCurrency = (value: number) => {
-        return value.toLocaleString('pt-BR', {
-            style: 'currency',
-            currency: 'BRL',
-        });
-    };
+    const { formatCurrency } = useCurrency();
 
     const isPositive = status === "positive";
     const isNegative = status === "negative";
@@ -51,7 +46,7 @@ export function BalanceCard({
         ? "#289653"
         : isNegative
             ? "#FF4747"
-            : "#6F7583";
+            : "#A3A8B3";
 
     let displayPercentage = Math.abs(percentage).toFixed(1);
     if (status === "neutral" || displayPercentage === "-0.0" || parseFloat(displayPercentage) === 0) {
@@ -115,7 +110,7 @@ export function BalanceCard({
                                 transition={{ type: 'timing', duration: 90 }}
                             >
                                 <Text
-                                    color="primaryLight"
+                                    color="textPrimary"
                                     fontWeight="700"
                                     style={{ fontSize: 30, letterSpacing: -0.5 }}
                                 >
@@ -131,7 +126,7 @@ export function BalanceCard({
                                 transition={{ type: 'timing', duration: 90 }}
                             >
                                 <Text
-                                    color="primaryLight"
+                                    color="textMuted"
                                     fontWeight="700"
                                     style={{ fontSize: 30, letterSpacing: -0.5 }}
                                 >
@@ -141,10 +136,10 @@ export function BalanceCard({
                         )}
                     </AnimatePresence>
                 </Box>
-
+                
                 <Box flexDirection="row" alignItems="center">
                     <Box
-                        backgroundColor="primaryLight"
+                        backgroundColor="card"
                         flexDirection="row"
                         alignItems="center"
                         paddingVertical="xs"
@@ -192,7 +187,7 @@ export function BalanceCard({
                                     <Text
                                         variant="caption"
                                         fontWeight="700"
-                                        color="textSecondary"
+                                        color="textMuted"
                                     >
                                         ••••
                                     </Text>
@@ -201,7 +196,7 @@ export function BalanceCard({
                         </AnimatePresence>
                     </Box>
 
-                    <Text variant="caption" fontWeight="400" color="textInverse">
+                    <Text variant="caption" fontWeight="400" color="textPrimary">
                         {t("balance.comparedToLastMonth")}
                     </Text>
                 </Box>

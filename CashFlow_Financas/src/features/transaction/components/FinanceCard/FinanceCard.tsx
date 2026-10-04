@@ -3,6 +3,7 @@ import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { MotiView, AnimatePresence } from 'moti';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
+import { useCurrency } from '@/features/settings/hooks/useCurrency';
 import { Box, Text, verticalScale } from '@/theme/unistyles';
 
 interface FinanceCardProps {
@@ -13,6 +14,7 @@ interface FinanceCardProps {
 
 export function FinanceCard({ isIncome, value, isVisible = true }: FinanceCardProps) {
     const { t } = useTranslation();
+    const { formatCurrency } = useCurrency();
 
     const cardConfig = isIncome
         ? {
@@ -29,13 +31,6 @@ export function FinanceCard({ isIncome, value, isVisible = true }: FinanceCardPr
             iconBgColor: "#FFE3E3",
             valueColor: "#FF4747",
         };
-
-    const formatCurrency = (value: number) => {
-        return value.toLocaleString('pt-BR', {
-            style: 'currency',
-            currency: 'BRL',
-        });
-    };
 
     return (
         <MotiView

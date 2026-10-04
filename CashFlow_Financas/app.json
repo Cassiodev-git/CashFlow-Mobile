@@ -2,7 +2,8 @@
   "expo": {
     "name": "Finno: Financial Manager",
     "slug": "finno-app",
-    "version": "0.0.3",
+    "version": "1.0.0",
+    "icon": "./src/assets/Finno_icon.png",
     "orientation": "portrait",
     "scheme": "finno",
     "userInterfaceStyle": "automatic",
@@ -25,8 +26,8 @@
       "package": "com.finno.app",
       "versionCode": 1,
       "adaptiveIcon": {
-        "foregroundImage": "./src/assets/Logo_CashFlow.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./src/assets/Finno_icon.png",
+        "backgroundColor": "#18181B"
       },
       "predictiveBackGestureEnabled": false
     },
@@ -36,9 +37,16 @@
     "plugins": [
       "expo-router",
       [
+        "expo-notifications",
+        {
+          "icon": "./src/assets/Finno_icon_notification.png",
+          "color": "#FFFFFF"
+        }
+      ],
+      [
         "expo-splash-screen",
         {
-          "image": "./src/assets/Logo_CashFlow.png",
+          "image": "./src/assets/Finno_icon.png",
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
@@ -51,7 +59,9 @@
             "pt"
           ]
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-font"
     ],
     "extra": {
       "router": {},

@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { users } from "../schema";
-import { transactions } from "@/features/transaction/schema";
+import { transactions } from "@/features/transaction/schema"
 import {v4 as uuid} from "uuid"
 import { eq } from "drizzle-orm";
 import type { CreateUserDTO, UpdateUserDTO } from "../validation";

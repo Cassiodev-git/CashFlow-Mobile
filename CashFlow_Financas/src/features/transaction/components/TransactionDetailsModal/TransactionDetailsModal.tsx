@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ConfirmationModal } from '@/components/ConfirmationModal/ConfirmationModal'; 
 import { Box, Text, scale, type Theme } from '@/theme/unistyles';
 import { Transactions as Transaction } from '../../types/Transactions';
+import { useCurrency } from '@/features/settings/hooks/useCurrency';
 
 interface TransactionDetailsModalProps {
     isOpen: boolean;
@@ -28,8 +29,9 @@ export function TransactionDetailsModal({
     onDelete,
     isVisible = true 
 }: TransactionDetailsModalProps) {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const theme = useTheme<Theme>();
+    const { formatCurrency } = useCurrency();
     const insets = useSafeAreaInsets();
     const [isConfirmOpen, setIsConfirmOpen] = useState(false); 
 
@@ -52,10 +54,7 @@ export function TransactionDetailsModal({
     }[status];
     const statusBackgroundColor = `${statusColor}1A`;
 
-    const formattedAmount = transaction.amount.toLocaleString(i18n.language, {
-        style: 'currency',
-        currency: 'BRL',
-    });
+    const formattedAmount = formatCurrency(transaction.amount);
 
     const handleConfirmDelete = () => {
         setIsConfirmOpen(false);

@@ -47,6 +47,11 @@ export default function SettingsLayout() {
         >
             <Stack.Screen name="index" options={{ animation: 'none', headerShown: false }} />
             <Stack.Screen name="profile" options={{ title: t("profile.title") }} />
+            <Stack.Screen name="security" options={{ title: t("settings.security") }} />
+            <Stack.Screen name="notification" options={{ title: t("settings.notifications") }} />
+            <Stack.Screen name="notification-list" options={{ title: t("notifications.historyTitle") }} />
+            <Stack.Screen name="recurring" options={{ title: t("settings.recurringTransactions") }} />
+            <Stack.Screen name="about" options={{ title: t("settings.aboutApp") }} />
         </Stack>
     );
 }

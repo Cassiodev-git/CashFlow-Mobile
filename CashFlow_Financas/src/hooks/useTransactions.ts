@@ -3,6 +3,7 @@ import { useFocusEffect } from 'expo-router';
 import { DeviceEventEmitter } from 'react-native';
 import AppTransactionService from '@/services/AppTransactionsService';
 import { Transaction } from './useTransactionFilter';
+import type { CreateTransactionDTO, UpdateTransactionDTO } from '@/features/transaction/validation';
 
 export function useTransactions() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -33,6 +34,32 @@ export function useTransactions() {
             .finally(() => {
                 if (isMounted) setLoading(false);
             });
+    }, []);
+
+    const createTransaction = useCallback(async (data: CreateTransactionDTO) => {
+        setLoading(true);
+        try {
+            await AppTransactionService.createTransaction(data);
+            DeviceEventEmitter.emit("transaction_mutated");
+        } catch (err) {
+            console.error("Erro ao criar transação:", err);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const updateTransaction = useCallback(async (id: string, data: UpdateTransactionDTO) => {
+        setLoading(true);
+        try {
+            await AppTransactionService.updateTransaction(id, data);
+            DeviceEventEmitter.emit("transaction_mutated");
+        } catch (err) {
+            console.error("Erro ao atualizar transação:", err);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
     const deleteMultipleTransactions = useCallback(async (ids: string[]) => {
@@ -66,5 +93,5 @@ export function useTransactions() {
         };
     }, [fetchTransactions]);
 
-    return { transactions, loading, deleteMultipleTransactions };
+    return { transactions, loading, createTransaction, updateTransaction, deleteMultipleTransactions };
 }
